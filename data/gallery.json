@@ -459,6 +459,15 @@
  ],
  "today": [
   {
+   "img": "textures/ortho_northeast.webp",
+   "thumb": "gallery/northeast_t.webp",
+   "title": "Entrada noreste · A-367",
+   "caption": "Vuelo de julio de 2022. La A-367 cruza este sector junto a la calle Santa María la Cañada. Se distinguen viviendas, huertas, olivares y naves; al sur está la Ciudad Deportiva. Imagen PNOA de 25 cm de resolución de origen.",
+   "credit": "Instituto Geográfico Nacional",
+   "license": "CC BY 4.0",
+   "source": "https://pnoa.ign.es/web/portal/pnoa-imagen/ortofotos-pnoa-maxima-actualidad"
+  },
+  {
    "img": "gallery/today_0.webp",
    "thumb": "gallery/today_0_t.webp",
    "title": "Puente Nuevo",

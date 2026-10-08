@@ -1,0 +1,21 @@
+{
+  "source": "https://www.ign.es/wms-inspire/pnoa-ma",
+  "layer": "OI.OrthoimageCoverage",
+  "crs": "EPSG:25830",
+  "bbox": [
+    307417,
+    4069123,
+    308617,
+    4070323
+  ],
+  "size": [
+    4096,
+    4096
+  ],
+  "metresPerOutputPixel": 0.29296875,
+  "retrieved": "2026-10-08",
+  "credit": "\u00a9 Instituto Geogr\u00e1fico Nacional, CC BY 4.0",
+  "note": "PNOA m\u00e1xima actualidad. Retrieval date is not the flight date.",
+  "flightMonth": "2022-07",
+  "sourceResolutionMetres": 0.25
+}
