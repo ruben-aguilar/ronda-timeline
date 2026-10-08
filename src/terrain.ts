@@ -77,9 +77,14 @@ export function createTerrain(dem: Dem, loader: THREE.TextureLoader, anisotropy:
     uWild: { value: 0 },
     tNortheast: { value: null as THREE.Texture | null },
     uNortheast: { value: 0 },
+    tStation: { value: null as THREE.Texture | null },
+    uStation: { value: 0 },
   };
-  let northeastRequested = false, northeastReady = false;
-  let northeastYear = 0;
+  const details = [
+    { name: "northeast", west: 800, south: 800, distance: 1300, texture: uniforms.tNortheast, weight: uniforms.uNortheast, requested: false, ready: false },
+    { name: "station", west: 0, south: 500, distance: 900, texture: uniforms.tStation, weight: uniforms.uStation, requested: false, ready: false },
+  ];
+  let detailYear = 0;
 
   const mat = new THREE.MeshStandardMaterial({ roughness: 0.93, metalness: 0 });
   mat.onBeforeCompile = (shader) => {
@@ -94,8 +99,8 @@ export function createTerrain(dem: Dem, loader: THREE.TextureLoader, anisotropy:
 varying vec2 vTUv;
 varying float vUp;
 varying vec3 vWPos;
-uniform sampler2D tHist, t1956, t1980, t2004, t2024, t2024c, tMask, tCliff, tNortheast;
-uniform float uNortheast;
+uniform sampler2D tHist, t1956, t1980, t2004, t2024, t2024c, tMask, tCliff, tNortheast, tStation;
+uniform float uNortheast, uStation;
 varying vec3 vTN;
 float gCliffL;
 uniform vec4 uW;
@@ -125,6 +130,9 @@ if (cin > 0.0) p2024 = mix(p2024, texture2D(t2024c, clamp(cuv, 0.0, 1.0)).rgb, c
 vec2 nuv = (uv - 0.7) / 0.3;
 float nin = smoothstep(0.0, 0.025, min(nuv.x, nuv.y)) * uNortheast;
 if (nin > 0.0) p2024 = mix(p2024, texture2D(tNortheast, clamp(nuv, 0.0, 1.0)).rgb, nin);
+vec2 suv = (uv - vec2(0.5, 0.625)) / 0.3;
+float stationWeight = smoothstep(0.0, 0.025, min(min(suv.x, suv.y), min(1.0 - suv.x, 1.0 - suv.y))) * uStation;
+if (stationWeight > 0.0) p2024 = mix(p2024, texture2D(tStation, clamp(suv, 0.0, 1.0)).rgb, stationWeight);
 
 }
 vec3 hist = vec3(0.0);
@@ -261,17 +269,18 @@ gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, edge);`,
     update(camera) {
       mesh.updateMatrixWorld();
       let changed = false;
-      const dx = Math.max(800 - camera.position.x, 0, camera.position.x - 2000);
-      const dn = Math.max(800 + camera.position.z, 0, -camera.position.z - 2000);
-      if (!northeastRequested && northeastYear > 0 && Math.hypot(dx, dn) < 1300) {
-        northeastRequested = true;
+      for (const detail of details) {
+        const dx = Math.max(detail.west - camera.position.x, 0, camera.position.x - detail.west - 1200);
+        const dn = Math.max(detail.south + camera.position.z, 0, -camera.position.z - detail.south - 1200);
+        if (detail.requested || detailYear <= 0 || Math.hypot(dx, dn) >= detail.distance) continue;
+        detail.requested = true;
         // Independent manager: this optional image does not block initial loading.
-        new THREE.TextureLoader(new THREE.LoadingManager()).load("textures/ortho_northeast.webp", (texture) => {
+        new THREE.TextureLoader(new THREE.LoadingManager()).load(`textures/ortho_${detail.name}.webp`, (texture) => {
           texture.colorSpace = THREE.SRGBColorSpace;
           texture.anisotropy = Math.min(anisotropy, 8);
-          uniforms.tNortheast.value = texture;
-          northeastReady = true;
-          uniforms.uNortheast.value = northeastYear;
+          detail.texture.value = texture;
+          detail.ready = true;
+          detail.weight.value = detailYear;
           invalidate();
         }, undefined, () => { /* Retain the base orthophoto if the detail tile is unavailable. */ });
       }
@@ -287,8 +296,8 @@ gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, edge);`,
       uniforms.uHist.value = w[0];
       uniforms.uW.value.set(w[1], w[2], w[3], w[4]);
       uniforms.uWild.value = 1 - THREE.MathUtils.smoothstep(year, -3000, -200);
-      northeastYear = THREE.MathUtils.smoothstep(year, 2020, 2022);
-      uniforms.uNortheast.value = northeastReady ? northeastYear : 0;
+      detailYear = THREE.MathUtils.smoothstep(year, 2020, 2022);
+      for (const detail of details) detail.weight.value = detail.ready ? detailYear : 0;
     },
   };
 }

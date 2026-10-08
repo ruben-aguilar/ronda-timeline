@@ -15,6 +15,7 @@ import { createGallery } from "./gallery";
 import { createTerrain } from "./terrain";
 import { createSky } from "./sky";
 import { createTrees } from "./trees";
+import { createRailway } from "./railway";
 import { CONFIDENCE_LABEL, Era, eraAt, formatNumber, formatYear, NOW, posAt, yearAt, yearsPerStep } from "./timeline";
 import { buildTimelineUI } from "./ui";
 
@@ -105,9 +106,10 @@ async function main() {
   scene.add(buildings.mesh);
   const landmarks = createLandmarks(dem);
   scene.add(landmarks.group);
-  const [trees, alameda] = await Promise.all([createTrees(dem), createAlameda(dem)]);
+  const [trees, alameda, railway] = await Promise.all([createTrees(dem), createAlameda(dem), createRailway(dem)]);
   scene.add(trees);
   scene.add(alameda.group);
+  scene.add(railway.group);
 
   // Cámara.
   const rig = createCameraRig(camera, labelRenderer.domElement, dem);
@@ -344,6 +346,7 @@ async function main() {
     if (!dirty && !cameraChanged) { lastRender = 0; return; }
     if (terrain.update(camera)) renderer.shadowMap.needsUpdate = true;
     landmarks.update(year, camera);
+    railway.update(year, camera);
     previousCamera.copy(camera.matrixWorld);
     renderer.info.reset();
     if ((window as unknown as { __ronda: { dbg: { direct: boolean } } }).__ronda.dbg.direct) renderer.render(scene, camera);
