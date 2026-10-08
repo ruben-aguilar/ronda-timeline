@@ -37,16 +37,23 @@ export function createSky(sun: THREE.Vector3, haze: THREE.Color) {
         float sourceAzimuth = ((1218.5 / 2048.0) - 0.5) * 2.0 * PI;
         float sourceElevation = (0.5 - 239.5 / 1024.0) * PI;
         float elevationScale = tan(sourceElevation) / max(tan(asin(uSun.y)), 0.1);
-        vec3 sampleDirection = normalize(vec3(d.x, d.y * elevationScale, d.z));
+        // The model ends after 4 km. Extend the sky a little below the true horizon
+        // so aerial views do not expose a large, flat lower hemisphere beyond that edge.
+        // The sun is above this adjustment in both lighting modes.
+        float elevation = asin(clamp(d.y, -1.0, 1.0));
+        elevation += 0.14 * (1.0 - smoothstep(-0.14, 0.30, elevation));
+        float skyHeight = sin(elevation);
+        vec2 horizontal = d.xz / max(length(d.xz), 0.00001);
+        vec3 sampleDirection = normalize(vec3(horizontal.x * cos(elevation), skyHeight * elevationScale, horizontal.y * cos(elevation)));
         float u = (atan(d.z, d.x) + sourceAzimuth - atan(uSun.z, uSun.x)) / (2.0 * PI) + 0.5;
         float v = asin(clamp(sampleDirection.y, -1.0, 1.0)) / PI + 0.5;
-        vec3 sky = mix(haze, vec3(0.075, 0.19, 0.40), smoothstep(0.0, 0.85, d.y));
+        vec3 sky = mix(haze, vec3(0.075, 0.19, 0.40), smoothstep(0.0, 0.85, skyHeight));
         if (uReady > 0.5) {
           sky = texture2D(uSky, vec2(fract(u), v)).rgb;
           sky *= mix(vec3(1.0), vec3(1.11, 0.98, 0.83), afternoon);
         }
         // Hide the lower hemisphere and join the distant terrain without a hard seam.
-        sky = mix(haze, sky, smoothstep(-0.025, 0.12, d.y));
+        sky = mix(haze, sky, smoothstep(-0.04, 0.06, skyHeight));
         gl_FragColor = vec4(sky, 1.0);
         // OutputPass applies exposure, tone mapping and display colour conversion once.
       }

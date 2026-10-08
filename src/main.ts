@@ -120,7 +120,7 @@ async function main() {
       tx: THREE.MathUtils.lerp(40, 120, t),
       tn: THREE.MathUtils.lerp(-330, 180, t),
       dist: THREE.MathUtils.lerp(1100, 2600, t),
-      height: THREE.MathUtils.lerp(420, 1050, t),
+      height: THREE.MathUtils.lerp(150, 360, t),
     };
   };
   buildCameraBar(rig);

@@ -14,15 +14,15 @@ export interface Viewpoint {
 }
 
 export const VIEWPOINTS: Viewpoint[] = [
-  { id: "general", name: "Vista general", cam: [-1250, 650, 520], tgt: [60, -120, 20] },
+  { id: "general", name: "Vista general", cam: [-1250, 650, 350], tgt: [60, -120, 20] },
   { id: "tajo", name: "El Tajo desde el valle", cam: [-360, -240, 90], tgt: [6, -26, 45] },
   { id: "puente", name: "Puente Nuevo de cerca", cam: [-160, -60, 90], tgt: [6, -26, 42] },
-  { id: "toros", name: "Plaza de toros", cam: [-10, 70, 75], tgt: [-100, 156, 4] },
+  { id: "toros", name: "Plaza de toros", cam: [-10, 70, 26], tgt: [-100, 156, 4] },
   { id: "santamaria", name: "Santa María la Mayor", cam: [88, -492, 30], tgt: [32, -372, 16] },
   { id: "almocabar", name: "Puerta de Almocábar", cam: [140, -800, 28], tgt: [114, -712, 8] },
-  { id: "banos", name: "Baños árabes", cam: [345, -300, 38], tgt: [280, -239, 3] },
-  { id: "alameda", name: "Alameda del Tajo y miradores", cam: [-470, 170, 330], tgt: [-280, 290, 0] },
-  { id: "ciudad", name: "La Ciudad (medina)", cam: [520, -760, 330], tgt: [40, -380, 10] },
+  { id: "banos", name: "Baños árabes", cam: [345, -300, 24], tgt: [280, -239, 3] },
+  { id: "alameda", name: "Alameda del Tajo y miradores", cam: [-470, 170, 210], tgt: [-280, 290, 0] },
+  { id: "ciudad", name: "La Ciudad (medina)", cam: [520, -760, 180], tgt: [40, -380, 10] },
   { id: "mercadillo", name: "El Mercadillo", cam: [-480, 420, 230], tgt: [-60, 180, 10] },
   { id: "cenital", name: "Vista cenital", cam: [60, -101, 2300], tgt: [60, -100, 0] },
   { id: "paseo", name: "A pie: Balcón del Tajo", cam: [-338, 319, 1.7], tgt: [-700, 250, 140], mode: "walk" },
