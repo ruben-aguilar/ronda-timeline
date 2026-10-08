@@ -150,16 +150,22 @@ export function createMonuments(dem: Dem, data: BuildingData): Monuments {
   // Target colours (linear) chosen from photos of Ronda: warm sandstone, ochre rammed earth,
   // whitewash, light yellow arena sand.
   const mat = {
-    stone: texturedMaterial("sandstone", { albedo: [0.5, 0.39, 0.26] }),
-    darkStone: texturedMaterial("blocks", { albedo: [0.46, 0.38, 0.28] }),
+    stone: texturedMaterial("ashlar", { albedo: [0.55, 0.44, 0.3] }),
+    darkStone: texturedMaterial("ashlar", { albedo: [0.4, 0.33, 0.24], scale: 0.7 }),
+    masonry: texturedMaterial("masonry", { albedo: [0.5, 0.42, 0.3] }),
     rubble: texturedMaterial("rubble", { albedo: [0.47, 0.39, 0.28] }),
     tapial: texturedMaterial("tapial", { albedo: [0.52, 0.42, 0.29] }),
+    brick: texturedMaterial("brick", { albedo: [0.46, 0.25, 0.14] }),
     white: texturedMaterial("plaster", { albedo: [0.82, 0.8, 0.74] }),
     cream: texturedMaterial("plaster", { albedo: [0.78, 0.68, 0.5] }),
     ochre: texturedMaterial("plaster", { albedo: [0.7, 0.52, 0.3] }),
+    rose: texturedMaterial("plaster", { albedo: [0.72, 0.46, 0.34] }),
     tiles: texturedMaterial("roof", { albedo: [0.4, 0.2, 0.1], scale: 0.8 }),
     sand: texturedMaterial("gravel", { albedo: [0.62, 0.44, 0.2], scale: 0.6, normalScale: 0.4 }),
-    red: new THREE.MeshStandardMaterial({ color: 0x6e2318, roughness: 0.7 }),
+    wood: texturedMaterial("wood", { albedo: [0.2, 0.11, 0.06] }),
+    green: texturedMaterial("wood", { albedo: [0.07, 0.16, 0.1] }),
+    paving: texturedMaterial("paving", { albedo: [0.56, 0.5, 0.41] }),
+    red: texturedMaterial("wood", { albedo: [0.42, 0.06, 0.04] }),
     dark: new THREE.MeshStandardMaterial({ color: 0x15110e, roughness: 1 }),
     road: texturedMaterial("cobble", { albedo: [0.32, 0.3, 0.27] }),
     iron: new THREE.MeshStandardMaterial({ color: 0x23201d, roughness: 0.6, metalness: 0.4 }),
@@ -191,6 +197,13 @@ export function createMonuments(dem: Dem, data: BuildingData): Monuments {
     if (!best) throw new Error(`no footprint near ${x},${n}`);
     excluded.add(key(best.c[0], best.c[1]));
     return best.pts;
+  };
+
+  /** All Catastro parts whose centroid is within r metres of a point, largest first. */
+  const takeParts = (x: number, n: number, r: number): Pt[][] => {
+    const found = footprints.filter((f) => Math.hypot(f.c[0] - x, f.c[1] - n) < r).sort((p, q) => q.area - p.area);
+    for (const f of found) excluded.add(key(f.c[0], f.c[1]));
+    return found.map((f) => f.pts);
   };
 
   const add = (b: Builder, base: number, from: number, to: number, end?: number) => {
@@ -372,7 +385,7 @@ export function createMonuments(dem: Dem, data: BuildingData): Monuments {
     const obb = orientedBox(fp);
     const y0 = minGround(fp) - 1;
     const b = new Builder();
-    b.add(prism(fp, y0, y0 + 5.5), mat.tapial);
+    b.add(prism(fp, y0, y0 + 5.5), mat.masonry);
     // Three brick barrel vaults with star-shaped skylights.
     const rows = 3;
     for (let i = 0; i < rows; i++) {
@@ -382,7 +395,7 @@ export function createMonuments(dem: Dem, data: BuildingData): Monuments {
       const r = obb.b / rows;
       const vault = new THREE.CylinderGeometry(r, r, obb.a * 1.8, 18, 1, false, -Math.PI / 2, Math.PI);
       vault.rotateZ(Math.PI / 2);
-      b.add(vault, mat.ochre, M(x, y0 + 5.5, -n, yawOf(obb.ux, obb.un)));
+      b.add(vault, mat.brick, M(x, y0 + 5.5, -n, yawOf(obb.ux, obb.un)));
       for (let k = -2; k <= 2; k++) {
         const sk = new THREE.CylinderGeometry(0.35, 0.35, 0.3, 8).translate(k * obb.a * 0.35, 5.5 + r - 0.05, 0);
         b.add(sk, mat.dark, M(x, y0, -n, yawOf(obb.ux, obb.un)));
@@ -397,11 +410,11 @@ export function createMonuments(dem: Dem, data: BuildingData): Monuments {
     const obb = orientedBox(fp);
     const y0 = minGround(fp) - 2;
     const b = new Builder();
-    b.add(prism(fp, y0, y0 + 15), mat.rubble);
+    b.add(prism(fp, y0, y0 + 15), mat.masonry);
     b.addRaw(metricUV(hipRoof(obb, y0 + 15, 0.32, 0.4)), mat.tiles);
     const t = M(obb.cx - obb.ux * (obb.a - 5), y0, -(obb.cn - obb.un * (obb.a - 5)), yawOf(obb.ux, obb.un));
-    b.add(box(10, 25, 10), mat.rubble, t);
-    for (const g of merlons(10, 10.4, 1.2, 1.2)) b.add(g.translate(0, 25, 0), mat.rubble, t);
+    b.add(box(10, 25, 10), mat.masonry, t);
+    for (const g of merlons(10, 10.4, 1.2, 1.2)) b.add(g.translate(0, 25, 0), mat.masonry, t);
     for (const s of [-1, 1]) b.add(box(0.5, 3, 1.4).translate(s * 5.05, 19, 0), mat.dark, t);
     add(b, y0, 1505, 1515);
   }
@@ -451,7 +464,7 @@ export function createMonuments(dem: Dem, data: BuildingData): Monuments {
     deck: number,
     width: number,
     arches: Array<[number, number, number]>,
-    opts: { buttress?: boolean; window?: boolean; photo?: THREE.Texture } = {},
+    opts: { buttress?: boolean; window?: boolean; photo?: THREE.Texture; material?: THREE.Material } = {},
   ) => {
     const ax = bridgeAxis(c, deck);
     const L0 = -ax.b - 4;
@@ -492,7 +505,7 @@ export function createMonuments(dem: Dem, data: BuildingData): Monuments {
     const frame = M(c[0], 0, -c[1], Math.PI / 2 - ax.ang);
     const body = new THREE.ExtrudeGeometry(shape, { depth: width, bevelEnabled: false, curveSegments: 24 });
     body.translate(0, 0, -width / 2);
-    b.add(body, mat.stone, frame);
+    b.add(body, opts.material ?? mat.stone, frame);
     if (opts.photo) {
       // The real photo on both faces, stretched over the outline (deck at the top of the photo).
       const face = new THREE.ShapeGeometry(shape, 24);
@@ -547,7 +560,7 @@ export function createMonuments(dem: Dem, data: BuildingData): Monuments {
     add(first.builder, first.bottom, 1735, 1740, 1741);
     const viejo = bridge([239, -134], 683, 7, [[0, 10, 0.5]]);
     add(viejo.builder, viejo.bottom, 1614, 1616);
-    const arabe = bridge([266, -174], 662, 5, [[0, 6, 0.3]]);
+    const arabe = bridge([266, -174], 662, 5, [[0, 6, 0.3]], { material: mat.masonry });
     add(arabe.builder, arabe.bottom, 1290, 1300);
   }
 
@@ -590,11 +603,12 @@ export function createMonuments(dem: Dem, data: BuildingData): Monuments {
     const gn = -712;
     const gy = ground(gx, gn) - 1;
     const gm = M(gx, gy, -gn, yawOf(90, -25));
-    g.add(box(9, 12, 5), mat.tapial, gm);
+    g.add(box(9, 12, 5), mat.masonry, gm);
     for (const s of [-1, 1]) {
-      g.add(box(6, 15, 7).translate(s * 7, 0, 0.5), mat.tapial, gm);
-      for (const mg of merlons(6, 7.4, 1.1, 0.9)) g.add(mg.translate(s * 7, 15, 0.5), mat.tapial, gm);
+      g.add(box(6, 15, 7).translate(s * 7, 0, 0.5), mat.masonry, gm);
+      for (const mg of merlons(6, 7.4, 1.1, 0.9)) g.add(mg.translate(s * 7, 15, 0.5), mat.masonry, gm);
     }
+    for (const z of [-2.75, 2.75]) g.add(new THREE.TorusGeometry(2.75, 0.45, 6, 24, Math.PI + 1.1).rotateZ(-0.55).translate(0, 4, z), mat.stone, gm);
     const arch = new THREE.Shape();
     arch.moveTo(-2, 0);
     arch.lineTo(-2, 4);
@@ -605,6 +619,314 @@ export function createMonuments(dem: Dem, data: BuildingData): Monuments {
     opening.translate(0, 0, -2.7);
     g.add(opening, mat.dark, gm);
     add(g, gy, 1250, 1270);
+  }
+
+  // ------------------------------------------------------------- Shared facade details
+  const maxGround = (pts: Pt[]) => Math.max(...pts.map(([x, n]) => ground(x, n)));
+  /** Matrix at (su, sv) in a box's frame: local X along the long side, local +Z towards -v. */
+  const onBox = (o: OBB, su: number, sv: number, y: number, turn = 0) =>
+    M(o.cx + o.ux * su - o.un * sv, y, -(o.cn + o.un * su + o.ux * sv), yawOf(o.ux, o.un) + turn);
+  interface Face {
+    /** World matrix: local X along the face, local +Z out of the building, local Y = world height. */
+    m: THREE.Matrix4;
+    /** Half width of the face. */
+    half: number;
+    /** Map point at the middle of the face, and the map direction of local +X. */
+    at: Pt;
+    dir: Pt;
+  }
+  /** A face of a box (a long side, or an end), on the side s = ±1. */
+  const faceOf = (o: OBB, end: boolean, s: number): Face => {
+    const su = end ? s * o.a : 0;
+    const sv = end ? 0 : s * o.b;
+    const turn = end ? (s * Math.PI) / 2 : s > 0 ? Math.PI : 0;
+    const yaw = yawOf(o.ux, o.un) + turn;
+    return {
+      m: onBox(o, su, sv, 0, turn),
+      half: end ? o.b : o.a,
+      at: [o.cx + o.ux * su - o.un * sv, o.cn + o.un * su + o.ux * sv],
+      dir: [Math.cos(yaw), Math.sin(yaw)],
+    };
+  };
+  const allFaces = (o: OBB) => [faceOf(o, false, 1), faceOf(o, false, -1), faceOf(o, true, 1), faceOf(o, true, -1)];
+  /** The face of a box that looks most directly at a point. */
+  const faceTowards = (o: OBB, p: Pt, sidesOnly = false) => {
+    const dx = p[0] - o.cx;
+    const dn = p[1] - o.cn;
+    const du = (dx * o.ux + dn * o.un) / o.a;
+    const dv = (-dx * o.un + dn * o.ux) / o.b;
+    return !sidesOnly && Math.abs(du) > Math.abs(dv) ? faceOf(o, true, Math.sign(du)) : faceOf(o, false, Math.sign(dv));
+  };
+  const along = (f: Face, x: number): Pt => [f.at[0] + f.dir[0] * x, f.at[1] + f.dir[1] * x];
+  /** Matrix at a point along a face, `inset` metres inside the wall. */
+  const onFace = (f: Face, x: number, y: number, inset = 0) => f.m.clone().multiply(new THREE.Matrix4().makeTranslation(x, y, -inset));
+  /** True if a map point is within `tol` metres of the footprint outline. */
+  const nearEdge = (fp: Pt[], x: number, n: number, tol = 1.2) => {
+    for (let i = 0, j = fp.length - 1; i < fp.length; j = i++) {
+      const [ax, an] = fp[j];
+      const [bx, bn] = fp[i];
+      const L2 = (bx - ax) ** 2 + (bn - an) ** 2 || 1;
+      const t = THREE.MathUtils.clamp(((x - ax) * (bx - ax) + (n - an) * (bn - an)) / L2, 0, 1);
+      if (Math.hypot(x - ax - t * (bx - ax), n - an - t * (bn - an)) < tol) return true;
+    }
+    return false;
+  };
+  interface WindowOpts {
+    shutters?: THREE.Material;
+    balcony?: boolean;
+    frame?: THREE.Material;
+  }
+  /** A window: dark opening, sill and lintel, wooden shutters and an iron balcony if asked. */
+  const windowAt = (b: Builder, m: THREE.Matrix4, w: number, h: number, o: WindowOpts = {}) => {
+    b.add(box(w, h, 0.3).translate(0, 0, 0.02), mat.dark, m);
+    const fr = o.frame ?? mat.stone;
+    b.add(box(w + 0.5, 0.18, 0.42).translate(0, -0.18, 0.05), fr, m);
+    b.add(box(w + 0.5, 0.3, 0.3).translate(0, h, 0.05), fr, m);
+    if (o.shutters) for (const s of [-1, 1]) b.add(box(w / 2, h, 0.08).translate(s * (w * 0.75 + 0.05), 0, 0.2), o.shutters, m);
+    if (o.balcony) {
+      b.add(box(w + 0.9, 0.15, 0.8).translate(0, -0.15, 0.4), mat.stone, m);
+      b.add(box(w + 0.9, 0.9, 0.05).translate(0, 0, 0.78), mat.iron, m);
+    }
+  };
+  /**
+   * Windows on every wall of a footprint: one per 3.6 m, one row per floor from the ground at
+   * that spot up to `yTop`. Only where the box face lies on the real outline.
+   */
+  const windowRows = (b: Builder, o: OBB, fp: Pt[], yTop: number, floorH: number, opts: WindowOpts & { skip?: (f: Face, x: number) => boolean; tol?: number } = {}) => {
+    for (const f of allFaces(o)) {
+      const n = Math.floor((2 * f.half - 2) / 3.6);
+      for (let i = 0; i < n; i++) {
+        const x = -f.half + 1 + 3.6 * (i + 0.5) + (2 * f.half - 2 - 3.6 * n) / 2;
+        const p = along(f, x);
+        if (!nearEdge(fp, p[0], p[1], opts.tol) || opts.skip?.(f, x)) continue;
+        const g = ground(p[0], p[1]);
+        for (let k = 0; g + floorH * k + 3.2 < yTop - 0.4; k++) windowAt(b, onFace(f, x, g + floorH * k + 1.2), 1.1, 1.7, { ...opts, balcony: opts.balcony && k > 0 });
+      }
+    }
+  };
+  /** A stone doorway with a cornice and, if asked, a small pediment, at local x on a face. */
+  const portal = (b: Builder, f: Face, x: number, w: number, h: number, pediment = true) => {
+    const p = along(f, x);
+    const m = onFace(f, x, ground(p[0], p[1]) - 0.3);
+    b.add(box(w + 2, h + 1.6, 0.6).translate(0, 0, 0.1), mat.stone, m);
+    b.add(box(w, h, 0.3).translate(0, 0, 0.55), mat.wood, m);
+    b.add(box(w + 2.8, 0.5, 0.95).translate(0, h + 1.6, 0.1), mat.darkStone, m);
+    if (pediment) b.add(gable(0.6, w + 2.6, 1.4).rotateY(-Math.PI / 2).translate(0, h + 2.1, 0.35), mat.stone, m);
+    return m;
+  };
+  /** A small pyramid roof of tiles. */
+  const pyramid = (w: number, h: number) => new THREE.ConeGeometry(w * 0.72, h, 4).rotateY(Math.PI / 4).translate(0, h / 2, 0);
+  /** Openings on the four sides of a belfry or lookout, centred at local (0, y). */
+  const fourSides = (b: Builder, m: THREE.Matrix4, half: number, y: number, w: number, h: number, pairs = false) => {
+    for (const r of [0, Math.PI / 2, Math.PI, -Math.PI / 2]) {
+      for (const k of pairs ? [-1, 1] : [0]) b.add(box(w, h, 0.3).translate(k * w * 1.3, y, half).applyMatrix4(new THREE.Matrix4().makeRotationY(r)), mat.dark, m);
+    }
+  };
+
+  // -------------------------------------------------- Palacio de Mondragón (14th c., rebuilt 16th)
+  {
+    const fp = takePart(-80, -366, 10);
+    const o = orientedBox(fp);
+    const y0 = minGround(fp) - 1.5;
+    const yTop = maxGround(fp) + 10;
+    const b = new Builder();
+    b.add(prism(fp, y0, yTop), mat.white);
+    b.addRaw(metricUV(hipRoof(o, yTop, 0.3, 0.7)), mat.tiles);
+    // Main facade on the square: Renaissance stone doorway between two Mudéjar brick towers
+    // with small arcades at the top.
+    const f = faceTowards(o, [-40, -345], true);
+    const pm = portal(b, f, 0, 2.6, 4.2);
+    windowAt(b, pm.clone().multiply(new THREE.Matrix4().makeTranslation(0, 6.8, 0)), 1.6, 2, { balcony: true });
+    for (const s of [-1, 1]) {
+      const tx = s * Math.min(f.half - 3, 9);
+      const tm = onFace(f, tx, y0, 2.4);
+      const h = yTop - y0 + 6;
+      b.add(box(5.6, h, 5.6), mat.brick, tm);
+      b.add(box(6.2, 0.4, 6.2).translate(0, h, 0), mat.stone, tm);
+      fourSides(b, tm, 2.75, h - 3.4, 0.9, 2, true);
+      b.add(pyramid(6.2, 2.6).translate(0, h + 0.4, 0), mat.tiles, tm);
+    }
+    windowRows(b, o, fp, yTop, 4.2, { shutters: mat.wood, balcony: true, skip: (g, x) => Math.hypot(g.at[0] - f.at[0], g.at[1] - f.at[1]) < 0.1 && Math.abs(x) < 12 });
+    add(b, y0, 1314, 1330);
+  }
+
+  // ------------------------------------------------------- Casa del Rey Moro (house of 1709)
+  {
+    // The house and its wings: ochre-pink walls, wooden balconies, a lookout over the gorge.
+    const parts = takeParts(138, -127, 16);
+    const b = new Builder();
+    let base = 1e9;
+    parts.forEach((fp, i) => {
+      const o = orientedBox(fp);
+      const y0 = minGround(fp) - 1.5;
+      base = Math.min(base, y0);
+      const yTop = maxGround(fp) + (i === 0 ? 13.4 : 10.2);
+      b.add(prism(fp, y0, yTop), i === 0 ? mat.rose : mat.cream);
+      b.addRaw(metricUV(hipRoof(o, yTop, 0.4, 0.6)), mat.tiles);
+      windowRows(b, o, fp, yTop, 3.2, { shutters: mat.wood, balcony: true, frame: mat.white });
+      if (i === 0) {
+        const t = onBox(o, o.a - 2.6, 0, yTop - 0.5);
+        b.add(box(5, 4.5, 5), mat.rose, t);
+        b.add(pyramid(5.6, 2.4).translate(0, 4.5, 0), mat.tiles, t);
+        fourSides(b, t, 2.4, 2, 1.6, 1.8);
+        portal(b, faceTowards(o, [110, -140]), 0, 2, 3.2, false);
+      }
+    });
+    add(b, base, 1700, 1709);
+  }
+
+  // ---------------------------------------- Convento de Santo Domingo (1485), Gothic-Mudéjar church
+  {
+    const fp = takePart(48, -81, 8);
+    const o = orientedBox(fp);
+    const y0 = minGround(fp) - 1.5;
+    const yTop = maxGround(fp) + 14;
+    const b = new Builder();
+    b.add(prism(fp, y0, yTop), mat.white);
+    b.addRaw(metricUV(hipRoof(o, yTop, 0.42, 0.7)), mat.tiles);
+    const f = faceTowards(o, [6, -26]);
+    const gy = ground(...f.at) - 0.3;
+    const fm = onFace(f, 0, gy);
+    // Pointed stone doorway, a rose window and a brick bell gable (espadaña) over the front.
+    b.add(box(5.4, 7.4, 0.7).translate(0, 0, 0.1), mat.stone, fm);
+    const arch = new THREE.Shape();
+    arch.moveTo(-1.5, 0);
+    arch.lineTo(-1.5, 3.4);
+    arch.absarc(1.3, 3.4, 2.8, Math.PI, Math.PI - 1.088, true);
+    arch.absarc(-1.3, 3.4, 2.8, 1.088, 0, true);
+    arch.lineTo(1.5, 0);
+    arch.closePath();
+    b.add(new THREE.ExtrudeGeometry(arch, { depth: 0.3, bevelEnabled: false }).translate(0, 0, 0.55), mat.wood, fm);
+    b.add(new THREE.TorusGeometry(1.5, 0.3, 6, 24).translate(0, 10.5, 0.15), mat.stone, fm);
+    b.add(new THREE.CircleGeometry(1.4, 24).translate(0, 10.5, 0.08), mat.dark, fm);
+    const top = yTop - gy;
+    b.add(box(7, 7.5, 1.2).translate(0, top, -1), mat.brick, fm);
+    b.add(gable(1.2, 7.4, 1.6).rotateY(-Math.PI / 2).translate(0, top + 7.5, -1), mat.brick, fm);
+    for (const k of [-1, 1]) b.add(box(1.6, 2.8, 1.4).translate(k * 1.7, top + 2.8, -1), mat.dark, fm);
+    b.add(box(1.3, 2.2, 1.4).translate(0, top + 5.2, -1), mat.dark, fm);
+    // Buttresses and tall windows along the long sides.
+    for (const s of [-1, 1]) {
+      const side = faceOf(o, false, s);
+      for (let x = -side.half + 3; x <= side.half - 3; x += 6) {
+        const p = along(side, x);
+        if (!nearEdge(fp, ...p, 1.5)) continue;
+        b.add(box(1.4, yTop - 2 - y0, 1.6).translate(x, y0, 0.6), mat.stone, side.m);
+        const q = along(side, x + 3);
+        if (x + 3 < side.half - 2 && nearEdge(fp, ...q, 1.5)) windowAt(b, onFace(side, x + 3, yTop - 7), 1, 3.2);
+      }
+    }
+    add(b, y0, 1485, 1505);
+  }
+
+  // ------------------------------------------------------------- Railway station (1892)
+  {
+    const fp = takePart(395, 912, 6);
+    const o = orientedBox(fp);
+    const y0 = minGround(fp) - 1;
+    const gy = ground(o.cx, o.cn);
+    const yTop = maxGround(fp) + 9;
+    const b = new Builder();
+    b.add(prism(fp, y0, yTop), mat.cream);
+    b.addRaw(metricUV(hipRoof(o, yTop, 0.3, 0.9)), mat.tiles);
+    // Brick corner pilasters, string course and cornice.
+    for (const su of [-1, 1]) for (const sv of [-1, 1]) if (nearEdge(fp, o.cx + o.ux * su * o.a - o.un * sv * o.b, o.cn + o.un * su * o.a + o.ux * sv * o.b, 2)) b.add(box(1.1, yTop - y0, 1.1), mat.brick, onBox(o, su * (o.a - 0.45), sv * (o.b - 0.45), y0));
+    for (const f of allFaces(o)) {
+      b.add(box(2 * f.half + 0.4, 0.6, 0.5).translate(0, yTop - 0.9, 0), mat.brick, f.m);
+      b.add(box(2 * f.half + 0.2, 0.3, 0.3).translate(0, gy + 4.1, 0), mat.brick, f.m);
+    }
+    windowRows(b, o, fp, yTop, 4.4, { shutters: mat.green, frame: mat.brick, tol: 3 });
+    // Platform and a canopy on cast-iron columns on the side of the tracks.
+    const f = faceTowards(o, [412, 850], true);
+    const L = 2 * f.half + 8;
+    const pm = onFace(f, 0, ground(...f.at));
+    b.add(box(L, 0.9, 7).translate(0, -0.6, 3.5), mat.paving, pm);
+    for (let x = -L / 2 + 1; x <= L / 2 - 1; x += 4) b.add(new THREE.CylinderGeometry(0.12, 0.16, 4.2, 8).translate(x, 2.1, 5.6), mat.iron, pm);
+    b.add(box(L, 0.25, 6.6).applyMatrix4(new THREE.Matrix4().makeRotationX(0.06)).translate(0, 4.2, 3.2), mat.wood, pm);
+    add(b, y0, 1890, 1892);
+  }
+
+  // ------------------------- Plaza del Socorro and its church (old church to 1936, new one 1956)
+  {
+    // The square: paving that follows the ground, and a fountain with Hercules and two lions.
+    const pc: Pt = [19, 233];
+    const R = 17;
+    const pos: number[] = [];
+    const ring = (r: number, a: number): [number, number, number] => {
+      const x = pc[0] + Math.cos(a) * r;
+      const n = pc[1] + Math.sin(a) * r;
+      return [x, ground(x, n) + 0.14, -n];
+    };
+    for (let i = 0; i < 6; i++) {
+      for (let k = 0; k < 64; k++) {
+        const a0 = (k / 64) * Math.PI * 2;
+        const a1 = ((k + 1) / 64) * Math.PI * 2;
+        const r0 = (R * i) / 6;
+        const r1 = (R * (i + 1)) / 6;
+        pos.push(...ring(r0, a0), ...ring(r1, a1), ...ring(r1, a0), ...ring(r0, a0), ...ring(r0, a1), ...ring(r1, a1));
+      }
+    }
+    const pave = new THREE.BufferGeometry();
+    pave.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+    const p = new Builder();
+    p.add(pave, mat.paving);
+    const fy = ground(...pc);
+    const fm = M(pc[0], fy, -pc[1]);
+    p.add(new THREE.CylinderGeometry(3.2, 3.4, 0.7, 32).translate(0, 0.35, 0), mat.stone, fm);
+    p.add(new THREE.CircleGeometry(2.9, 32).rotateX(-Math.PI / 2).translate(0, 0.6, 0), mat.iron, fm);
+    p.add(box(1.4, 2.6, 1.4), mat.stone, fm);
+    p.add(new THREE.CylinderGeometry(0.35, 0.45, 2.2, 10).translate(0, 3.7, 0), mat.darkStone, fm);
+    p.add(new THREE.SphereGeometry(0.4, 10, 8).translate(0, 5, 0), mat.darkStone, fm);
+    for (const s of [-1, 1]) p.add(box(0.7, 0.9, 1.4).translate(s * 1.1, 2.6, 0), mat.darkStone, fm);
+    add(p, fy - 1, 1850, 1851);
+
+    const fp = takePart(48, 247, 6);
+    const o = orientedBox(fp);
+    const y0 = minGround(fp) - 1.5;
+    const f = faceTowards(o, pc);
+
+    // The 17th-century church, burnt in 1936.
+    const old = new Builder();
+    const oTop = maxGround(fp) + 12;
+    old.add(prism(fp, y0, oTop), mat.white);
+    old.addRaw(metricUV(hipRoof(o, oTop, 0.38, 0.6)), mat.tiles);
+    portal(old, f, 0, 2.4, 3.8);
+    old.add(box(5, 5, 1).translate(0, oTop, -0.5), mat.white, f.m);
+    old.add(box(1.4, 2.4, 1.2).translate(0, oTop + 1.8, -0.5), mat.dark, f.m);
+    add(old, y0, 1652, 1660, 1936);
+
+    // The new church of 1956: neo-Baroque, two towers on the square and a tiled dome.
+    const yTop = maxGround(fp) + 16;
+    const nw = new Builder();
+    nw.add(prism(fp, y0, yTop), mat.white);
+    nw.addRaw(metricUV(hipRoof(o, yTop, 0.3, 0.6)), mat.tiles);
+    const pm = portal(nw, f, 0, 3.2, 5.2);
+    const oculus = pm.clone().multiply(new THREE.Matrix4().makeTranslation(0, 10.5, 0));
+    nw.add(new THREE.TorusGeometry(1.4, 0.3, 6, 24).translate(0, 0, 0.15), mat.stone, oculus);
+    nw.add(new THREE.CircleGeometry(1.3, 24).translate(0, 0, 0.08), mat.dark, oculus);
+    nw.add(box(2 * f.half - 9, 3, 0.8).translate(0, yTop, -0.2), mat.white, f.m);
+    nw.add(gable(0.8, 2 * f.half - 9, 2.4).rotateY(-Math.PI / 2).translate(0, yTop + 3, -0.2), mat.white, f.m);
+    nw.add(box(2 * f.half - 8.6, 0.4, 1.1).translate(0, yTop - 0.2, -0.2), mat.stone, f.m);
+    for (const s of [-1, 1]) {
+      const tm = onFace(f, s * (f.half - 2.6), 0, 2.4);
+      const h = yTop + 5;
+      nw.add(box(5.2, h - y0, 5.2).translate(0, y0, 0), mat.white, tm);
+      nw.add(box(5.8, 0.5, 5.8).translate(0, h, 0), mat.stone, tm);
+      nw.add(box(4.4, 4.6, 4.4).translate(0, h + 0.5, 0), mat.white, tm);
+      fourSides(nw, tm, 2.1, h + 1.2, 1.6, 3);
+      nw.add(box(4.8, 0.4, 4.8).translate(0, h + 5.1, 0), mat.stone, tm);
+      nw.add(new THREE.SphereGeometry(2.3, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2).translate(0, h + 5.5, 0), mat.tiles, tm);
+      nw.add(new THREE.CylinderGeometry(0.08, 0.08, 2, 6).translate(0, h + 8.6, 0), mat.iron, tm);
+    }
+    // Dome over the crossing, towards the back of the church.
+    const back: Pt = [2 * o.cx - f.at[0], 2 * o.cn - f.at[1]];
+    const dc: Pt = [o.cx + (back[0] - o.cx) * 0.35, o.cn + (back[1] - o.cn) * 0.35];
+    const dm = M(dc[0], yTop, -dc[1]);
+    nw.add(new THREE.CylinderGeometry(5.4, 5.4, 5, 24).translate(0, 2.5, 0), mat.white, dm);
+    for (let i = 0; i < 8; i++) nw.add(box(1, 2, 0.4).translate(0, 1.4, 5.3).applyMatrix4(new THREE.Matrix4().makeRotationY((i / 8) * Math.PI * 2)), mat.dark, dm);
+    nw.add(new THREE.SphereGeometry(5.6, 28, 12, 0, Math.PI * 2, 0, Math.PI / 2).translate(0, 5, 0), mat.tiles, dm);
+    nw.add(new THREE.CylinderGeometry(1, 1, 2, 8).translate(0, 11.4, 0), mat.white, dm);
+    nw.add(new THREE.ConeGeometry(1.2, 1.4, 8).translate(0, 13.1, 0), mat.tiles, dm);
+    add(nw, y0, 1950, 1956);
   }
 
   // ------------------------------------------------------------------------- Alcazaba (to 1812)

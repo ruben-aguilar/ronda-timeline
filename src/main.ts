@@ -11,6 +11,7 @@ import { loadBuildings, loadDem } from "./data";
 import { createLandmarks } from "./landmarks";
 import { createMonuments } from "./monuments";
 import { createAlameda } from "./alameda";
+import { createGallery } from "./gallery";
 import { createTerrain } from "./terrain";
 import { createTrees } from "./trees";
 import { CONFIDENCE_LABEL, Era, eraAt, formatNumber, formatYear, NOW, posAt, yearAt, yearsPerStep } from "./timeline";
@@ -69,7 +70,7 @@ async function main() {
 
   const camera = new THREE.PerspectiveCamera(42, 1, 1.2, 12000);
 
-  scene.add(new THREE.HemisphereLight(0xcfdcec, 0x6a5a44, 0.9));
+  scene.add(new THREE.HemisphereLight(0xd8e0ea, 0x9a8466, 1.05));
   const sun = new THREE.DirectionalLight(0xffe7c4, 2.8);
   sun.position.copy(SUN_DIR).multiplyScalar(2500);
   sun.castShadow = true;
@@ -165,7 +166,19 @@ async function main() {
   const eraConf = document.getElementById("era-conf")!;
   const splash = document.getElementById("splash")!;
 
+  const gallery = await createGallery();
+  const card = document.getElementById("era-card")!;
+  const toggle = document.getElementById("era-toggle")!;
+  const setCollapsed = (on: boolean) => {
+    card.classList.toggle("collapsed", on);
+    toggle.setAttribute("aria-label", on ? "Mostrar panel" : "Ocultar panel");
+    localStorage.setItem("eraCollapsed", on ? "1" : "0");
+  };
+  setCollapsed(localStorage.getItem("eraCollapsed") === "1");
+  toggle.addEventListener("click", () => setCollapsed(!card.classList.contains("collapsed")));
+
   const showEra = (e: Era) => {
+    gallery.show(e.id);
     eraTitle.textContent = e.title;
     eraSub.textContent = `${formatYear(e.from)} – ${e.to >= NOW ? "hoy" : formatYear(e.to)} · ${e.subtitle}`;
     eraText.textContent = e.text;

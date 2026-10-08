@@ -17,11 +17,31 @@
     </div>
 
     <header id="era-card">
+      <button id="era-toggle" aria-label="Ocultar panel" title="Ocultar o mostrar el panel">
+        <svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6" /></svg>
+      </button>
       <div id="era-title"></div>
       <div id="era-sub"></div>
-      <p id="era-text"></p>
-      <div id="era-conf"></div>
+      <div id="era-body">
+        <p id="era-text"></p>
+        <div id="era-gallery"></div>
+        <div id="era-conf"></div>
+      </div>
     </header>
+
+    <div id="lightbox" aria-hidden="true">
+      <button class="lb-close" aria-label="Cerrar">×</button>
+      <button class="lb-prev" aria-label="Anterior">‹</button>
+      <figure>
+        <img alt="" />
+        <figcaption>
+          <div class="lb-title"></div>
+          <div class="lb-caption"></div>
+          <div class="lb-credit"></div>
+        </figcaption>
+      </figure>
+      <button class="lb-next" aria-label="Siguiente">›</button>
+    </div>
 
     <div id="clock">
       <div id="year"></div>
@@ -47,6 +67,7 @@
           <li>Edificios: Dirección General del Catastro (INSPIRE).</li>
           <li>Situación de monumentos, Alameda y paseos: © colaboradores de OpenStreetMap.</li>
           <li>Texturas de piedra, tapial, revoco, tejas, roca, arena, empedrado y grava: Poly Haven (CC0).</li>
+          <li>Imágenes de la galería: Wikimedia Commons; autor y licencia en cada imagen.</li>
           <li>Fachada del Puente Nuevo: foto «Ronda - Puente Nuevo tall» de Joe Mabel, Wikimedia Commons (CC BY-SA 3.0).</li>
         </ul>
       </div>

@@ -4,7 +4,9 @@ import * as THREE from "three";
 // colour (diff), OpenGL normal map (nor) and ambient occlusion / roughness / metalness (arm).
 // Geometry UVs are in metres; each set says how many metres one tile covers.
 
-export type PbrKey = "sandstone" | "blocks" | "rubble" | "tapial" | "plaster" | "roof" | "arena" | "cliff" | "cobble" | "gravel";
+export type PbrKey =
+  | "sandstone" | "blocks" | "rubble" | "tapial" | "plaster" | "roof" | "arena" | "cliff" | "cobble" | "gravel"
+  | "ashlar" | "brick" | "wood" | "paving" | "masonry";
 
 const METRES: Record<PbrKey, number> = {
   sandstone: 4,
@@ -17,6 +19,11 @@ const METRES: Record<PbrKey, number> = {
   cliff: 24,
   cobble: 3,
   gravel: 3,
+  ashlar: 3.5,
+  brick: 2.5,
+  wood: 2,
+  paving: 4,
+  masonry: 3,
 };
 
 // Average linear colour of each texture (measured), used to aim a material at a target albedo.
@@ -31,6 +38,11 @@ const MEAN: Record<PbrKey, [number, number, number]> = {
   cliff: [0.213, 0.093, 0.034],
   cobble: [0.281, 0.231, 0.15],
   gravel: [0.382, 0.256, 0.146],
+  ashlar: [0.3, 0.246, 0.148],
+  brick: [0.228, 0.133, 0.088],
+  wood: [0.189, 0.153, 0.121],
+  paving: [0.184, 0.188, 0.175],
+  masonry: [0.266, 0.232, 0.162],
 };
 
 export interface PbrSet {

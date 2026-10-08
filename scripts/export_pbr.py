@@ -21,6 +21,11 @@ SETS = {
     "cliff": ("cliff_side", 2048),
     "cobble": ("cobblestone_floor_04", 1024),
     "gravel": ("gravel_floor", 1024),
+    "ashlar": ("large_sandstone_blocks_01", 1024),
+    "brick": ("medieval_red_brick", 1024),
+    "wood": ("medieval_wood", 1024),
+    "paving": ("large_floor_tiles_02", 1024),
+    "masonry": ("castle_wall_varriation", 1024),
 }
 for key, (name, size) in SETS.items():
     for part in ("diff", "nor", "arm"):
