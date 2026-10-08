@@ -193,7 +193,7 @@ if (isWall) {
   gBump = pl * 0.006;
 
   // Weathering: dirt at the foot, darker under the eaves, faint vertical streaks.
-  float streak = bNoise(vec2(vR.x * 2.3, 0.0)) * smoothstep(vWallH, vWallH - 3.0, h);
+  float streak = bNoise(vec2(vR.x * 2.3, 0.0)) * (1.0 - smoothstep(vWallH - 3.0, vWallH, h));
   wc *= 1.0 - 0.10 * streak * (isModern ? 0.5 : 1.0);
   wc *= mix(0.62, 1.0, smoothstep(-0.3, 1.6, h));
 
@@ -238,7 +238,7 @@ if (isWall) {
       vec3 wood = texture2D(tWood, vec2((fx - 0.5) * bw, fy * 3.1) / 2.0).rgb / 0.17;
       vec3 paint = r < 0.3 ? vec3(0.17, 0.27, 0.19) : (r < 0.55 ? vec3(0.36, 0.22, 0.12) : vec3(0.28, 0.19, 0.13));
       col3 = isModern && r > 0.5 ? vec3(0.22, 0.22, 0.22) * lumOf(wood) : paint * clamp(wood, 0.5, 1.6);
-      col3 *= mix(0.55, 1.0, smoothstep(dTop, dTop - 0.12, fy)); // shadow under the lintel
+      col3 *= mix(0.55, 1.0, (1.0 - smoothstep(dTop - 0.12, dTop, fy))); // shadow under the lintel
       gBump -= 0.02;
     }
   } else if (inWall && st.z > 0.0 && r < st.z && abs(fx - 0.5) < hw + 0.03 && fy > wBot - 0.035 && fy < wTop + 0.035) {
@@ -267,7 +267,7 @@ if (isWall) {
         if (gy > 1.0 - down) glass = vec3(0.72, 0.70, 0.64) * (0.85 + 0.15 * step(0.5, fract(gy * 30.0)));
       }
       // Lintel shadow and recess darkening at the sides.
-      glass *= mix(0.45, 1.0, smoothstep(1.0, 0.82, gy)) * mix(0.7, 1.0, smoothstep(1.0, 0.75, abs(gx)));
+      glass *= mix(0.45, 1.0, (1.0 - smoothstep(0.82, 1.0, gy))) * mix(0.7, 1.0, (1.0 - smoothstep(0.75, 1.0, abs(gx))));
       col3 = glass;
       gBump -= 0.05;
       // Iron balcony rail in front of the lower part.
@@ -343,8 +343,9 @@ export function createBuildings(data: BuildingData, exclude: (x: number, n: numb
   const index: number[] = [];
   const years: number[] = [];
 
+  const ranges: number[] = [];
   let kept = 0;
-  data.parts.forEach((p, i) => {
+  data.parts.map((p, i) => ({ p, i })).sort((a, b) => a.p[0] - b.p[0]).forEach(({ p, i }) => {
     const [year, floors, baseDm, ringsDm, use, zone, rebuild] = p;
     const rings = ringsDm.map((flat) => {
       const pts: number[][] = [];
@@ -460,6 +461,7 @@ export function createBuildings(data: BuildingData, exclude: (x: number, n: numb
       face([[e2, 0, -B, B], [e3, 0, B, B], [r2, rise, 0, 0]]);
       face([[e4, 0, B, B], [e1, 0, -B, B], [r1, rise, 0, 0]]);
     }
+    ranges.push(index.length);
   });
 
   const geo = new THREE.BufferGeometry();
@@ -489,7 +491,7 @@ export function createBuildings(data: BuildingData, exclude: (x: number, n: numb
     s.fragmentShader = s.fragmentShader
       .replace("#include <common>", "#include <common>" + FRAGMENT_HEAD)
       .replace("#include <color_fragment>", "#include <color_fragment>" + FRAGMENT_COLOR)
-      .replace("#include <normal_fragment_maps>", "#include <normal_fragment_maps>\nnormal = bPerturb(-vViewPosition, normal, gBump, faceDirection);")
+      .replace("#include <normal_fragment_maps>", "#include <normal_fragment_maps>\nnormal = bPerturb(-vViewPosition, normal, gBump * (1.0 - smoothstep(100.0, 650.0, length(vViewPosition))), faceDirection);")
       .replace(
         "#include <emissivemap_fragment>",
         "#include <emissivemap_fragment>\ntotalEmissiveRadiance += vec3(1.0, 0.55, 0.18) * vFresh * 0.9;",
@@ -515,6 +517,8 @@ export function createBuildings(data: BuildingData, exclude: (x: number, n: numb
     mesh,
     years: sorted,
     setYear(year, growYears) {
+      const visible = countUpTo(sorted, year);
+      geo.setDrawRange(0, visible ? ranges[visible - 1] : 0);
       uniforms.uYear.value = year;
       uniforms.uGrow.value = Math.max(growYears, 0.3);
     },

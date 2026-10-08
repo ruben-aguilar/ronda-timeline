@@ -1,80 +1,114 @@
 import * as THREE from "three";
-import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { Dem, elevation, Y_OFFSET } from "./data";
 
-// Trees detected in the 2024 orthophoto (scripts/make_landscape.py): olive groves, holm oaks and
-// the woods inside the gorge. One instanced mesh for crowns and one for trunks.
-
-export async function createTrees(dem: Dem): Promise<THREE.Group> {
-  const buf = await (await fetch("data/trees.bin")).arrayBuffer();
-  const raw = new Int16Array(buf);
-  const count = raw.length / 3;
-
-  // Shared vertices so the crown shades smoothly instead of showing flat facets.
-  let crownGeo: THREE.BufferGeometry = new THREE.IcosahedronGeometry(1, 1);
-  crownGeo.deleteAttribute("normal");
-  crownGeo.deleteAttribute("uv");
-  crownGeo = mergeVertices(crownGeo);
-  // Round, slightly flattened crowns with smooth normals.
-  const p = crownGeo.attributes.position;
-  for (let i = 0; i < p.count; i++) {
-    const v = new THREE.Vector3().fromBufferAttribute(p, i);
-    const n = v.clone().normalize();
-    const wobble = 1 + Math.sin(v.x * 5.1 + v.y * 2.3) * Math.cos(v.z * 4.3 - v.y) * 0.16 + Math.sin(v.y * 7.7 + v.x * 3.1) * 0.06;
-    v.copy(n).multiplyScalar(wobble);
-    v.y *= 0.8;
-    p.setXYZ(i, v.x, v.y, v.z);
-  }
-  crownGeo.computeVertexNormals();
-  const trunkGeo = new THREE.CylinderGeometry(0.12, 0.18, 1, 5, 1, true);
-  trunkGeo.translate(0, 0.5, 0);
-
-  const crownMat = new THREE.MeshStandardMaterial({ roughness: 0.95, metalness: 0 });
-  // Leaf clusters: darker speckles and a darker underside, in world space.
-  crownMat.onBeforeCompile = (s) => {
-    s.vertexShader = s.vertexShader
-      .replace("#include <common>", "#include <common>\nvarying vec3 vLeaf;\nvarying float vUnder;")
-      .replace("#include <begin_vertex>", "#include <begin_vertex>\nvLeaf = position * 3.1;\nvUnder = normal.y;");
-    s.fragmentShader = s.fragmentShader
-      .replace("#include <common>", "#include <common>\nvarying vec3 vLeaf;\nvarying float vUnder;\nfloat lH(vec3 p) { return fract(sin(dot(floor(p), vec3(12.9898, 78.233, 37.719))) * 43758.5453); }")
-      .replace("#include <color_fragment>", "#include <color_fragment>\ndiffuseColor.rgb *= (0.7 + 0.45 * lH(vLeaf)) * mix(0.6, 1.0, smoothstep(-0.6, 0.4, vUnder));");
-  };
-  const trunkMat = new THREE.MeshStandardMaterial({ color: 0x4a3a2a, roughness: 1 });
-  const crowns = new THREE.InstancedMesh(crownGeo, crownMat, count);
-  const trunks = new THREE.InstancedMesh(trunkGeo, trunkMat, count);
-  const m = new THREE.Matrix4();
-  const q = new THREE.Quaternion();
-  const s = new THREE.Vector3();
-  const t = new THREE.Vector3();
-  const c = new THREE.Color();
-  let seed = 1;
+/** Leaf silhouettes are shared by all trees: no external asset or per-tree texture. */
+function canopyTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = 256;
+  const ctx = canvas.getContext("2d")!;
+  let seed = 73;
   const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-
-  for (let i = 0; i < count; i++) {
-    const x = raw[i * 3] / 8;
-    const n = raw[i * 3 + 1] / 8;
-    const size = raw[i * 3 + 2] / 100;
-    const y = elevation(dem, x, n) - Y_OFFSET;
-    const r = 1.6 + size * 1.7;
-    const trunkH = 0.9 + size * 0.9;
-    q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), rnd() * Math.PI * 2);
-    s.set(r * (0.85 + rnd() * 0.3), r * (0.75 + rnd() * 0.35), r * (0.85 + rnd() * 0.3));
-    t.set(x, y + trunkH + s.y * 0.55, -n);
-    m.compose(t, q, s);
-    crowns.setMatrixAt(i, m);
-    c.setHSL(0.2 + rnd() * 0.08, 0.32 + rnd() * 0.18, 0.14 + rnd() * 0.1);
-    crowns.setColorAt(i, c);
-    s.set(1 + size * 0.5, trunkH + s.y * 0.4, 1 + size * 0.5);
-    t.set(x, y - 0.3, -n);
-    m.compose(t, q, s);
-    trunks.setMatrixAt(i, m);
+  // Separate clusters leave small holes and an irregular silhouette.
+  for (let cluster = 0; cluster < 38; cluster++) {
+    const angle = rnd() * Math.PI * 2, radius = Math.sqrt(rnd()) * 77;
+    const x = 128 + Math.cos(angle) * radius, y = 125 + Math.sin(angle) * radius * 0.9;
+    for (let leaf = 0; leaf < 65; leaf++) {
+      const a = rnd() * Math.PI * 2, r = Math.sqrt(rnd()) * 29;
+      const lx = x + Math.cos(a) * r, ly = y + Math.sin(a) * r;
+      const light = 48 + rnd() * 27 + (125 - ly) * 0.08;
+      ctx.fillStyle = `hsl(${70 + rnd() * 18} 18% ${light}%)`;
+      ctx.beginPath();
+      ctx.ellipse(lx, ly, 2 + rnd() * 4, 1.5 + rnd() * 2.5, rnd() * Math.PI, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
-  crowns.castShadow = true;
-  crowns.receiveShadow = true;
-  trunks.receiveShadow = true;
-  crowns.computeBoundingSphere();
-  trunks.computeBoundingSphere();
-  const g = new THREE.Group();
-  g.add(crowns, trunks);
-  return g;
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = 4;
+  return texture;
+}
+
+let sharedCanopy: { geometry: THREE.BufferGeometry; material: THREE.MeshStandardMaterial } | undefined;
+
+export function createCanopy() {
+  if (sharedCanopy) return sharedCanopy;
+  const planes: THREE.BufferGeometry[] = [];
+  // Overlapping small leaf clusters make a volume without a solid polygon silhouette.
+  // The golden-angle distribution avoids the visible cross of three full-crown cards.
+  for (let i = 0; i < 8; i++) {
+    const y = 1 - 2 * (i + 0.5) / 8;
+    const radial = Math.sqrt(1 - y * y), angle = i * 2.399963;
+    const plane = new THREE.PlaneGeometry(1.2, 1.1)
+      .rotateX(y * 0.9).rotateY(angle)
+      .translate(Math.cos(angle) * radial * 0.65, y * 0.55, Math.sin(angle) * radial * 0.65);
+    planes.push(plane);
+  }
+  const crownGeo = mergeGeometries(planes)!;
+  for (const plane of planes) plane.dispose();
+  // Rounded normals give the crossed leaf cards the lighting of a canopy.
+  const positions = crownGeo.attributes.position, normals = crownGeo.attributes.normal;
+  const normal = new THREE.Vector3();
+  for (let i = 0; i < positions.count; i++) {
+    normal.fromBufferAttribute(positions, i);
+    normal.y = normal.y * 0.35 + 1.2;
+    normal.normalize();
+    normals.setXYZ(i, normal.x, normal.y, normal.z);
+  }
+  const crownMat = new THREE.MeshStandardMaterial({
+    map: canopyTexture(), roughness: 1, side: THREE.DoubleSide,
+    alphaTest: 0.38, alphaToCoverage: true,
+  });
+  crownMat.onBeforeCompile = (shader) => {
+    // Leaf cards represent a volume: keep the outward canopy normal on both sides.
+    shader.fragmentShader = shader.fragmentShader.replace("#include <normal_fragment_begin>",
+      "#include <normal_fragment_begin>\nnormal *= faceDirection;");
+  };
+  sharedCanopy = { geometry: crownGeo, material: crownMat };
+  return sharedCanopy;
+}
+
+/** Small spatial batches let the renderer reject trees outside the view. */
+export async function createTrees(dem: Dem): Promise<THREE.Group> {
+  const response = await fetch("data/trees.bin");
+  if (!response.ok) throw new Error(`Trees: ${response.status}`);
+  const raw = new Int16Array(await response.arrayBuffer());
+  const { geometry: crownGeo, material: crownMat } = createCanopy();
+  const trunkGeo = new THREE.CylinderGeometry(0.12, 0.18, 1, 5, 1, true).translate(0, 0.5, 0);
+  const trunkMat = new THREE.MeshStandardMaterial({ color: 0x625342, roughness: 1 });
+  const batches = new Map<string, number[]>();
+  for (let i = 0; i < raw.length / 3; i++) {
+    const key = `${Math.floor(raw[i * 3] / 2000)},${Math.floor(raw[i * 3 + 1] / 2000)}`;
+    if (!batches.has(key)) batches.set(key, []);
+    batches.get(key)!.push(i);
+  }
+  const group = new THREE.Group();
+  group.name = "Woodland tiles";
+  const matrix = new THREE.Matrix4(), q = new THREE.Quaternion(), scale = new THREE.Vector3(), pos = new THREE.Vector3();
+  const axis = new THREE.Vector3(0, 1, 0), color = new THREE.Color();
+  for (const indices of batches.values()) {
+    const crowns = new THREE.InstancedMesh(crownGeo, crownMat, indices.length);
+    const trunks = new THREE.InstancedMesh(trunkGeo, trunkMat, indices.length);
+    for (let j = 0; j < indices.length; j++) {
+      const i = indices[j], x = raw[i * 3] / 8, n = raw[i * 3 + 1] / 8, size = raw[i * 3 + 2] / 100;
+      let seed = i + 1;
+      const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+      const y = elevation(dem, x, n) - Y_OFFSET, r = 1.6 + size * 1.7, trunkH = 0.9 + size * 0.9;
+      q.setFromAxisAngle(axis, rnd() * Math.PI * 2);
+      scale.set(r * (0.9 + rnd() * 0.25), r * (0.8 + rnd() * 0.3), r * (0.9 + rnd() * 0.25));
+      pos.set(x, y + trunkH + scale.y * 0.45, -n);
+      matrix.compose(pos, q, scale);
+      crowns.setMatrixAt(j, matrix);
+      color.setHSL(0.20 + rnd() * 0.06, 0.22 + rnd() * 0.16, 0.40 + rnd() * 0.14);
+      crowns.setColorAt(j, color);
+      scale.set(1 + size * 0.5, trunkH + scale.y * 0.3, 1 + size * 0.5);
+      pos.set(x, y - 0.3, -n);
+      trunks.setMatrixAt(j, matrix.compose(pos, q, scale));
+    }
+    crowns.castShadow = crowns.receiveShadow = trunks.receiveShadow = true;
+    crowns.computeBoundingSphere();
+    trunks.computeBoundingSphere();
+    group.add(crowns, trunks);
+  }
+  return group;
 }

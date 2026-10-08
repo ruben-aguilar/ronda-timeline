@@ -54,9 +54,12 @@ async function main() {
   const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
   renderer.shadowMap.enabled = true;
+  renderer.shadowMap.autoUpdate = false;
+  renderer.shadowMap.needsUpdate = true;
+  renderer.info.autoReset = false;
   renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 0.9;
+  renderer.toneMappingExposure = 0.96;
   app.appendChild(renderer.domElement);
 
   const labelRenderer = new CSS2DRenderer();
@@ -83,24 +86,32 @@ async function main() {
   sc.near = 100;
   sc.far = 6000;
   sun.shadow.bias = -0.0003;
-  sun.shadow.normalBias = 1.0;
+  sun.shadow.normalBias = 0.4;
   scene.add(sun);
   scene.add(sun.target);
 
   // Postproceso: oclusión ambiental (GTAO) sobre un render multimuestreado.
   const target = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 });
+  target.depthTexture = new THREE.DepthTexture(1, 1, THREE.UnsignedIntType);
   const composer = new EffectComposer(renderer, target);
   composer.addPass(new RenderPass(scene, camera));
   const gtao = new GTAOPass(scene, camera, 1, 1);
-  gtao.updateGtaoMaterial({ radius: 6, distanceExponent: 1.5, thickness: 2, scale: 1.2, samples: 12 });
-  gtao.blendIntensity = 0.85;
+  gtao.updateGtaoMaterial({ radius: 3, distanceExponent: 1.5, thickness: 1, scale: 1, samples: 8 });
+  // Read the visible render depth: the override normal pass does not apply building growth.
+  gtao.setGBuffer(composer.readBuffer.depthTexture!);
+  gtao.blendIntensity = 0.65;
   composer.addPass(gtao);
   composer.addPass(new OutputPass());
+  let dirty = true;
+  let labelsOn = true;
   const resize = () => {
+    dirty = true;
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    composer.setPixelRatio(renderer.getPixelRatio());
     composer.setSize(window.innerWidth, window.innerHeight);
+    gtao.setSize(Math.max(1, Math.round(window.innerWidth * renderer.getPixelRatio() / 2)), Math.max(1, Math.round(window.innerHeight * renderer.getPixelRatio() / 2)));
     labelRenderer.setSize(window.innerWidth, window.innerHeight);
   };
   resize();
@@ -108,6 +119,10 @@ async function main() {
 
   const loading = document.getElementById("loading")!;
   const [dem, bdata] = await Promise.all([loadDem(), loadBuildings()]);
+  // Keep the loading screen until textures and their shared clones have image data.
+  let texturesPending = false;
+  THREE.DefaultLoadingManager.onStart = () => { texturesPending = true; };
+  THREE.DefaultLoadingManager.onLoad = () => { texturesPending = false; };
   const loader = new THREE.TextureLoader();
   const terrain = createTerrain(dem, loader, renderer.capabilities.getMaxAnisotropy());
   scene.add(terrain.mesh);
@@ -117,15 +132,15 @@ async function main() {
   scene.add(buildings.mesh);
   const landmarks = createLandmarks(dem);
   scene.add(landmarks.group);
-  scene.add(await createTrees(dem));
-  const alameda = await createAlameda(dem);
+  const [trees, alameda] = await Promise.all([createTrees(dem), createAlameda(dem)]);
+  scene.add(trees);
   scene.add(alameda.group);
 
   // Cámara.
   const rig = createCameraRig(camera, labelRenderer.domElement, dem);
   rig.goTo(VIEWPOINTS[0]);
   rig.update(10, { tx: 0, tn: 0, dist: 1, height: 1 });
-  rig.setMode("cine");
+  rig.setMode(matchMedia("(prefers-reduced-motion: reduce)").matches ? "orbit" : "cine");
   const camFor = (year: number) => {
     const t = THREE.MathUtils.smoothstep(posAt(year), 0.25, 0.85);
     return {
@@ -157,6 +172,10 @@ async function main() {
       speed = s;
     },
   });
+
+  new ResizeObserver(([entry]) => {
+    document.documentElement.style.setProperty("--timeline-height", `${entry.target.getBoundingClientRect().height}px`);
+  }).observe(document.getElementById("timeline")!);
 
   const yearEl = document.getElementById("year")!;
   const countEl = document.getElementById("count")!;
@@ -191,6 +210,7 @@ async function main() {
   };
 
   window.addEventListener("keydown", (ev) => {
+    if ((ev.target as HTMLElement).closest("input, select, button, textarea")) return;
     if (ev.code === "Space") {
       ev.preventDefault();
       ui.togglePlay();
@@ -200,30 +220,71 @@ async function main() {
     }
   });
 
+  if (texturesPending) await new Promise<void>((resolve) => { THREE.DefaultLoadingManager.onLoad = resolve; });
   loading.classList.add("done");
   setTimeout(() => loading.remove(), 900);
   const timer = new THREE.Timer();
   let lastHash = 0;
 
-  // Automatic quality: if the frame rate stays low, drop ambient occlusion, then resolution.
+  // Use only rendered frames for adaptation; an idle or hidden tab is not a slow GPU.
   let quality = 2;
+  let automatic = true;
   let fpsFrames = 0;
-  let fpsStart = performance.now();
-  const adaptQuality = () => {
-    fpsFrames++;
-    const el = performance.now() - fpsStart;
-    if (el < 2500) return;
-    const fps = (fpsFrames * 1000) / el;
+  let frameTime = 0;
+  let lastRender = 0;
+  let renderedFrames = 0;
+  const setQuality = (level: number) => {
+    quality = level;
+    gtao.enabled = level > 0;
+    renderer.setPixelRatio(Math.min(devicePixelRatio, level === 2 ? 1.5 : level === 1 ? 1.15 : 1));
+    resize();
     fpsFrames = 0;
-    fpsStart = performance.now();
-    if (fps > 40 || quality === 0) return;
-    quality--;
-    if (quality === 1) gtao.enabled = false;
-    if (quality === 0) {
-      renderer.setPixelRatio(1);
-      resize();
-    }
+    frameTime = 0;
   };
+  const adaptQuality = (now: number) => {
+    const previous = lastRender;
+    const elapsed = now - previous;
+    lastRender = now;
+    if (!automatic || previous === 0 || elapsed < 1) return;
+    frameTime += Math.min(elapsed, 250);
+    fpsFrames++;
+    if (fpsFrames < 90) return;
+    if (frameTime / fpsFrames > 28 && quality > 0) setQuality(quality - 1);
+    fpsFrames = 0;
+    frameTime = 0;
+  };
+  const settings = document.createElement("div");
+  settings.className = "scene-settings";
+  settings.innerHTML = `
+    <label>Luz <select aria-label="Luz"><option value="day">Día</option><option value="late">Tarde</option></select></label>
+    <label>Detalle <select aria-label="Detalle"><option value="auto">Auto</option><option value="2">Alto</option><option value="1">Medio</option><option value="0">Ligero</option></select></label>
+    <button aria-pressed="true" title="Mostrar u ocultar nombres">Nombres</button>`;
+  document.body.appendChild(settings);
+  settings.querySelector<HTMLSelectElement>("[aria-label=Luz]")!.onchange = (event) => {
+    const late = (event.target as HTMLSelectElement).value === "late";
+    SUN_DIR.set(-1400, late ? 650 : 1150, 900).normalize();
+    sun.position.copy(SUN_DIR).multiplyScalar(2500);
+    sun.color.set(late ? 0xffd6a0 : 0xffe7c4);
+    sun.intensity = late ? 2.5 : 2.8;
+    renderer.shadowMap.needsUpdate = dirty = true;
+  };
+  settings.querySelector<HTMLSelectElement>("[aria-label=Detalle]")!.onchange = (event) => {
+    const value = (event.target as HTMLSelectElement).value;
+    automatic = value === "auto";
+    setQuality(automatic ? 2 : Number(value));
+  };
+  settings.querySelector("button")!.onclick = (event) => {
+    labelsOn = !labelsOn;
+    (event.currentTarget as HTMLButtonElement).setAttribute("aria-pressed", String(labelsOn));
+    labelRenderer.domElement.classList.toggle("hide-names", !labelsOn);
+    dirty = true;
+  };
+  document.addEventListener("visibilitychange", () => { timer.reset(); dirty = true; lastRender = 0; });
+  const previousCamera = new THREE.Matrix4();
+  let previousYear = NaN;
+  let lastUI = 0;
+  let displayedYear = NaN;
+  let hashYear = NaN;
 
   // Gancho de depuración para capturas: __ronda.shot(año, [x, y, z], [tx, ty, tz]) dibuja un
   // fotograma con ese año y esa cámara y para el bucle hasta __ronda.resume().
@@ -237,6 +298,7 @@ async function main() {
       if (tgt) rig.controls.target.set(...tgt);
       document.body.classList.add("shot");
       frozen = false;
+      dirty = true;
       frame();
       frame();
       frozen = true;
@@ -247,6 +309,7 @@ async function main() {
       rig.jumpTo(VIEWPOINTS.find((v) => v.id === id)!);
       document.body.classList.add("shot");
       frozen = false;
+      dirty = true;
       frame();
       frame();
       frozen = true;
@@ -254,13 +317,18 @@ async function main() {
     resume() {
       document.body.classList.remove("shot");
       frozen = false;
+      dirty = true;
+    },
+    stats() {
+      return { renderedFrames, quality, year: previousYear, pixelRatio: renderer.getPixelRatio(), ao: gtao.enabled,
+        calls: renderer.info.render.calls, triangles: renderer.info.render.triangles,
+        geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures };
     },
     dbg: { scene, renderer, gtao, sun, composer, direct: false },
   };
 
   function frame() {
-    if (frozen) return;
-    adaptQuality();
+    if (frozen || document.hidden) return;
     timer.update();
     const dt = Math.min(timer.getDelta(), 0.1);
     if (playing) {
@@ -272,30 +340,49 @@ async function main() {
       }
     }
     const year = yearAt(pos);
-    buildings.setYear(year, yearsPerStep(pos));
-    terrain.setYear(year);
-    landmarks.update(year, camera);
-    monuments.update(year);
-    alameda.update(year);
-
-    const era = eraAt(year);
-    if (era !== currentEra) {
-      currentEra = era;
-      showEra(era);
-    }
-    ui.setPos(pos, year, era);
-    yearEl.textContent = formatYear(year);
-    countEl.textContent = `${formatNumber(countUpTo(buildings.years, year))} edificios`;
     const now = performance.now();
-    if (now - lastHash > 500) {
+    const yearChanged = year !== previousYear;
+    if (yearChanged) {
+      buildings.setYear(year, yearsPerStep(pos));
+      terrain.setYear(year);
+      monuments.update(year);
+      alameda.update(year);
+      renderer.shadowMap.needsUpdate = true;
+      dirty = true;
+    }
+    const era = eraAt(year);
+    if (era !== currentEra) { currentEra = era; showEra(era); }
+    if (year !== displayedYear && (!playing || now - lastUI > 80)) {
+      ui.setPos(pos, year, era);
+      yearEl.textContent = formatYear(year);
+      countEl.textContent = `${formatNumber(countUpTo(buildings.years, year))} edificios`;
+      lastUI = now;
+      displayedYear = year;
+    }
+    if (year !== hashYear && (!playing || now - lastHash > 500)) {
       lastHash = now;
+      hashYear = year;
       history.replaceState(null, "", `#year=${Math.round(year)}`);
     }
-
+    previousYear = year;
     rig.update(dt, camFor(year));
+    camera.updateMatrixWorld();
+    const cameraChanged = !previousCamera.equals(camera.matrixWorld);
+    if (!dirty && !cameraChanged) { lastRender = 0; return; }
+    if (terrain.update(camera)) renderer.shadowMap.needsUpdate = true;
+    landmarks.update(year, camera);
+    previousCamera.copy(camera.matrixWorld);
+    renderer.info.reset();
     if ((window as unknown as { __ronda: { dbg: { direct: boolean } } }).__ronda.dbg.direct) renderer.render(scene, camera);
-    else composer.render();
-    labelRenderer.render(scene, camera);
+    else {
+      // EffectComposer swaps buffers; bind the depth of this frame's scene render.
+      gtao.setGBuffer(composer.readBuffer.depthTexture!);
+      composer.render();
+    }
+    if (labelsOn) labelRenderer.render(scene, camera);
+    dirty = false;
+    renderedFrames++;
+    adaptQuality(now);
   }
   renderer.setAnimationLoop(frame);
 }
@@ -315,9 +402,15 @@ function buildCameraBar(rig: ReturnType<typeof createCameraRig>) {
     </div>
     <div class="cam-help"></div>
     <div class="cam-views">
-      <div class="cam-views-title">Vistas</div>
+      <button class="cam-views-title" aria-expanded="false">Vistas</button>
       ${VIEWPOINTS.map((v) => `<button data-view="${v.id}">${v.name}</button>`).join("")}
     </div>`;
+  const viewMenu = bar.querySelector<HTMLElement>(".cam-views")!;
+  const viewToggle = bar.querySelector<HTMLButtonElement>(".cam-views-title")!;
+  viewToggle.addEventListener("click", () => {
+    const open = viewMenu.classList.toggle("open");
+    viewToggle.setAttribute("aria-expanded", String(open));
+  });
   const help = bar.querySelector<HTMLDivElement>(".cam-help")!;
   const sync = (m: CamMode) => {
     bar.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((b) => b.classList.toggle("on", b.dataset.mode === m));
@@ -327,7 +420,11 @@ function buildCameraBar(rig: ReturnType<typeof createCameraRig>) {
   sync(rig.mode);
   bar.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((b) => b.addEventListener("click", () => rig.setMode(b.dataset.mode as CamMode)));
   bar.querySelectorAll<HTMLButtonElement>("[data-view]").forEach((b) =>
-    b.addEventListener("click", () => rig.goTo(VIEWPOINTS.find((v) => v.id === b.dataset.view)!)),
+    b.addEventListener("click", () => {
+      rig.goTo(VIEWPOINTS.find((v) => v.id === b.dataset.view)!);
+      viewMenu.classList.remove("open");
+      viewToggle.setAttribute("aria-expanded", "false");
+    }),
   );
 
   const info = document.getElementById("info")!;

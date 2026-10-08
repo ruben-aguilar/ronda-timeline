@@ -133,9 +133,9 @@ export function createCameraRig(camera: THREE.PerspectiveCamera, dom: HTMLElemen
         orbit += dt * 0.035;
         const ang = -2.1 + Math.sin(orbit) * 0.9;
         const tgt = new THREE.Vector3(cine.tx, ground(cine.tx, cine.tn) + 20, -cine.tn);
-        controls.target.lerp(tgt, 0.03);
+        controls.target.lerp(tgt, 1 - Math.exp(-1.83 * dt));
         const want = new THREE.Vector3(tgt.x + Math.cos(ang) * cine.dist, tgt.y + cine.height, tgt.z - Math.sin(ang) * cine.dist);
-        camera.position.lerp(want, 0.02);
+        camera.position.lerp(want, 1 - Math.exp(-1.21 * dt));
         controls.update();
       } else if (rig.mode === "orbit") {
         controls.update();
@@ -158,7 +158,7 @@ export function createCameraRig(camera: THREE.PerspectiveCamera, dom: HTMLElemen
         }
         if (move.lengthSq() > 0) camera.position.addScaledVector(move.normalize(), v);
         const g = ground(camera.position.x, -camera.position.z);
-        if (rig.mode === "walk") camera.position.y = THREE.MathUtils.lerp(camera.position.y, g + EYE, 0.3);
+        if (rig.mode === "walk") camera.position.y = THREE.MathUtils.lerp(camera.position.y, g + EYE, 1 - Math.exp(-21.4 * dt));
         else camera.position.y = Math.max(camera.position.y, g + 3);
         camera.quaternion.setFromEuler(new THREE.Euler(pitch, yaw, 0, "YXZ"));
       }
@@ -206,7 +206,7 @@ export function createCameraRig(camera: THREE.PerspectiveCamera, dom: HTMLElemen
     tween = { from: camera.position.clone(), to: hit.clone().add(off), tFrom: controls.target.clone(), tTo: hit, t: 0 };
   });
   window.addEventListener("keydown", (e) => {
-    if ((e.target as HTMLElement)?.tagName === "INPUT") return;
+    if ((e.target as HTMLElement)?.closest("input, select, button, textarea")) return;
     keys.add(e.code);
   });
   window.addEventListener("keyup", (e) => keys.delete(e.code));

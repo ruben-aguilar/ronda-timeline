@@ -4,6 +4,7 @@ import { Dem, elevation, Y_OFFSET } from "./data";
 import { orientedBox } from "./buildings";
 import { makeLabel } from "./landmarks";
 import { metricUV, texturedMaterial } from "./textures";
+import { createCanopy } from "./trees";
 
 // Alameda del Tajo (park, 1806) and the cliff-edge walks next to it: gravel ground, lamp posts,
 // benches, a stone balustrade along the Paseo de los Ingleses and the Paseo de Blas Infante, the
@@ -234,17 +235,8 @@ export async function createAlameda(dem: Dem): Promise<Alameda> {
         if (inside(x, n, data.park)) spots.push([x, n]);
       }
     }
-    const crown = new THREE.SphereGeometry(1, 14, 10);
+    const { geometry: crown, material: crownMat } = createCanopy();
     const trunk = new THREE.CylinderGeometry(0.22, 0.3, 1, 7).translate(0, 0.5, 0);
-    const crownMat = new THREE.MeshStandardMaterial({ color: 0x5f7a35, roughness: 0.9 });
-    crownMat.onBeforeCompile = (sh) => {
-      sh.vertexShader = sh.vertexShader
-        .replace("#include <common>", "#include <common>\nvarying vec3 vLeafP;")
-        .replace("#include <begin_vertex>", "#include <begin_vertex>\nvLeafP = position * 4.0;\ntransformed += normal * 0.12 * sin(position.x * 9.0) * cos(position.z * 7.0);");
-      sh.fragmentShader = sh.fragmentShader
-        .replace("#include <common>", "#include <common>\nvarying vec3 vLeafP;\nfloat pH(vec3 p) { return fract(sin(dot(floor(p), vec3(12.9898, 78.233, 37.719))) * 43758.5453); }")
-        .replace("#include <color_fragment>", "#include <color_fragment>\ndiffuseColor.rgb *= 0.7 + 0.5 * pH(vLeafP);");
-    };
     const crowns = new THREE.InstancedMesh(crown, crownMat, spots.length);
     const trunks = new THREE.InstancedMesh(trunk, new THREE.MeshStandardMaterial({ color: 0x8c8370, roughness: 0.9 }), spots.length);
     const m4 = new THREE.Matrix4();
@@ -253,6 +245,7 @@ export async function createAlameda(dem: Dem): Promise<Alameda> {
       const k = 0.85 + ((i * 7919) % 100) / 300;
       m4.compose(new THREE.Vector3(x, y + 7.5 * k, -n), new THREE.Quaternion(), new THREE.Vector3(5.2 * k, 4.2 * k, 5.2 * k));
       crowns.setMatrixAt(i, m4);
+      crowns.setColorAt(i, new THREE.Color().setHSL(0.24, 0.3, 0.44 + (i % 7) * 0.02));
       m4.compose(new THREE.Vector3(x, y, -n), new THREE.Quaternion(), new THREE.Vector3(1, 5.5 * k, 1));
       trunks.setMatrixAt(i, m4);
     });

@@ -6,13 +6,16 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "check": "node tools/check.mjs",
+    "benchmark": "node tools/benchmark.mjs"
   },
   "dependencies": {
     "three": "^0.186.1"
   },
   "devDependencies": {
     "@types/three": "^0.186.0",
+    "playwright-core": "^1.64.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.4"
   }

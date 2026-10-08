@@ -1,0 +1,25 @@
+{
+  "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+  "viewport": [
+    1440,
+    900
+  ],
+  "pixelRatio": 1,
+  "results": [
+    {
+      "view": "general",
+      "medianMs": 10.77975,
+      "p90Ms": 13.251999,
+      "calls": 371,
+      "triangles": 27805881
+    },
+    {
+      "view": "tajo",
+      "medianMs": 6.940458,
+      "p90Ms": 7.754416,
+      "calls": 345,
+      "triangles": 27804137
+    }
+  ],
+  "errors": []
+}

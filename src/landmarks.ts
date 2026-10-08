@@ -110,15 +110,32 @@ export function createLandmarks(dem: Dem): Landmarks {
   return {
     group,
     update(year, camera) {
-      for (const { d, l } of labels) {
-        const near = (d.rank ?? 2) === 1 || camera.position.distanceTo(l.obj.position) < 1300;
-        const on = near && year >= d.from && year < d.to;
-        l.obj.visible = on;
-        if (on) {
-          let name = d.names[0][1];
-          for (const [y, nm] of d.names) if (year >= y) name = nm;
-          l.set(name);
+      const occupied: Array<{ x: number; y: number; width: number }> = [];
+      const projected = new THREE.Vector3();
+      const sample = new THREE.Vector3();
+      const ordered = [...labels].sort((a, b) => (a.d.rank ?? 2) - (b.d.rank ?? 2) || camera.position.distanceToSquared(a.l.obj.position) - camera.position.distanceToSquared(b.l.obj.position));
+      for (const { d, l } of ordered) {
+        l.obj.visible = false;
+        const distance = camera.position.distanceTo(l.obj.position);
+        if (year < d.from || year >= d.to || ((d.rank ?? 2) !== 1 && distance > 1300)) continue;
+        projected.copy(l.obj.position).project(camera);
+        if (projected.z < -1 || projected.z > 1 || Math.abs(projected.x) > 0.95 || Math.abs(projected.y) > 0.85) continue;
+        // A label behind the gorge wall should not appear to float on the rock in front.
+        let occluded = false;
+        for (let i = 1; i < 20; i++) {
+          sample.lerpVectors(camera.position, l.obj.position, i / 20);
+          if (sample.y < Y(sample.x, -sample.z) + 2) { occluded = true; break; }
         }
+        if (occluded) continue;
+        let name = d.names[0][1];
+        for (const [y, nm] of d.names) if (year >= y) name = nm;
+        const x = (projected.x + 1) * innerWidth / 2;
+        const y = (1 - projected.y) * innerHeight / 2;
+        const width = Math.max(name.length * 7, 90);
+        if (occupied.length >= 7 || occupied.some(p => Math.abs(p.x - x) < (p.width + width) / 2 + 12 && Math.abs(p.y - y) < 52)) continue;
+        occupied.push({ x, y, width });
+        l.set(name);
+        l.obj.visible = true;
       }
       for (const { e, l } of edges) l.obj.visible = year >= e.from && year < e.to;
     },

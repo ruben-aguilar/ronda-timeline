@@ -37,3 +37,15 @@ reforma. Dentro de los barrios históricos de `scripts/zones.json` (dibujados so
 - `src/camera.ts`: modos Cine, Órbita, Vuelo y Paseo, y vistas
 - `src/ui.ts`: barra de tiempo
 - `tools/shot.mjs`: capturas con GPU real (Chrome headless + Playwright de otro proyecto)
+
+## Rendimiento y controles de la escena
+
+El terreno usa niveles de detalle por distancia; los árboles se dibujan por zonas y los
+edificios futuros se omiten. Las sombras se conservan mientras no cambie la escena. Una
+vista en órbita sin movimiento deja de dibujar fotogramas.
+
+Los controles **Luz**, **Detalle** y **Nombres** permiten cambiar la iluminación, ajustar
+la calidad y ocultar etiquetas. **Auto** reduce la calidad si el tiempo de fotograma es alto.
+El botón **Vistas** también funciona en pantallas táctiles.
+
+Las mediciones y las instrucciones de comprobación están en [docs/performance](docs/performance/README.md).

@@ -27,7 +27,8 @@ export function photoWeights(year: number): [number, number, number, number, num
 }
 
 export interface Terrain {
-  mesh: THREE.Mesh;
+  mesh: THREE.Group;
+  update(camera: THREE.Camera): boolean;
   setYear(year: number): void;
 }
 
@@ -55,46 +56,10 @@ vec3 tPerturb(vec3 surfPos, vec3 n, vec2 dHdxy, float face) {
 `;
 
 export function createTerrain(dem: Dem, loader: THREE.TextureLoader, anisotropy: number): Terrain {
-  const { rows, cols, cell } = dem;
-  const half = dem.size / 2;
-  const pos = new Float32Array(rows * cols * 3);
-  const uv = new Float32Array(rows * cols * 2);
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const i = r * cols + c;
-      pos[i * 3] = -half + (c + 0.5) * cell;
-      pos[i * 3 + 1] = dem.h[i] - Y_OFFSET;
-      pos[i * 3 + 2] = -(half - (r + 0.5) * cell);
-      uv[i * 2] = (c + 0.5) / cols;
-      uv[i * 2 + 1] = 1 - (r + 0.5) / rows;
-    }
-  }
-  const idx = new Uint32Array((rows - 1) * (cols - 1) * 6);
-  let k = 0;
-  for (let r = 0; r < rows - 1; r++) {
-    for (let c = 0; c < cols - 1; c++) {
-      const a = r * cols + c;
-      const b = a + 1;
-      const d = a + cols;
-      const e = d + 1;
-      idx[k++] = a;
-      idx[k++] = d;
-      idx[k++] = b;
-      idx[k++] = b;
-      idx[k++] = d;
-      idx[k++] = e;
-    }
-  }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-  geo.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
-  geo.setIndex(new THREE.BufferAttribute(idx, 1));
-  geo.computeVertexNormals();
-
   const tex = (name: string, srgb = true) => {
     const t = loader.load(`textures/${name}`);
     if (srgb) t.colorSpace = THREE.SRGBColorSpace;
-    t.anisotropy = anisotropy;
+    t.anisotropy = Math.min(anisotropy, 8);
     t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
     return t;
   };
@@ -144,12 +109,17 @@ vec3 faceN = normalize(cross(dFdx(vWPos), dFdy(vWPos)));
 gSteep = 1.0 - smoothstep(0.6, 0.9, min(vUp, abs(faceN.y)));
 
 // 2024: a sharper photo for the central 2 x 2 km.
-vec3 p2024 = texture2D(t2024, uv).rgb;
+vec3 p2024 = vec3(0.0);
+if (uW.w > 0.0) {
+p2024 = texture2D(t2024, uv).rgb;
 vec2 cuv = (uv - 0.25) * 2.0;
 float cin = smoothstep(0.0, 0.02, min(min(cuv.x, cuv.y), min(1.0 - cuv.x, 1.0 - cuv.y)));
 if (cin > 0.0) p2024 = mix(p2024, texture2D(t2024c, clamp(cuv, 0.0, 1.0)).rgb, cin);
 
-vec3 hist = texture2D(tHist, uv).rgb;
+}
+vec3 hist = vec3(0.0);
+if (uHist > 0.0) {
+hist = texture2D(tHist, uv).rgb;
 float m = texture2D(tMask, uv).r;
 // Where the town was painted out, add field and scrub detail so it does not look blurry.
 float fieldN = tFbm(vWPos.xz * 0.06);
@@ -158,11 +128,16 @@ hist *= mix(1.0, 0.86 + 0.28 * tNoise(vWPos.xz * 0.9) * fieldN, m);
 vec3 wood = vec3(0.20, 0.25, 0.13) * (0.75 + 0.6 * tFbm(vWPos.xz * 0.045));
 hist = mix(hist, wood, uWild * 0.6 * smoothstep(0.35, 0.75, tFbm(vWPos.xz * 0.012)) * (1.0 - gSteep));
 
-vec3 p1956 = texture2D(t1956, uv).rgb * vec3(1.07, 0.98, 0.83);
-vec3 p1980 = texture2D(t1980, uv).rgb * vec3(1.04, 1.0, 0.92);
-vec3 col = hist * uHist + p1956 * uW.x + p1980 * uW.y + texture2D(t2004, uv).rgb * uW.z + p2024 * uW.w;
+}
+vec3 p1956 = vec3(0.0), p1980 = vec3(0.0), p2004 = vec3(0.0);
+if (uW.x > 0.0) p1956 = texture2D(t1956, uv).rgb * vec3(1.07, 0.98, 0.83);
+if (uW.y > 0.0) p1980 = texture2D(t1980, uv).rgb * vec3(1.04, 1.0, 0.92);
+if (uW.z > 0.0) p2004 = texture2D(t2004, uv).rgb;
+vec3 col = hist * uHist + p1956 * uW.x + p1980 * uW.y + p2004 * uW.z + p2024 * uW.w;
 
 // Cliffs: photos smear on steep faces, so draw layered limestone there.
+gStrata = 0.5; gCliffL = 1.0;
+if (gSteep > 0.01) {
 gStrata = tFbm(vec2(vWPos.y * 0.42 + tFbm(vWPos.xz * 0.015) * 5.0, (vWPos.x + vWPos.z) * 0.01));
 // Photographed rock (Poly Haven "cliff_side"), projected on the two vertical planes. Only its
 // brightness is used, so the colour stays the grey-ochre of Ronda's sandstone.
@@ -176,9 +151,10 @@ vec3 rock = mix(vec3(0.40, 0.35, 0.29), vec3(0.68, 0.61, 0.50), gStrata * 0.5 + 
 float green = clamp((col.g - col.r) * 5.0 + 0.1, 0.0, 1.0);
 col = mix(col, rock, clamp(gSteep * (1.0 - green * 0.55 * (1.0 - gSteep)) * 1.05, 0.0, 1.0));
 
+}
 float lumC = dot(col, vec3(0.299, 0.587, 0.114));
-col = mix(vec3(lumC), col, 1.18);
-col = pow(col, vec3(1.12));
+col = mix(vec3(lumC), col, 1.04);
+col = pow(col, vec3(1.02));
 // Fine grain close to the camera.
 gDetail = 1.0 - smoothstep(250.0, 1400.0, dist);
 col *= 1.0 + (tNoise(vWPos.xz * 1.7) - 0.5) * 0.14 * gDetail;
@@ -188,8 +164,8 @@ diffuseColor.rgb *= col;
       .replace(
         "#include <normal_fragment_maps>",
         /* glsl */ `#include <normal_fragment_maps>
-float hB = tNoise(vWPos.xz * 0.7) * 0.6 + tNoise(vWPos.xz * 2.6) * 0.25 + gSteep * (gStrata * 1.2 + gCliffL * 2.5);
-normal = tPerturb(-vViewPosition, normal, vec2(dFdx(hB), dFdy(hB)) * gDetail * 1.2, faceDirection);`,
+float hB = tNoise(vWPos.xz * 0.7) * 0.6 + tNoise(vWPos.xz * 2.6) * 0.25 + gSteep * (gStrata * 0.22 + gCliffL * 0.12);
+normal = tPerturb(-vViewPosition, normal, vec2(dFdx(hB), dFdy(hB)) * gDetail * 0.32, faceDirection);`,
       )
       .replace(
         "#include <fog_fragment>",
@@ -199,12 +175,88 @@ gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, edge);`,
       );
   };
 
-  const mesh = new THREE.Mesh(geo, mat);
-  mesh.receiveShadow = true;
-  mesh.castShadow = true;
+  // Tiles retain the original 5 m DEM near the camera. Skirts cover LOD seams.
+  const mesh = new THREE.Group();
+  mesh.name = "Terrain tiles";
+  const tiles: THREE.LOD[] = [];
+  const { rows, cols, cell } = dem;
+  const half = dem.size / 2;
+  const height = (r: number, c: number) => dem.h[Math.max(0, Math.min(rows - 1, r)) * cols + Math.max(0, Math.min(cols - 1, c))];
+  for (let r0 = 0; r0 < rows - 1; r0 += 100) {
+    for (let c0 = 0; c0 < cols - 1; c0 += 100) {
+      const r1 = Math.min(r0 + 100, rows - 1), c1 = Math.min(c0 + 100, cols - 1);
+      const cx = -half + ((c0 + c1) / 2 + 0.5) * cell;
+      const cz = -half + ((r0 + r1) / 2 + 0.5) * cell;
+      const lod = new THREE.LOD();
+      lod.position.set(cx, height(Math.round((r0 + r1) / 2), Math.round((c0 + c1) / 2)) - Y_OFFSET, cz);
+      lod.autoUpdate = false;
+      for (const [step, distance] of [[1, 0], [2, 750], [4, 1500], [8, 2600]]) {
+        const rs: number[] = [], cs: number[] = [];
+        for (let r = r0; r < r1; r += step) rs.push(r);
+        for (let c = c0; c < c1; c += step) cs.push(c);
+        rs.push(r1); cs.push(c1);
+        const pos: number[] = [], uv: number[] = [], normals: number[] = [], indices: number[] = [];
+        const normal = new THREE.Vector3();
+        for (const r of rs) for (const c of cs) {
+          pos.push(-half + (c + 0.5) * cell - cx, height(r, c) - Y_OFFSET - lod.position.y, -half + (r + 0.5) * cell - cz);
+          uv.push((c + 0.5) / cols, 1 - (r + 0.5) / rows);
+          normal.set(height(r, c - 1) - height(r, c + 1), 2 * cell, height(r - 1, c) - height(r + 1, c)).normalize();
+          normals.push(normal.x, normal.y, normal.z);
+        }
+        const w = cs.length, h = rs.length;
+        for (let r = 0; r < h - 1; r++) for (let c = 0; c < w - 1; c++) {
+          const a = r * w + c;
+          indices.push(a, a + w, a + 1, a + 1, a + w, a + w + 1);
+        }
+        const edge = [
+          ...Array.from({length: w}, (_, c) => c),
+          ...Array.from({length: h - 1}, (_, r) => (r + 1) * w + w - 1),
+          ...Array.from({length: w - 1}, (_, c) => h * w - 2 - c),
+          ...Array.from({length: h - 2}, (_, r) => (h - 2 - r) * w),
+        ];
+        const start = pos.length / 3;
+        edge.forEach((i) => {
+          pos.push(pos[i * 3], pos[i * 3 + 1] - 12, pos[i * 3 + 2]);
+          uv.push(uv[i * 2], uv[i * 2 + 1]);
+          normals.push(...normals.slice(i * 3, i * 3 + 3));
+        });
+        edge.forEach((a, i) => {
+          const j = (i + 1) % edge.length, b = edge[j];
+          indices.push(a, b, start + i, b, start + j, start + i);
+        });
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+        geo.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+        geo.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
+        geo.setIndex(indices);
+        geo.computeBoundingSphere();
+        const tile = new THREE.Mesh(geo, mat);
+        tile.receiveShadow = tile.castShadow = true;
+        lod.addLevel(tile, distance, 0.12);
+      }
+      tiles.push(lod);
+      mesh.add(lod);
+    }
+  }
+  // Shader detail uses world coordinates, independent of the tile's origin.
+  const compile = mat.onBeforeCompile;
+  mat.onBeforeCompile = function(shader, renderer) {
+    compile.call(this, shader, renderer);
+    shader.vertexShader = shader.vertexShader.replace("vWPos = position;", "vWPos = (modelMatrix * vec4(position, 1.0)).xyz;");
+  };
 
   return {
     mesh,
+    update(camera) {
+      mesh.updateMatrixWorld();
+      let changed = false;
+      for (const tile of tiles) {
+        const before = tile.getCurrentLevel();
+        tile.update(camera);
+        changed ||= before !== tile.getCurrentLevel();
+      }
+      return changed;
+    },
     setYear(year: number) {
       const w = photoWeights(year);
       uniforms.uHist.value = w[0];

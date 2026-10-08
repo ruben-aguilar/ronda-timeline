@@ -65,7 +65,14 @@ export function pbr(key: PbrKey): PbrSet {
       if (srgb) t.colorSpace = THREE.SRGBColorSpace;
       return t;
     };
-    s = { map: load("diff", true), normalMap: load("nor", false), arm: load("arm", false), metres: METRES[key] };
+    // Shader-only surfaces need colour, not all three maps.
+    let map: THREE.Texture | undefined, normal: THREE.Texture | undefined, arm: THREE.Texture | undefined;
+    s = {
+      get map() { return map ??= load("diff", true); },
+      get normalMap() { return normal ??= load("nor", false); },
+      get arm() { return arm ??= load("arm", false); },
+      metres: METRES[key],
+    };
     cache.set(key, s);
   }
   return s;
