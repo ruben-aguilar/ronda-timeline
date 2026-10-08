@@ -1,3 +1,4 @@
+import { t as translate, onLanguageChange } from "./i18n";
 import * as THREE from "three";
 import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer.js";
 import { Dem, elevation, Y_OFFSET } from "./data";
@@ -66,16 +67,20 @@ export function makeLabel(text: string, note: string): { obj: CSS2DObject; set(n
   el.className = "label";
   const t = document.createElement("div");
   t.className = "label-name";
-  t.textContent = text;
+  let currentName = text;
+  t.textContent = translate(text);
   const n = document.createElement("div");
   n.className = "label-note";
-  n.textContent = note;
+  n.textContent = translate(note);
+  onLanguageChange(() => { t.textContent = translate(currentName); n.textContent = translate(note); });
   el.append(t, n);
   const obj = new CSS2DObject(el);
   return {
     obj,
     set(name: string) {
-      if (t.textContent !== name) t.textContent = name;
+      currentName = name;
+      const translated = translate(name);
+      if (t.textContent !== translated) t.textContent = translated;
     },
   };
 }
@@ -132,7 +137,7 @@ export function createLandmarks(dem: Dem): Landmarks {
         for (const [y, nm] of d.names) if (year >= y) name = nm;
         const x = (projected.x + 1) * innerWidth / 2;
         const y = (1 - projected.y) * innerHeight / 2;
-        const width = Math.max(name.length * 7, 90);
+        const width = Math.max(translate(name).length * 7, 90);
         if (occupied.length >= 7 || occupied.some(p => Math.abs(p.x - x) < (p.width + width) / 2 + 12 && Math.abs(p.y - y) < 52)) continue;
         occupied.push({ x, y, width });
         l.set(name);

@@ -1,4 +1,5 @@
-import { ERAS, EVENTS, Era, NOW, formatNumber, formatYear, posAt, yearAt } from "./timeline";
+import { t, bindTranslations, onLanguageChange } from "./i18n";
+import { ERAS, EVENTS, Era, NOW, formatYear, posAt, yearAt } from "./timeline";
 
 export interface TimelineUI {
   setPos(p: number, year: number, era: Era): void;
@@ -50,6 +51,8 @@ export function buildTimelineUI(opts: {
       <div class="tl-tip"></div>
     </div>`;
 
+  bindTranslations(root);
+
   const track = root.querySelector<HTMLDivElement>(".tl-track")!;
   const erasEl = root.querySelector<HTMLDivElement>(".tl-eras")!;
   const eventsEl = root.querySelector<HTMLDivElement>(".tl-events")!;
@@ -91,8 +94,8 @@ export function buildTimelineUI(opts: {
     b.style.left = `${p0 * 100}%`;
     b.style.width = `${(p1 - p0) * 100}%`;
     b.style.setProperty("--c", e.color);
-    b.innerHTML = `<span>${e.title}</span>`;
-    b.dataset.tip = `<b>${e.title}</b><br>${formatYear(e.from)} – ${e.to >= NOW ? "hoy" : formatYear(e.to)}`;
+    b.innerHTML = `<span>${t(e.title)}</span>`;
+    b.dataset.tip = `<b>${t(e.title)}</b><br>${formatYear(e.from)} – ${e.to >= NOW ? t("hoy") : formatYear(e.to)}`;
     b.addEventListener("click", (ev) => {
       ev.stopPropagation();
       opts.onSeek(p0 + 0.0005);
@@ -106,7 +109,8 @@ export function buildTimelineUI(opts: {
     const m = document.createElement("button");
     m.className = "tl-event";
     m.style.left = `${posAt(ev.year) * 100}%`;
-    m.dataset.tip = `<b>${formatYear(ev.year)}</b><br>${ev.title}`;
+    m.setAttribute("aria-label", `${formatYear(ev.year)}: ${t(ev.title)}`);
+    m.dataset.tip = `<b>${formatYear(ev.year)}</b><br>${t(ev.title)}`;
     m.addEventListener("click", (e) => {
       e.stopPropagation();
       opts.onSeek(posAt(ev.year) + 0.0008);
@@ -115,11 +119,11 @@ export function buildTimelineUI(opts: {
   }
 
   for (const y of TICKS) {
-    const t = document.createElement("div");
-    t.className = "tl-tick";
-    t.style.left = `${posAt(y) * 100}%`;
-    t.textContent = y === NOW ? "Hoy" : y < 0 ? `${formatNumber(Math.abs(y))} a. C.` : String(y);
-    ticksEl.appendChild(t);
+    const tick = document.createElement("div");
+    tick.className = "tl-tick";
+    tick.style.left = `${posAt(y) * 100}%`;
+    tick.textContent = y === NOW ? t("Hoy") : y < 0 ? formatYear(y) : String(y);
+    ticksEl.appendChild(tick);
   }
 
   // Scrubbing and hover tooltip.
@@ -153,7 +157,7 @@ export function buildTimelineUI(opts: {
   const setPlaying = (on: boolean) => {
     playing = on;
     root.classList.toggle("playing", on);
-    playBtn.setAttribute("aria-label", on ? "Pausa" : "Reproducir");
+    playBtn.setAttribute("aria-label", t(on ? "Pausa" : "Reproducir"));
   };
   playBtn.addEventListener("click", () => {
     setPlaying(!playing);
@@ -168,6 +172,24 @@ export function buildTimelineUI(opts: {
   );
 
   let lastEra: Era | null = null;
+  onLanguageChange(() => {
+    lastEra = null;
+    setPlaying(playing);
+    tip.classList.remove("show");
+    for (const { e, b } of eraEls) {
+      b.querySelector("span")!.textContent = t(e.title);
+      b.dataset.tip = `<b>${t(e.title)}</b><br>${formatYear(e.from)} – ${e.to >= NOW ? t("hoy") : formatYear(e.to)}`;
+    }
+    eventsEl.querySelectorAll<HTMLButtonElement>("button").forEach((button, i) => {
+      const ev = EVENTS[i];
+      button.dataset.tip = `<b>${formatYear(ev.year)}</b><br>${t(ev.title)}`;
+      button.setAttribute("aria-label", `${formatYear(ev.year)}: ${t(ev.title)}`);
+    });
+    ticksEl.querySelectorAll(".tl-tick").forEach((tick, i) => {
+      const y = TICKS[i];
+      tick.textContent = y === NOW ? t("Hoy") : y < 0 ? formatYear(y) : String(y);
+    });
+  });
   return {
     setPos(p, year, era) {
       thumb.style.left = `${p * 100}%`;
@@ -175,8 +197,8 @@ export function buildTimelineUI(opts: {
       clip.setAttribute("width", String(p * 1000));
       if (era !== lastEra) {
         lastEra = era;
-        eraName.textContent = era.title;
-        eraSub.textContent = `${formatYear(era.from)} – ${era.to >= NOW ? "hoy" : formatYear(era.to)}`;
+        eraName.textContent = t(era.title);
+        eraSub.textContent = `${formatYear(era.from)} – ${era.to >= NOW ? t("hoy") : formatYear(era.to)}`;
         dot.style.background = era.color;
         for (const { e, b } of eraEls) b.classList.toggle("active", e === era);
       }

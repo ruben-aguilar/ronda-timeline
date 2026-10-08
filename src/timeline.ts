@@ -1,3 +1,6 @@
+import { t, formatNumber } from "./i18n";
+export { formatNumber } from "./i18n";
+
 // Modelo del tiempo: la posición del deslizador (0..1) se convierte en un año con una escala
 // lineal por tramos. Los primeros milenios ocupan poco; de 1900 a hoy ocupa la mayor parte.
 
@@ -42,17 +45,11 @@ export function yearsPerStep(pos: number, step = 0.006): number {
   return Math.max(yearAt(Math.min(pos + step, 1)) - yearAt(Math.max(pos - step, 0)), 0.5) / 2;
 }
 
-const fmt = new Intl.NumberFormat("es-ES");
-
 export function formatYear(y: number): string {
   const r = Math.round(y);
-  if (r < 0) return `${fmt.format(Math.abs(r))} a. C.`;
-  if (r < 1000) return `${r} d. C.`;
+  if (r < 0) return `${formatNumber(Math.abs(r))} ${t("a. C.")}`;
+  if (r < 1000) return `${r} ${t("d. C.")}`;
   return String(r);
-}
-
-export function formatNumber(n: number): string {
-  return fmt.format(n);
 }
 
 export interface Era {

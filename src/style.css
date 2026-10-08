@@ -967,3 +967,32 @@ button:focus-visible, select:focus-visible { outline: 2px solid var(--gold); out
 }
 
 .cam-views button.cam-views-title { font-size: 10.5px; text-align: center; min-height: 30px; }
+
+/* The restore control stays with the camera when the rest of the interface is hidden. */
+.ui-toggle {
+  width: 76px;
+  padding: 12px 6px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--glass);
+  backdrop-filter: blur(18px);
+  color: var(--ink);
+  font: inherit;
+  font-size: 11px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.ui-toggle:hover, .ui-toggle[aria-pressed="true"] { color: var(--gold); background: rgba(36, 30, 23, 0.88); }
+body.ui-hidden #era-card,
+body.ui-hidden #clock,
+body.ui-hidden #timeline,
+body.ui-hidden #splash,
+body.ui-hidden .scene-settings,
+body.ui-hidden .label,
+body.ui-hidden #info,
+body.ui-hidden #lightbox { display: none !important; }
+.scene-settings { flex-wrap: wrap; max-width: calc(100vw - 130px); }
+.info-card { max-height: calc(100dvh - 48px); overflow-y: auto; }
+@media (max-width: 860px) {
+  body.ui-hidden #cambar { bottom: 20px; }
+}

@@ -1,3 +1,4 @@
+import { t, onLanguageChange } from "./i18n";
 // Era gallery in the era card, and a full-screen viewer with title, caption and credit.
 
 interface GalleryItem {
@@ -31,10 +32,10 @@ export async function createGallery(): Promise<Gallery> {
     index = (i + items.length) % items.length;
     const it = items[index];
     img.src = it.img;
-    img.alt = it.title;
-    title.textContent = it.title;
-    caption.textContent = it.caption;
-    credit.innerHTML = `${esc(it.credit)} · ${esc(it.license)} · <a href="${esc(it.source)}" target="_blank" rel="noopener">fuente</a> · ${index + 1}/${items.length}`;
+    img.alt = t(it.title);
+    title.textContent = t(it.title);
+    caption.textContent = t(it.caption);
+    credit.innerHTML = `${esc(t(it.credit))} · ${esc(it.license)} · <a href="${esc(it.source)}" target="_blank" rel="noopener">${t("fuente")}</a> · ${index + 1}/${items.length}`;
     box.classList.add("open");
     box.setAttribute("aria-hidden", "false");
   };
@@ -62,13 +63,23 @@ export async function createGallery(): Promise<Gallery> {
     true,
   );
 
+  const renderStrip = () => {
+      strip.innerHTML = items
+        .map((it, i) => `<button class="g-thumb" data-i="${i}" title="${esc(t(it.title))}"><img src="${it.thumb}" alt="${esc(t(it.title))}" loading="lazy" /><span>${esc(t(it.title))}</span></button>`)
+        .join("");
+      strip.querySelectorAll<HTMLButtonElement>(".g-thumb").forEach((b) => b.addEventListener("click", () => open(Number(b.dataset.i))));
+  };
+  onLanguageChange(() => {
+    const scroll = strip.scrollLeft;
+    renderStrip();
+    strip.scrollLeft = scroll;
+    if (box.classList.contains("open")) open(index);
+  });
+  document.addEventListener("ronda:interface", close);
   return {
     show(eraId) {
       items = data[eraId] ?? [];
-      strip.innerHTML = items
-        .map((it, i) => `<button class="g-thumb" data-i="${i}" title="${esc(it.title)}"><img src="${it.thumb}" alt="${esc(it.title)}" loading="lazy" /><span>${esc(it.title)}</span></button>`)
-        .join("");
-      strip.querySelectorAll<HTMLButtonElement>(".g-thumb").forEach((b) => b.addEventListener("click", () => open(Number(b.dataset.i))));
+      renderStrip();
       strip.scrollLeft = 0;
     },
   };

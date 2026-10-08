@@ -1,3 +1,4 @@
+import { t, getLanguage, setLanguage, bindTranslations, onLanguageChange } from "./i18n";
 import * as THREE from "three";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
@@ -25,6 +26,8 @@ const HAZE = new THREE.Color("#b9c6d2");
 const SUN_DIR = new THREE.Vector3(-1400, 1150, 900).normalize();
 
 async function main() {
+  document.documentElement.lang = getLanguage();
+  bindTranslations(document.documentElement);
   const app = document.getElementById("app")!;
   const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
@@ -169,20 +172,21 @@ async function main() {
   const toggle = document.getElementById("era-toggle")!;
   const setCollapsed = (on: boolean) => {
     card.classList.toggle("collapsed", on);
-    toggle.setAttribute("aria-label", on ? "Mostrar panel" : "Ocultar panel");
+    toggle.setAttribute("aria-label", t(on ? "Mostrar panel" : "Ocultar panel"));
     localStorage.setItem("eraCollapsed", on ? "1" : "0");
   };
   setCollapsed(localStorage.getItem("eraCollapsed") === "1");
   toggle.addEventListener("click", () => setCollapsed(!card.classList.contains("collapsed")));
 
-  const showEra = (e: Era) => {
-    gallery.show(e.id);
-    eraTitle.textContent = e.title;
-    eraSub.textContent = `${formatYear(e.from)} – ${e.to >= NOW ? "hoy" : formatYear(e.to)} · ${e.subtitle}`;
-    eraText.textContent = e.text;
-    eraConf.innerHTML = `<span class="dots">${"●".repeat(e.confidence + 1)}${"○".repeat(3 - e.confidence)}</span> ${CONFIDENCE_LABEL[e.confidence]}`;
+  const showEra = (e: Era, animate = true) => {
+    if (animate) gallery.show(e.id);
+    eraTitle.textContent = t(e.title);
+    eraSub.textContent = `${formatYear(e.from)} – ${e.to >= NOW ? t("hoy") : formatYear(e.to)} · ${t(e.subtitle)}`;
+    eraText.textContent = t(e.text);
+    eraConf.innerHTML = `<span class="dots">${"●".repeat(e.confidence + 1)}${"○".repeat(3 - e.confidence)}</span> ${t(CONFIDENCE_LABEL[e.confidence])}`;
     document.documentElement.style.setProperty("--era", e.color);
-    splash.innerHTML = `<div class="splash-title">${e.title}</div><div class="splash-sub">${e.subtitle}</div>`;
+    splash.innerHTML = `<div class="splash-title">${t(e.title)}</div><div class="splash-sub">${t(e.subtitle)}</div>`;
+    if (!animate) return;
     splash.classList.remove("show");
     void splash.offsetWidth;
     splash.classList.add("show");
@@ -235,11 +239,16 @@ async function main() {
   const settings = document.createElement("div");
   settings.className = "scene-settings";
   settings.innerHTML = `
-    <label>Luz <select aria-label="Luz"><option value="day">Día</option><option value="late">Tarde</option></select></label>
-    <label>Detalle <select aria-label="Detalle"><option value="auto">Auto</option><option value="2">Alto</option><option value="1">Medio</option><option value="0">Ligero</option></select></label>
-    <button aria-pressed="true" title="Mostrar u ocultar nombres">Nombres</button>`;
+    <label>Luz <select id="light-select" aria-label="Luz"><option value="day">Día</option><option value="late">Tarde</option></select></label>
+    <label>Detalle <select id="detail-select" aria-label="Detalle"><option value="auto">Auto</option><option value="2">Alto</option><option value="1">Medio</option><option value="0">Ligero</option></select></label>
+    <button aria-pressed="true" title="Mostrar u ocultar nombres">Nombres</button>
+    <label>Idioma <select id="language-select" aria-label="Idioma"><option value="es" lang="es">Español</option><option value="en" lang="en">English</option></select></label>`;
   document.body.appendChild(settings);
-  settings.querySelector<HTMLSelectElement>("[aria-label=Luz]")!.onchange = (event) => {
+  bindTranslations(settings);
+  const languageSelect = settings.querySelector<HTMLSelectElement>("#language-select")!;
+  languageSelect.value = getLanguage();
+  languageSelect.addEventListener("change", () => setLanguage(languageSelect.value === "en" ? "en" : "es"));
+  settings.querySelector<HTMLSelectElement>("#light-select")!.onchange = (event) => {
     const late = (event.target as HTMLSelectElement).value === "late";
     SUN_DIR.set(-1400, late ? 650 : 1150, 900).normalize();
     sun.position.copy(SUN_DIR).multiplyScalar(2500);
@@ -247,7 +256,7 @@ async function main() {
     sun.intensity = late ? 2.5 : 2.8;
     renderer.shadowMap.needsUpdate = dirty = true;
   };
-  settings.querySelector<HTMLSelectElement>("[aria-label=Detalle]")!.onchange = (event) => {
+  settings.querySelector<HTMLSelectElement>("#detail-select")!.onchange = (event) => {
     const value = (event.target as HTMLSelectElement).value;
     automatic = value === "auto";
     setQuality(automatic ? 2 : Number(value));
@@ -264,6 +273,16 @@ async function main() {
   let lastUI = 0;
   let displayedYear = NaN;
   let hashYear = NaN;
+  onLanguageChange(() => {
+    const year = yearAt(pos);
+    showEra(eraAt(year), false);
+    ui.setPos(pos, year, eraAt(year));
+    yearEl.textContent = formatYear(year);
+    countEl.textContent = `${formatNumber(countUpTo(buildings.years, year))} ${t("edificios")}`;
+    toggle.setAttribute("aria-label", t(card.classList.contains("collapsed") ? "Mostrar panel" : "Ocultar panel"));
+    dirty = true;
+  });
+  document.addEventListener("ronda:interface", () => { dirty = true; });
 
   // Gancho de depuración para capturas: __ronda.shot(año, [x, y, z], [tx, ty, tz]) dibuja un
   // fotograma con ese año y esa cámara y para el bucle hasta __ronda.resume().
@@ -335,7 +354,7 @@ async function main() {
     if (year !== displayedYear && (!playing || now - lastUI > 80)) {
       ui.setPos(pos, year, era);
       yearEl.textContent = formatYear(year);
-      countEl.textContent = `${formatNumber(countUpTo(buildings.years, year))} edificios`;
+      countEl.textContent = `${formatNumber(countUpTo(buildings.years, year))} ${t("edificios")}`;
       lastUI = now;
       displayedYear = year;
     }
@@ -385,7 +404,22 @@ function buildCameraBar(rig: ReturnType<typeof createCameraRig>) {
     <div class="cam-views">
       <button class="cam-views-title" aria-expanded="false">Vistas</button>
       ${VIEWPOINTS.map((v) => `<button data-view="${v.id}">${v.name}</button>`).join("")}
-    </div>`;
+    </div>
+    <button class="ui-toggle" aria-pressed="false"></button>`;
+  bindTranslations(bar);
+  const uiToggle = bar.querySelector<HTMLButtonElement>(".ui-toggle")!;
+  const refreshToggle = () => {
+    const hidden = document.body.classList.contains("ui-hidden");
+    uiToggle.textContent = t(hidden ? "Mostrar interfaz" : "Ocultar interfaz");
+    uiToggle.setAttribute("aria-pressed", String(hidden));
+  };
+  uiToggle.addEventListener("click", () => {
+    document.body.classList.toggle("ui-hidden");
+    document.getElementById("info")!.classList.remove("open");
+    document.dispatchEvent(new Event("ronda:interface"));
+    refreshToggle();
+  });
+  refreshToggle();
   const viewMenu = bar.querySelector<HTMLElement>(".cam-views")!;
   const viewToggle = bar.querySelector<HTMLButtonElement>(".cam-views-title")!;
   viewToggle.addEventListener("click", () => {
@@ -395,10 +429,11 @@ function buildCameraBar(rig: ReturnType<typeof createCameraRig>) {
   const help = bar.querySelector<HTMLDivElement>(".cam-help")!;
   const sync = (m: CamMode) => {
     bar.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((b) => b.classList.toggle("on", b.dataset.mode === m));
-    help.textContent = modes.find((x) => x[0] === m)![2];
+    help.textContent = t(modes.find((x) => x[0] === m)![2]);
   };
   rig.onModeChange = sync;
   sync(rig.mode);
+  onLanguageChange(() => { sync(rig.mode); refreshToggle(); });
   bar.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((b) => b.addEventListener("click", () => rig.setMode(b.dataset.mode as CamMode)));
   bar.querySelectorAll<HTMLButtonElement>("[data-view]").forEach((b) =>
     b.addEventListener("click", () => {
