@@ -13,41 +13,13 @@ import { createMonuments } from "./monuments";
 import { createAlameda } from "./alameda";
 import { createGallery } from "./gallery";
 import { createTerrain } from "./terrain";
+import { createSky } from "./sky";
 import { createTrees } from "./trees";
 import { CONFIDENCE_LABEL, Era, eraAt, formatNumber, formatYear, NOW, posAt, yearAt, yearsPerStep } from "./timeline";
 import { buildTimelineUI } from "./ui";
 
 const HAZE = new THREE.Color("#b9c6d2");
 const SUN_DIR = new THREE.Vector3(-1400, 1150, 900).normalize();
-
-/** Sky dome: deep blue at the zenith, warm haze at the horizon, a soft glow around the sun. */
-function makeSky(): THREE.Mesh {
-  return new THREE.Mesh(
-    new THREE.SphereGeometry(9000, 48, 24),
-    new THREE.ShaderMaterial({
-      side: THREE.BackSide,
-      depthWrite: false,
-      fog: false,
-      uniforms: {
-        uTop: { value: new THREE.Color("#3f74b5") },
-        uMid: { value: new THREE.Color("#8fb3d9") },
-        uHaze: { value: HAZE },
-        uSun: { value: SUN_DIR },
-      },
-      vertexShader: "varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
-      fragmentShader: `uniform vec3 uTop, uMid, uHaze, uSun; varying vec3 vP;
-void main(){
-  float h = vP.y;
-  vec3 c = mix(uHaze, uMid, smoothstep(-0.02, 0.18, h));
-  c = mix(c, uTop, smoothstep(0.18, 0.7, h));
-  float sd = max(dot(normalize(vP), normalize(uSun)), 0.0);
-  c += vec3(1.0, 0.85, 0.6) * (pow(sd, 12.0) * 0.25 + pow(sd, 400.0) * 0.8);
-  gl_FragColor = vec4(c, 1.0);
-  #include <colorspace_fragment>
-}`,
-    }),
-  );
-}
 
 async function main() {
   const app = document.getElementById("app")!;
@@ -69,7 +41,8 @@ async function main() {
   const scene = new THREE.Scene();
   scene.fog = new THREE.Fog(HAZE, 2400, 7500);
 
-  scene.add(makeSky());
+  const sky = createSky(SUN_DIR, HAZE);
+  scene.add(sky.mesh);
 
   const camera = new THREE.PerspectiveCamera(42, 1, 1.2, 12000);
 
@@ -118,7 +91,7 @@ async function main() {
   window.addEventListener("resize", resize);
 
   const loading = document.getElementById("loading")!;
-  const [dem, bdata] = await Promise.all([loadDem(), loadBuildings()]);
+  const [dem, bdata] = await Promise.all([loadDem(), loadBuildings(), sky.ready]);
   // Keep the loading screen until textures and their shared clones have image data.
   let texturesPending = false;
   THREE.DefaultLoadingManager.onStart = () => { texturesPending = true; };
