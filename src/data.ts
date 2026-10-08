@@ -36,8 +36,8 @@ export function elevation(dem: Dem, x: number, n: number): number {
   return a * (1 - fr) + b * fr;
 }
 
-/** [year, floors, base elevation in dm, rings as flat dm coordinate lists, use, zone] */
-export type PartRecord = [number, number, number, number[][], string, string];
+/** [year, floors, base elevation in dm, rings as flat dm coordinate lists, use, zone, Catastro year] */
+export type PartRecord = [number, number, number, number[][], string, string, number];
 
 export interface BuildingData {
   origin: { x: number; y: number; size: number };

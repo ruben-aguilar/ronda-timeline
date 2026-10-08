@@ -113,7 +113,8 @@ def estimate_year(bid: str, catastro: int | None, x: float, y: float) -> tuple[i
     # Everything inside a zone was already built in the 1956 flight, so a later Catastro year
     # is a rebuild. A small share of the medina stands for the Iberian/Roman/Visigothic town.
     h = hash01(bid + "early")
-    if h < z.get("early_fraction", 0):
+    d0 = math.hypot(x - z["seed_xy"][0], y - z["seed_xy"][1])
+    if h < z.get("early_fraction", 0) and d0 < z.get("early_radius", 1e9):
         t = h / z["early_fraction"]
         return int(z["early_from"] + (z["early_to"] - z["early_from"]) * t), z["id"]
     d = math.hypot(x - z["seed_xy"][0], y - z["seed_xy"][1])
@@ -189,6 +190,7 @@ def main() -> None:
                 [[v for pt in ring[:-1] for v in (round(pt[0] * 10), round(pt[1] * 10))] for ring in p["rings"]],
                 p["use"],
                 p["z"],
+                p["cy"] or 1950,  # Catastro year: the last rebuild; the old form shows before it
             ]
             for p in parts
         ],

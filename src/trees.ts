@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { Dem, elevation, Y_OFFSET } from "./data";
 
 // Trees detected in the 2024 orthophoto (scripts/make_landscape.py): olive groves, holm oaks and
@@ -9,13 +10,17 @@ export async function createTrees(dem: Dem): Promise<THREE.Group> {
   const raw = new Int16Array(buf);
   const count = raw.length / 3;
 
-  const crownGeo = new THREE.IcosahedronGeometry(1, 1);
+  // Shared vertices so the crown shades smoothly instead of showing flat facets.
+  let crownGeo: THREE.BufferGeometry = new THREE.IcosahedronGeometry(1, 1);
+  crownGeo.deleteAttribute("normal");
+  crownGeo.deleteAttribute("uv");
+  crownGeo = mergeVertices(crownGeo);
   // Round, slightly flattened crowns with smooth normals.
   const p = crownGeo.attributes.position;
   for (let i = 0; i < p.count; i++) {
     const v = new THREE.Vector3().fromBufferAttribute(p, i);
     const n = v.clone().normalize();
-    const wobble = 1 + (Math.sin(v.x * 5.1) * Math.cos(v.z * 4.3)) * 0.12;
+    const wobble = 1 + Math.sin(v.x * 5.1 + v.y * 2.3) * Math.cos(v.z * 4.3 - v.y) * 0.16 + Math.sin(v.y * 7.7 + v.x * 3.1) * 0.06;
     v.copy(n).multiplyScalar(wobble);
     v.y *= 0.8;
     p.setXYZ(i, v.x, v.y, v.z);
@@ -25,6 +30,15 @@ export async function createTrees(dem: Dem): Promise<THREE.Group> {
   trunkGeo.translate(0, 0.5, 0);
 
   const crownMat = new THREE.MeshStandardMaterial({ roughness: 0.95, metalness: 0 });
+  // Leaf clusters: darker speckles and a darker underside, in world space.
+  crownMat.onBeforeCompile = (s) => {
+    s.vertexShader = s.vertexShader
+      .replace("#include <common>", "#include <common>\nvarying vec3 vLeaf;\nvarying float vUnder;")
+      .replace("#include <begin_vertex>", "#include <begin_vertex>\nvLeaf = position * 3.1;\nvUnder = normal.y;");
+    s.fragmentShader = s.fragmentShader
+      .replace("#include <common>", "#include <common>\nvarying vec3 vLeaf;\nvarying float vUnder;\nfloat lH(vec3 p) { return fract(sin(dot(floor(p), vec3(12.9898, 78.233, 37.719))) * 43758.5453); }")
+      .replace("#include <color_fragment>", "#include <color_fragment>\ndiffuseColor.rgb *= (0.7 + 0.45 * lH(vLeaf)) * mix(0.6, 1.0, smoothstep(-0.6, 0.4, vUnder));");
+  };
   const trunkMat = new THREE.MeshStandardMaterial({ color: 0x4a3a2a, roughness: 1 });
   const crowns = new THREE.InstancedMesh(crownGeo, crownMat, count);
   const trunks = new THREE.InstancedMesh(trunkGeo, trunkMat, count);

@@ -15,12 +15,16 @@ export interface Viewpoint {
 
 export const VIEWPOINTS: Viewpoint[] = [
   { id: "general", name: "Vista general", cam: [-1250, 650, 520], tgt: [60, -120, 20] },
-  { id: "tajo", name: "El Tajo desde el valle", cam: [-430, -40, 45], tgt: [6, -26, 70] },
-  { id: "puente", name: "Puente Nuevo de cerca", cam: [-170, -10, 40], tgt: [6, -26, 55] },
+  { id: "tajo", name: "El Tajo desde el valle", cam: [-360, -240, 90], tgt: [6, -26, 45] },
+  { id: "puente", name: "Puente Nuevo de cerca", cam: [-160, -60, 90], tgt: [6, -26, 42] },
+  { id: "toros", name: "Plaza de toros", cam: [-10, 70, 75], tgt: [-100, 156, 4] },
+  { id: "santamaria", name: "Santa María la Mayor", cam: [88, -492, 30], tgt: [32, -372, 16] },
+  { id: "almocabar", name: "Puerta de Almocábar", cam: [140, -800, 28], tgt: [114, -712, 8] },
+  { id: "banos", name: "Baños árabes", cam: [345, -300, 38], tgt: [280, -239, 3] },
   { id: "ciudad", name: "La Ciudad (medina)", cam: [520, -760, 330], tgt: [40, -380, 10] },
-  { id: "toros", name: "Plaza de toros y Mercadillo", cam: [-480, 420, 230], tgt: [-60, 180, 10] },
+  { id: "mercadillo", name: "El Mercadillo", cam: [-480, 420, 230], tgt: [-60, 180, 10] },
   { id: "cenital", name: "Vista cenital", cam: [60, -101, 2300], tgt: [60, -100, 0] },
-  { id: "paseo", name: "Paseo por calle Armiñán", cam: [64, -125, 1.7], tgt: [66, -280, 1.7], mode: "walk" },
+  { id: "paseo", name: "A pie: mirador de la Alameda", cam: [-243, 258, 1.7], tgt: [-520, 60, 30], mode: "walk" },
 ];
 
 const EYE = 1.7;

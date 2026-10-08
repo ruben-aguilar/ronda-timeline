@@ -81,9 +81,10 @@
   "to": 1340,
   "power": 1.0,
   "jitter": 120,
-  "early_fraction": 0.12,
+  "early_fraction": 0.6,
   "early_from": -650,
-  "early_to": 300
+  "early_to": 300,
+  "early_radius": 170
  },
  {
   "id": "arrabal_bajo",

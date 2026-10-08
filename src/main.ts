@@ -9,13 +9,11 @@ import { countUpTo, createBuildings } from "./buildings";
 import { CamMode, createCameraRig, VIEWPOINTS } from "./camera";
 import { loadBuildings, loadDem } from "./data";
 import { createLandmarks } from "./landmarks";
+import { createMonuments } from "./monuments";
 import { createTerrain } from "./terrain";
 import { createTrees } from "./trees";
 import { CONFIDENCE_LABEL, Era, eraAt, formatNumber, formatYear, NOW, posAt, yearAt, yearsPerStep } from "./timeline";
 import { buildTimelineUI } from "./ui";
-
-// Contorno de la medina amurallada (metros locales), dibujado sobre la foto de 1956. Igual que scripts/zones.json.
-const MEDINA = [[-20, -45], [-80, -60], [-130, -130], [-150, -230], [-140, -330], [-100, -430], [-50, -520], [10, -620], [70, -700], [160, -725], [210, -660], [205, -520], [175, -400], [165, -280], [180, -165], [110, -100], [50, -55]];
 
 const HAZE = new THREE.Color("#b9c6d2");
 const SUN_DIR = new THREE.Vector3(-1400, 1150, 900).normalize();
@@ -111,9 +109,11 @@ async function main() {
   const loader = new THREE.TextureLoader();
   const terrain = createTerrain(dem, loader, renderer.capabilities.getMaxAnisotropy());
   scene.add(terrain.mesh);
-  const buildings = createBuildings(bdata);
+  const monuments = createMonuments(dem, bdata);
+  scene.add(monuments.group);
+  const buildings = createBuildings(bdata, monuments.exclude);
   scene.add(buildings.mesh);
-  const landmarks = createLandmarks(dem, MEDINA);
+  const landmarks = createLandmarks(dem);
   scene.add(landmarks.group);
   scene.add(await createTrees(dem));
 
@@ -259,6 +259,7 @@ async function main() {
     buildings.setYear(year, yearsPerStep(pos));
     terrain.setYear(year);
     landmarks.update(year, camera);
+    monuments.update(year);
 
     const era = eraAt(year);
     if (era !== currentEra) {
