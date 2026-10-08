@@ -1,13 +1,20 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ronda through time</title>
+    <title>Ronda a través del tiempo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   </head>
   <body>
     <div id="app"></div>
-    <div id="loading">Loading terrain, aerial photos and 16,000 buildings…</div>
+    <div id="loading">
+      <div class="loading-title">Ronda</div>
+      <div class="loading-sub">a través del tiempo</div>
+      <div class="loading-bar"><span></span></div>
+    </div>
 
     <header id="era-card">
       <div id="era-title"></div>
@@ -19,26 +26,28 @@
     <div id="clock">
       <div id="year"></div>
       <div id="count"></div>
+      <button id="info-btn" title="Fuentes y créditos" aria-label="Fuentes y créditos">i</button>
     </div>
 
+    <aside id="cambar"></aside>
     <div id="splash"></div>
+    <footer id="timeline"></footer>
 
-    <footer id="timeline">
-      <div class="controls">
-        <button id="play" aria-label="Play">▶</button>
-        <button id="autocam" title="Let the camera move by itself">Auto camera</button>
+    <div id="info">
+      <div class="info-card">
+        <button class="close" aria-label="Cerrar">×</button>
+        <h2>Ronda a través del tiempo</h2>
+        <p>Un recorrido por la historia de Ronda, desde la prehistoria hasta hoy. Antes de 1956 la ciudad es una reconstrucción: las fechas de los edificios son estimaciones por barrios y monumentos fechados.</p>
+        <h3>Controles</h3>
+        <p>Espacio: reproducir o pausar · ← →: mover el tiempo · Doble clic: volar a un punto · Modos de cámara a la derecha.</p>
+        <h3>Fuentes</h3>
+        <ul>
+          <li>Modelo del terreno MDT05 y ortofotos PNOA: © Instituto Geográfico Nacional (CC BY 4.0).</li>
+          <li>Vuelo Americano 1956–57 y Vuelo Interministerial 1973–86: IGN, PNOA histórico.</li>
+          <li>Edificios: Dirección General del Catastro (INSPIRE).</li>
+          <li>Situación de monumentos: © colaboradores de OpenStreetMap.</li>
+        </ul>
       </div>
-      <div id="bar">
-        <div id="bands"></div>
-        <div id="ticks"></div>
-        <div id="thumb"></div>
-      </div>
-    </footer>
-
-    <div id="help">Drag to rotate · right-drag to pan · scroll to zoom · space to play · ← → to step</div>
-    <div id="credits">
-      Terrain: IGN MDT05 · Photos: IGN PNOA, Vuelo Americano 1956, Interministerial 1973–86 · Buildings: Dirección General del Catastro · Landmarks: OpenStreetMap.
-      Dates before 1956 are estimates.
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>

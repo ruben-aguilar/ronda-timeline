@@ -1,5 +1,5 @@
-// Time model: the slider position (0..1) maps to a year with a piecewise-linear scale.
-// Early millennia take a small part of the slider; 1900 to today takes the largest part.
+// Modelo del tiempo: la posición del deslizador (0..1) se convierte en un año con una escala
+// lineal por tramos. Los primeros milenios ocupan poco; de 1900 a hoy ocupa la mayor parte.
 
 export const NOW = 2026;
 
@@ -37,16 +37,22 @@ export function posAt(year: number): number {
   return 1;
 }
 
-/** Years covered by a small slider step at this position. Used to size the growth animation. */
+/** Años que cubre un paso pequeño del deslizador en esta posición (para la animación de crecimiento). */
 export function yearsPerStep(pos: number, step = 0.006): number {
   return Math.max(yearAt(Math.min(pos + step, 1)) - yearAt(Math.max(pos - step, 0)), 0.5) / 2;
 }
 
+const fmt = new Intl.NumberFormat("es-ES");
+
 export function formatYear(y: number): string {
   const r = Math.round(y);
-  if (r < 0) return `${Math.abs(r).toLocaleString("en-US")} BC`;
-  if (r < 1000) return `AD ${r}`;
+  if (r < 0) return `${fmt.format(Math.abs(r))} a. C.`;
+  if (r < 1000) return `${r} d. C.`;
   return String(r);
+}
+
+export function formatNumber(n: number): string {
+  return fmt.format(n);
 }
 
 export interface Era {
@@ -56,7 +62,7 @@ export interface Era {
   title: string;
   subtitle: string;
   text: string;
-  /** How much of what you see is measured data, from 0 (imagined) to 3 (surveyed). */
+  /** Cuánto de lo que se ve son datos medidos: de 0 (imaginado) a 3 (medido). */
   confidence: 0 | 1 | 2 | 3;
   color: string;
 }
@@ -66,142 +72,140 @@ export const ERAS: Era[] = [
     id: "prehistory",
     from: -25000,
     to: -800,
-    title: "Prehistory",
-    subtitle: "Before the town",
+    title: "Prehistoria",
+    subtitle: "Antes de la ciudad",
     text:
-      "Hunters paint the walls of the Cueva de la Pileta, about 11 km south-west, more than 20,000 years ago. Later, Neolithic and Bronze Age groups farm and herd in the Serranía. The plateau over the gorge is still empty.",
+      "Hace más de 20.000 años, cazadores pintan las paredes de la Cueva de la Pileta, a unos 11 km al suroeste. Después, grupos del Neolítico y de la Edad del Bronce cultivan y pastorean en la Serranía. La meseta sobre el Tajo sigue vacía.",
     confidence: 0,
-    color: "#5b4a3a",
+    color: "#6b5640",
   },
   {
     id: "iberian",
     from: -800,
     to: -206,
-    title: "Iberians and Celts",
-    subtitle: "A hilltop settlement",
+    title: "Íberos y celtas",
+    subtitle: "Un poblado en la meseta",
     text:
-      "A small fortified settlement grows on the plateau south of the gorge. The cliffs protect it on three sides. The name Arunda probably comes from this time.",
+      "Un pequeño poblado fortificado crece en la meseta al sur del Tajo. Los acantilados lo protegen por tres lados. El nombre de Arunda viene probablemente de esta época.",
     confidence: 0,
-    color: "#7a5c3e",
+    color: "#8a6440",
   },
   {
     id: "roman",
     from: -206,
     to: 411,
-    title: "Roman Hispania",
-    subtitle: "Arunda and Acinipo",
+    title: "Hispania romana",
+    subtitle: "Arunda y Acinipo",
     text:
-      "After the Second Punic War, Rome controls the region. Arunda stays a small town. The larger Roman city is Acinipo, about 11 km north-west, with a theatre from the 1st century BC.",
+      "Tras la Segunda Guerra Púnica, Roma controla la región. Arunda es una ciudad pequeña. La gran ciudad romana es Acinipo, a unos 11 km al noroeste, con un teatro del siglo I a. C.",
     confidence: 0,
-    color: "#8c3b2e",
+    color: "#9b3f2f",
   },
   {
     id: "visigoth",
     from: 411,
     to: 711,
-    title: "Late Antiquity",
-    subtitle: "Vandals and Visigoths",
-    text:
-      "The Roman world breaks up. Visigothic kings rule from Toledo. Very few remains from this period survive in Ronda.",
+    title: "Antigüedad tardía",
+    subtitle: "Vándalos y visigodos",
+    text: "El mundo romano se rompe. Los reyes visigodos gobiernan desde Toledo. En Ronda quedan muy pocos restos de esta época.",
     confidence: 0,
-    color: "#6b5b73",
+    color: "#6f5e7a",
   },
   {
     id: "andalus",
     from: 711,
     to: 1039,
-    title: "Al-Andalus",
+    title: "Al-Ándalus",
     subtitle: "Izna Rand Onda",
     text:
-      "Berber troops arrive after 711. The town, now Izna Rand Onda, belongs to the province of Takurunna. Walls, a citadel and the medina take shape on the plateau. The revolt of Umar ibn Hafsun (880–928) shakes the mountains around it.",
+      "Tropas bereberes llegan después del año 711. La ciudad, ahora Izna Rand Onda, pertenece a la cora de Takurunna. Las murallas, la alcazaba y la medina toman forma en la meseta. La revuelta de Umar ibn Hafsún (880–928) sacude las montañas de alrededor.",
     confidence: 1,
-    color: "#2f6f5e",
+    color: "#2f7462",
   },
   {
     id: "taifa",
     from: 1039,
     to: 1065,
-    title: "Taifa of Ronda",
-    subtitle: "An independent kingdom",
+    title: "Taifa de Ronda",
+    subtitle: "Un reino independiente",
     text:
-      "When the Caliphate of Córdoba collapses, the Banu Ifran rule a small independent kingdom from Ronda. In 1065 the taifa of Seville takes it.",
+      "Cuando cae el Califato de Córdoba, los Banu Ifrán gobiernan desde Ronda un pequeño reino independiente. En 1065 la taifa de Sevilla lo conquista.",
     confidence: 1,
-    color: "#2f7f6e",
+    color: "#2b8573",
   },
   {
     id: "frontier",
     from: 1065,
     to: 1485,
-    title: "Frontier fortress",
-    subtitle: "Almoravids, Almohads, Marinids, Nasrids",
+    title: "Fortaleza de frontera",
+    subtitle: "Almorávides, almohades, benimerines y nazaríes",
     text:
-      "Ronda becomes a fortress on the frontier with Castile. The Arab baths, the water mine under the Casa del Rey Moro and the Almocábar gate belong to this period. Suburbs grow outside the walls, next to the river.",
+      "Ronda es una fortaleza en la frontera con Castilla. Los baños árabes, la mina de la Casa del Rey Moro y la puerta de Almocábar son de esta época. Fuera de las murallas, junto al río, crecen los arrabales.",
     confidence: 1,
-    color: "#3d8a6a",
+    color: "#3e8f6c",
   },
   {
     id: "castile",
     from: 1485,
     to: 1700,
-    title: "Castilian Ronda",
-    subtitle: "Conquest of 22 May 1485",
+    title: "Ronda castellana",
+    subtitle: "La conquista del 22 de mayo de 1485",
     text:
-      "Ferdinand the Catholic takes Ronda after a short siege. The main mosque becomes the church of Santa María la Mayor. A market district, El Mercadillo, grows north of the gorge. The Puente Viejo is rebuilt in 1616.",
+      "Fernando el Católico toma Ronda tras un asedio corto. La mezquita mayor se convierte en la iglesia de Santa María la Mayor. Al norte del Tajo crece un barrio de mercado: El Mercadillo. En 1616 se reconstruye el Puente Viejo.",
     confidence: 1,
-    color: "#a0682a",
+    color: "#a8692a",
   },
   {
     id: "bridges",
     from: 1700,
     to: 1800,
-    title: "Bridges and bulls",
-    subtitle: "The 18th century",
+    title: "Puentes y toros",
+    subtitle: "El siglo XVIII",
     text:
-      "A first bridge over the gorge collapses in 1741. The Puente Nuevo is built from 1759 to 1793 to a design by José Martín de Aldehuela. The bullring of the Real Maestranza opens in 1785.",
+      "Un primer puente sobre el Tajo se hunde en 1741. El Puente Nuevo se construye entre 1759 y 1793, con proyecto de José Martín de Aldehuela. La plaza de toros de la Real Maestranza se inaugura en 1785.",
     confidence: 2,
-    color: "#b5862e",
+    color: "#bf8c2c",
   },
   {
     id: "romantic",
     from: 1800,
     to: 1900,
-    title: "War, bandits and travellers",
-    subtitle: "The 19th century",
+    title: "Guerra, bandoleros y viajeros",
+    subtitle: "El siglo XIX",
     text:
-      "French troops occupy Ronda during the Peninsular War and blow up the Alcazaba when they leave in 1812. Bandits of the Serranía and romantic travellers make Ronda famous. The railway from Bobadilla to Algeciras reaches the town in 1892.",
+      "Las tropas francesas ocupan Ronda durante la Guerra de la Independencia y vuelan la Alcazaba al marcharse en 1812. Los bandoleros de la Serranía y los viajeros románticos hacen famosa a Ronda. En 1892 llega el ferrocarril de Bobadilla a Algeciras.",
     confidence: 2,
-    color: "#9d6b45",
+    color: "#a26d44",
   },
   {
     id: "early20",
     from: 1900,
     to: 1936,
-    title: "Early 20th century",
-    subtitle: "Rilke and the Andalusian flag",
+    title: "Principios del siglo XX",
+    subtitle: "Rilke y la bandera andaluza",
     text:
-      "The poet Rainer Maria Rilke stays in Ronda in 1912–13. In 1918 the Ronda Assembly adopts the flag and the shield of Andalusia. The town grows toward the railway station.",
+      "El poeta Rainer Maria Rilke vive en Ronda en 1912–13. En 1918 la Asamblea de Ronda adopta la bandera y el escudo de Andalucía. La ciudad crece hacia la estación de tren.",
     confidence: 2,
-    color: "#6d7f8f",
+    color: "#6f8193",
   },
   {
     id: "war",
     from: 1936,
     to: 1975,
-    title: "Civil War and dictatorship",
+    title: "Guerra Civil y dictadura",
     subtitle: "1936–1975",
     text:
-      "The Civil War brings violence to Ronda in 1936. In the 1950s and 1960s new blocks appear north of the old Mercadillo. The aerial photos from 1956 are the first full picture of the town.",
+      "La Guerra Civil trae la violencia a Ronda en 1936. En los años 50 y 60 aparecen nuevos bloques al norte del Mercadillo. Las fotos aéreas de 1956 son la primera imagen completa de la ciudad.",
     confidence: 3,
-    color: "#5a6470",
+    color: "#5d6873",
   },
   {
     id: "democracy",
     from: 1975,
     to: 2000,
-    title: "Democracy and tourism",
+    title: "Democracia y turismo",
     subtitle: "1975–2000",
-    text:
-      "New districts and an industrial area grow north of the railway. Tourism becomes the main industry of the town.",
+    text: "Nuevos barrios y un polígono industrial crecen al norte de la vía del tren. El turismo se convierte en la principal industria de la ciudad.",
     confidence: 3,
     color: "#3f7cac",
   },
@@ -209,10 +213,10 @@ export const ERAS: Era[] = [
     id: "today",
     from: 2000,
     to: NOW,
-    title: "Ronda today",
-    subtitle: "About 34,000 inhabitants",
+    title: "Ronda hoy",
+    subtitle: "Unos 34.000 habitantes",
     text:
-      "The 2000s are the decade with the most new buildings in the Catastro. Building dates after 1956 come straight from the Catastro.",
+      "Los años 2000 son la década con más edificios nuevos en el Catastro. Las fechas de los edificios posteriores a 1956 vienen directamente del Catastro.",
     confidence: 3,
     color: "#2f8fb0",
   },
@@ -224,8 +228,31 @@ export function eraAt(year: number): Era {
 }
 
 export const CONFIDENCE_LABEL = [
-  "Imagined: no data, shapes are illustrative",
-  "Reconstructed: historic districts, estimated dates",
-  "Estimated: historic districts plus dated monuments",
-  "Measured: aerial photos and Catastro dates",
+  "Imaginado: sin datos, formas ilustrativas",
+  "Reconstruido: barrios históricos, fechas estimadas",
+  "Estimado: barrios históricos y monumentos fechados",
+  "Medido: fotos aéreas y fechas del Catastro",
+];
+
+export interface TimelineEvent {
+  year: number;
+  title: string;
+}
+
+export const EVENTS: TimelineEvent[] = [
+  { year: -20000, title: "Pinturas de la Cueva de la Pileta" },
+  { year: -206, title: "Roma controla la región" },
+  { year: 711, title: "Llegan las tropas bereberes" },
+  { year: 1039, title: "Nace la taifa de Ronda" },
+  { year: 1485, title: "Conquista castellana (22 de mayo)" },
+  { year: 1572, title: "Se funda la Real Maestranza" },
+  { year: 1616, title: "Se reconstruye el Puente Viejo" },
+  { year: 1741, title: "Se hunde el primer puente" },
+  { year: 1785, title: "Se inaugura la plaza de toros" },
+  { year: 1793, title: "Se termina el Puente Nuevo" },
+  { year: 1812, title: "Los franceses vuelan la Alcazaba" },
+  { year: 1892, title: "Llega el ferrocarril" },
+  { year: 1918, title: "Asamblea de Ronda: bandera andaluza" },
+  { year: 1936, title: "Comienza la Guerra Civil" },
+  { year: 1956, title: "Primer vuelo fotográfico completo" },
 ];

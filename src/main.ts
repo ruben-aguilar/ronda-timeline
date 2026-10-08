@@ -1,75 +1,110 @@
 import * as THREE from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { GTAOPass } from "three/examples/jsm/postprocessing/GTAOPass.js";
+import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer.js";
 import "./style.css";
 import { countUpTo, createBuildings } from "./buildings";
-import { elevation, loadBuildings, loadDem, Y_OFFSET } from "./data";
+import { CamMode, createCameraRig, VIEWPOINTS } from "./camera";
+import { loadBuildings, loadDem } from "./data";
 import { createLandmarks } from "./landmarks";
 import { createTerrain } from "./terrain";
-import { CONFIDENCE_LABEL, Era, eraAt, formatYear, NOW, posAt, yearAt, yearsPerStep } from "./timeline";
+import { createTrees } from "./trees";
+import { CONFIDENCE_LABEL, Era, eraAt, formatNumber, formatYear, NOW, posAt, yearAt, yearsPerStep } from "./timeline";
 import { buildTimelineUI } from "./ui";
 
-// Walled medina outline (local metres), drawn over the 1956 aerial photo. Same as scripts/zones.json.
+// Contorno de la medina amurallada (metros locales), dibujado sobre la foto de 1956. Igual que scripts/zones.json.
 const MEDINA = [[-20, -45], [-80, -60], [-130, -130], [-150, -230], [-140, -330], [-100, -430], [-50, -520], [10, -620], [70, -700], [160, -725], [210, -660], [205, -520], [175, -400], [165, -280], [180, -165], [110, -100], [50, -55]];
 
-const HORIZON = new THREE.Color("#c9d3d6");
+const HAZE = new THREE.Color("#b9c6d2");
+const SUN_DIR = new THREE.Vector3(-1400, 1150, 900).normalize();
 
-async function main() {
-  const app = document.getElementById("app")!;
-  const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFShadowMap;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
-  app.appendChild(renderer.domElement);
-
-  const labelRenderer = new CSS2DRenderer();
-  labelRenderer.setSize(window.innerWidth, window.innerHeight);
-  labelRenderer.domElement.className = "labels";
-  app.appendChild(labelRenderer.domElement);
-
-  const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(HORIZON, 2600, 7000);
-
-  const sky = new THREE.Mesh(
-    new THREE.SphereGeometry(20000, 32, 16),
+/** Sky dome: deep blue at the zenith, warm haze at the horizon, a soft glow around the sun. */
+function makeSky(): THREE.Mesh {
+  return new THREE.Mesh(
+    new THREE.SphereGeometry(9000, 48, 24),
     new THREE.ShaderMaterial({
       side: THREE.BackSide,
       depthWrite: false,
       fog: false,
-      uniforms: { uTop: { value: new THREE.Color("#5c8fc4") }, uBottom: { value: HORIZON } },
+      uniforms: {
+        uTop: { value: new THREE.Color("#3f74b5") },
+        uMid: { value: new THREE.Color("#8fb3d9") },
+        uHaze: { value: HAZE },
+        uSun: { value: SUN_DIR },
+      },
       vertexShader: "varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
-      fragmentShader: "uniform vec3 uTop, uBottom; varying vec3 vP; void main(){ float t = smoothstep(-0.02, 0.45, vP.y); gl_FragColor = vec4(mix(uBottom, uTop, t), 1.0); }",
+      fragmentShader: `uniform vec3 uTop, uMid, uHaze, uSun; varying vec3 vP;
+void main(){
+  float h = vP.y;
+  vec3 c = mix(uHaze, uMid, smoothstep(-0.02, 0.18, h));
+  c = mix(c, uTop, smoothstep(0.18, 0.7, h));
+  float sd = max(dot(normalize(vP), normalize(uSun)), 0.0);
+  c += vec3(1.0, 0.85, 0.6) * (pow(sd, 12.0) * 0.25 + pow(sd, 400.0) * 0.8);
+  gl_FragColor = vec4(c, 1.0);
+  #include <colorspace_fragment>
+}`,
     }),
   );
-  scene.add(sky);
+}
 
-  const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 2, 40000);
-  const controls = new OrbitControls(camera, labelRenderer.domElement);
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.08;
-  controls.maxPolarAngle = Math.PI * 0.47;
-  controls.minDistance = 80;
-  controls.maxDistance = 5000;
+async function main() {
+  const app = document.getElementById("app")!;
+  const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 0.9;
+  app.appendChild(renderer.domElement);
 
-  scene.add(new THREE.HemisphereLight(0xdfe8f2, 0x6b5a42, 1.1));
-  const sun = new THREE.DirectionalLight(0xfff1dc, 2.6);
-  sun.position.set(-1400, 1500, 900); // low afternoon sun from the south-west
+  const labelRenderer = new CSS2DRenderer();
+  labelRenderer.domElement.className = "labels";
+  app.appendChild(labelRenderer.domElement);
+
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(HAZE, 2400, 7500);
+
+  scene.add(makeSky());
+
+  const camera = new THREE.PerspectiveCamera(42, 1, 1.2, 12000);
+
+  scene.add(new THREE.HemisphereLight(0xcfdcec, 0x6a5a44, 0.9));
+  const sun = new THREE.DirectionalLight(0xffe7c4, 2.8);
+  sun.position.copy(SUN_DIR).multiplyScalar(2500);
   sun.castShadow = true;
   sun.shadow.mapSize.set(4096, 4096);
   const sc = sun.shadow.camera;
-  sc.left = -1700;
-  sc.right = 1700;
-  sc.top = 1700;
-  sc.bottom = -1700;
+  sc.left = -1600;
+  sc.right = 1600;
+  sc.top = 1600;
+  sc.bottom = -1600;
   sc.near = 100;
-  sc.far = 5000;
-  sun.shadow.bias = -0.0004;
-  sun.shadow.normalBias = 1.2;
+  sc.far = 6000;
+  sun.shadow.bias = -0.0003;
+  sun.shadow.normalBias = 1.0;
   scene.add(sun);
   scene.add(sun.target);
+
+  // Postproceso: oclusión ambiental (GTAO) sobre un render multimuestreado.
+  const target = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 });
+  const composer = new EffectComposer(renderer, target);
+  composer.addPass(new RenderPass(scene, camera));
+  const gtao = new GTAOPass(scene, camera, 1, 1);
+  gtao.updateGtaoMaterial({ radius: 6, distanceExponent: 1.5, thickness: 2, scale: 1.2, samples: 12 });
+  gtao.blendIntensity = 0.85;
+  composer.addPass(gtao);
+  composer.addPass(new OutputPass());
+  const resize = () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    composer.setSize(window.innerWidth, window.innerHeight);
+    labelRenderer.setSize(window.innerWidth, window.innerHeight);
+  };
+  resize();
+  window.addEventListener("resize", resize);
 
   const loading = document.getElementById("loading")!;
   const [dem, bdata] = await Promise.all([loadDem(), loadBuildings()]);
@@ -80,52 +115,42 @@ async function main() {
   scene.add(buildings.mesh);
   const landmarks = createLandmarks(dem, MEDINA);
   scene.add(landmarks.group);
+  scene.add(await createTrees(dem));
 
-  // Camera: start looking at the gorge from the west, the classic view of the Puente Nuevo.
-  const ground = (x: number, n: number) => elevation(dem, x, n) - Y_OFFSET;
-  controls.target.set(40, ground(40, -200) + 10, 200);
-  camera.position.set(-1250, 520, 650);
-  controls.update();
-
-  // Auto camera: early eras look at the medina, later eras pull back to show the whole town.
-  let autoCam = true;
-  let orbit = 0;
-  controls.addEventListener("start", () => {
-    autoCam = false;
-    ui.setAutoCam(false);
-  });
+  // Cámara.
+  const rig = createCameraRig(camera, labelRenderer.domElement, dem);
+  rig.goTo(VIEWPOINTS[0]);
+  rig.update(10, { tx: 0, tn: 0, dist: 1, height: 1 });
+  rig.setMode("cine");
   const camFor = (year: number) => {
     const t = THREE.MathUtils.smoothstep(posAt(year), 0.25, 0.85);
-    const tx = THREE.MathUtils.lerp(40, 120, t);
-    const tn = THREE.MathUtils.lerp(-330, 180, t);
-    const dist = THREE.MathUtils.lerp(1100, 2600, t);
-    const height = THREE.MathUtils.lerp(420, 1050, t);
-    return { tx, tn, dist, height };
+    return {
+      tx: THREE.MathUtils.lerp(40, 120, t),
+      tn: THREE.MathUtils.lerp(-330, 180, t),
+      dist: THREE.MathUtils.lerp(1100, 2600, t),
+      height: THREE.MathUtils.lerp(420, 1050, t),
+    };
   };
+  buildCameraBar(rig);
 
-  // State.
+  // Estado.
   let pos = posAt(Number(new URLSearchParams(location.hash.slice(1)).get("year")) || -25000);
   let playing = false;
+  let speed = 1;
   let currentEra: Era | null = null;
-  const PLAY_SECONDS = 150; // a full run from prehistory to today
+  const PLAY_SECONDS = 150; // a 1×: de la prehistoria a hoy
 
   const ui = buildTimelineUI({
+    years: buildings.years,
     onSeek(p) {
       pos = p;
     },
     onPlay(on) {
       playing = on;
       if (on && pos >= 1) pos = 0;
-      if (on) {
-        autoCam = true;
-        ui.setAutoCam(true);
-      }
     },
-    onAutoCam(on) {
-      autoCam = on;
-    },
-    onEra(e) {
-      pos = posAt(e.from) + 0.0005;
+    onSpeed(s) {
+      speed = s;
     },
   });
 
@@ -139,7 +164,7 @@ async function main() {
 
   const showEra = (e: Era) => {
     eraTitle.textContent = e.title;
-    eraSub.textContent = `${formatYear(e.from)} – ${e.to >= NOW ? "today" : formatYear(e.to)} · ${e.subtitle}`;
+    eraSub.textContent = `${formatYear(e.from)} – ${e.to >= NOW ? "hoy" : formatYear(e.to)} · ${e.subtitle}`;
     eraText.textContent = e.text;
     eraConf.innerHTML = `<span class="dots">${"●".repeat(e.confidence + 1)}${"○".repeat(3 - e.confidence)}</span> ${CONFIDENCE_LABEL[e.confidence]}`;
     document.documentElement.style.setProperty("--era", e.color);
@@ -149,33 +174,61 @@ async function main() {
     splash.classList.add("show");
   };
 
-  window.addEventListener("resize", () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    labelRenderer.setSize(window.innerWidth, window.innerHeight);
-  });
   window.addEventListener("keydown", (ev) => {
     if (ev.code === "Space") {
       ev.preventDefault();
       ui.togglePlay();
-    } else if (ev.code === "ArrowRight") pos = Math.min(pos + 0.005, 1);
-    else if (ev.code === "ArrowLeft") pos = Math.max(pos - 0.005, 0);
+    } else if (rig.mode === "orbit" || rig.mode === "cine") {
+      if (ev.code === "ArrowRight") pos = Math.min(pos + 0.005, 1);
+      else if (ev.code === "ArrowLeft") pos = Math.max(pos - 0.005, 0);
+    }
   });
 
-  loading.remove();
-  const clock = new THREE.Clock();
+  loading.classList.add("done");
+  setTimeout(() => loading.remove(), 900);
+  const timer = new THREE.Timer();
   let lastHash = 0;
-  // Debug hook for automated screenshots: __ronda.shot(year, [x, y, z], [tx, ty, tz]) renders
-  // one frame at that year and camera, then stops the loop until __ronda.resume().
+
+  // Automatic quality: if the frame rate stays low, drop ambient occlusion, then resolution.
+  let quality = 2;
+  let fpsFrames = 0;
+  let fpsStart = performance.now();
+  const adaptQuality = () => {
+    fpsFrames++;
+    const el = performance.now() - fpsStart;
+    if (el < 2500) return;
+    const fps = (fpsFrames * 1000) / el;
+    fpsFrames = 0;
+    fpsStart = performance.now();
+    if (fps > 40 || quality === 0) return;
+    quality--;
+    if (quality === 1) gtao.enabled = false;
+    if (quality === 0) {
+      renderer.setPixelRatio(1);
+      resize();
+    }
+  };
+
+  // Gancho de depuración para capturas: __ronda.shot(año, [x, y, z], [tx, ty, tz]) dibuja un
+  // fotograma con ese año y esa cámara y para el bucle hasta __ronda.resume().
   let frozen = false;
   (window as unknown as { __ronda: object }).__ronda = {
     shot(year: number, cam?: [number, number, number], tgt?: [number, number, number]) {
       pos = posAt(year);
-      autoCam = false;
       playing = false;
+      rig.setMode("orbit");
       if (cam) camera.position.set(...cam);
-      if (tgt) controls.target.set(...tgt);
+      if (tgt) rig.controls.target.set(...tgt);
+      document.body.classList.add("shot");
+      frozen = false;
+      frame();
+      frame();
+      frozen = true;
+    },
+    view(year: number, id: string) {
+      pos = posAt(year);
+      playing = false;
+      rig.jumpTo(VIEWPOINTS.find((v) => v.id === id)!);
       document.body.classList.add("shot");
       frozen = false;
       frame();
@@ -186,12 +239,16 @@ async function main() {
       document.body.classList.remove("shot");
       frozen = false;
     },
+    dbg: { scene, renderer, gtao, sun, composer, direct: false },
   };
-  const frame = () => {
+
+  function frame() {
     if (frozen) return;
-    const dt = Math.min(clock.getDelta(), 0.1);
+    adaptQuality();
+    timer.update();
+    const dt = Math.min(timer.getDelta(), 0.1);
     if (playing) {
-      pos += dt / PLAY_SECONDS;
+      pos += (dt * speed) / PLAY_SECONDS;
       if (pos >= 1) {
         pos = 1;
         playing = false;
@@ -199,39 +256,65 @@ async function main() {
       }
     }
     const year = yearAt(pos);
-    const grow = yearsPerStep(pos);
-    buildings.setYear(year, grow);
+    buildings.setYear(year, yearsPerStep(pos));
     terrain.setYear(year);
     landmarks.update(year, camera);
-    ui.setPos(pos);
 
     const era = eraAt(year);
     if (era !== currentEra) {
       currentEra = era;
       showEra(era);
     }
+    ui.setPos(pos, year, era);
     yearEl.textContent = formatYear(year);
-    countEl.textContent = `${countUpTo(buildings.years, year).toLocaleString("en-US")} buildings`;
+    countEl.textContent = `${formatNumber(countUpTo(buildings.years, year))} edificios`;
     const now = performance.now();
     if (now - lastHash > 500) {
       lastHash = now;
       history.replaceState(null, "", `#year=${Math.round(year)}`);
     }
 
-    if (autoCam) {
-      orbit += dt * 0.035;
-      const c = camFor(year);
-      const ang = -2.1 + Math.sin(orbit) * 0.9;
-      const tgt = new THREE.Vector3(c.tx, ground(c.tx, c.tn) + 20, -c.tn);
-      controls.target.lerp(tgt, 0.03);
-      const want = new THREE.Vector3(tgt.x + Math.cos(ang) * c.dist, tgt.y + c.height, tgt.z - Math.sin(ang) * c.dist);
-      camera.position.lerp(want, 0.02);
-    }
-    controls.update();
-    renderer.render(scene, camera);
+    rig.update(dt, camFor(year));
+    if ((window as unknown as { __ronda: { dbg: { direct: boolean } } }).__ronda.dbg.direct) renderer.render(scene, camera);
+    else composer.render();
     labelRenderer.render(scene, camera);
-  };
+  }
   renderer.setAnimationLoop(frame);
+}
+
+/** Barra de cámara: modos y vistas. */
+function buildCameraBar(rig: ReturnType<typeof createCameraRig>) {
+  const bar = document.getElementById("cambar")!;
+  const modes: Array<[CamMode, string, string, string]> = [
+    ["cine", "Cine", "La cámara se mueve sola mientras pasa el tiempo.", '<path d="M3 6h12v12H3zM15 10l6-3.5v11L15 14z"/>'],
+    ["orbit", "Órbita", "Arrastra para girar · botón derecho para desplazar · rueda para acercar · doble clic para volar a un punto.", '<circle cx="12" cy="12" r="2.6"/><ellipse cx="12" cy="12" rx="9.5" ry="4.2" fill="none" stroke="currentColor" stroke-width="1.8"/>'],
+    ["fly", "Vuelo", "W A S D para moverte · Q / E para bajar y subir · arrastra para mirar · Mayús para ir rápido · rueda para la velocidad.", '<path d="M21 3 3 10.5l7 2.5 2.5 7z"/>'],
+    ["walk", "Paseo", "A pie de calle · W A S D para andar · arrastra para mirar · Mayús para correr.", '<circle cx="13" cy="4" r="2.2"/><path d="M11 8h3l3 4-1.6 1.2L13.5 11l-.8 3.6 2.8 3V22h-2v-3.6l-2.4-2.4-1.5 3.6L7.6 22l-1.8-1 2.4-4.7L9.6 10 8 11.2V14H6V10z"/>'],
+  ];
+  bar.innerHTML = `
+    <div class="cam-modes">
+      ${modes.map(([m, label, , icon]) => `<button data-mode="${m}"><svg viewBox="0 0 24 24">${icon}</svg><span>${label}</span></button>`).join("")}
+    </div>
+    <div class="cam-help"></div>
+    <div class="cam-views">
+      <div class="cam-views-title">Vistas</div>
+      ${VIEWPOINTS.map((v) => `<button data-view="${v.id}">${v.name}</button>`).join("")}
+    </div>`;
+  const help = bar.querySelector<HTMLDivElement>(".cam-help")!;
+  const sync = (m: CamMode) => {
+    bar.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((b) => b.classList.toggle("on", b.dataset.mode === m));
+    help.textContent = modes.find((x) => x[0] === m)![2];
+  };
+  rig.onModeChange = sync;
+  sync(rig.mode);
+  bar.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((b) => b.addEventListener("click", () => rig.setMode(b.dataset.mode as CamMode)));
+  bar.querySelectorAll<HTMLButtonElement>("[data-view]").forEach((b) =>
+    b.addEventListener("click", () => rig.goTo(VIEWPOINTS.find((v) => v.id === b.dataset.view)!)),
+  );
+
+  const info = document.getElementById("info")!;
+  document.getElementById("info-btn")!.addEventListener("click", () => info.classList.toggle("open"));
+  info.querySelector(".close")!.addEventListener("click", () => info.classList.remove("open"));
 }
 
 main().catch((err) => {
@@ -239,4 +322,3 @@ main().catch((err) => {
   const l = document.getElementById("loading");
   if (l) l.textContent = `Error: ${err}`;
 });
-

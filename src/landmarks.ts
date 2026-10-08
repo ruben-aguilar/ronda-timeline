@@ -35,29 +35,29 @@ interface LabelDef {
 }
 
 const LABELS: LabelDef[] = [
-  { at: PLACES.puenteNuevo, from: 1735, to: 9999, names: [[1735, "First bridge (collapsed 1741)"], [1759, "Puente Nuevo (in construction)"], [1793, "Puente Nuevo"]], note: "1759–1793", lift: 110 , rank: 1 },
-  { at: PLACES.puenteViejo, from: 1616, to: 9999, names: [[1616, "Puente Viejo"]], note: "rebuilt 1616" },
-  { at: PLACES.puenteArabe, from: 1300, to: 9999, names: [[1300, "Puente Árabe"]], note: "medieval bridge" },
-  { at: PLACES.plazaToros, from: 1779, to: 9999, names: [[1779, "Bullring (in construction)"], [1785, "Real Maestranza bullring"]], note: "opened 1785" , rank: 1 },
-  { at: PLACES.santaMaria, from: 1000, to: 9999, names: [[1000, "Main mosque"], [1485, "Santa María la Mayor"]], note: "mosque, church after 1485" , rank: 1 },
-  { at: PLACES.banos, from: 1280, to: 9999, names: [[1280, "Arab baths"]], note: "13th–14th c." },
-  { at: PLACES.almocabar, from: 1250, to: 9999, names: [[1250, "Almocábar gate"]], note: "13th c." , rank: 1 },
-  { at: PLACES.mondragon, from: 1314, to: 9999, names: [[1314, "Palacio de Mondragón"]], note: "14th c." },
-  { at: PLACES.espirituSanto, from: 1505, to: 9999, names: [[1505, "Espíritu Santo"]], note: "church, 1505" },
-  { at: PLACES.padreJesus, from: 1500, to: 9999, names: [[1500, "Padre Jesús"]], note: "church, 15th–16th c." },
-  { at: PLACES.reyMoro, from: 1300, to: 9999, names: [[1300, "Water mine"], [1709, "Casa del Rey Moro"]], note: "14th c. mine" },
-  { at: PLACES.santoDomingo, from: 1485, to: 9999, names: [[1485, "Convento de Santo Domingo"]], note: "founded 1485" },
-  { at: PLACES.alameda, from: 1806, to: 9999, names: [[1806, "Alameda del Tajo"]], note: "park, 1806" },
-  { at: PLACES.estacion, from: 1892, to: 9999, names: [[1892, "Railway station"]], note: "1892" , rank: 1 },
-  { at: PLACES.socorro, from: 1918, to: 9999, names: [[1918, "Plaza del Socorro"]], note: "Andalusian flag, 1918" },
-  { at: PLACES.alcazaba, from: 950, to: 1830, names: [[950, "Alcazaba (citadel)"], [1812, "Alcazaba ruins"]], note: "blown up 1812, location approx." , rank: 1 },
-  { at: PLACES.santaMaria, from: -650, to: 711, names: [[-650, "Iberian settlement"], [-206, "Arunda"]], note: "extent unknown", lift: 70 , rank: 1 },
+  { at: PLACES.puenteNuevo, from: 1735, to: 9999, names: [[1735, "Primer puente (se hunde en 1741)"], [1759, "Puente Nuevo (en obras)"], [1793, "Puente Nuevo"]], note: "1759–1793", lift: 110, rank: 1 },
+  { at: PLACES.puenteViejo, from: 1616, to: 9999, names: [[1616, "Puente Viejo"]], note: "reconstruido en 1616" },
+  { at: PLACES.puenteArabe, from: 1300, to: 9999, names: [[1300, "Puente Árabe"]], note: "puente medieval" },
+  { at: PLACES.plazaToros, from: 1779, to: 9999, names: [[1779, "Plaza de toros (en obras)"], [1785, "Plaza de toros de la Real Maestranza"]], note: "inaugurada en 1785", rank: 1 },
+  { at: PLACES.santaMaria, from: 1000, to: 9999, names: [[1000, "Mezquita mayor"], [1485, "Santa María la Mayor"]], note: "mezquita, iglesia desde 1485", rank: 1 },
+  { at: PLACES.banos, from: 1280, to: 9999, names: [[1280, "Baños árabes"]], note: "siglos XIII–XIV" },
+  { at: PLACES.almocabar, from: 1250, to: 9999, names: [[1250, "Puerta de Almocábar"]], note: "siglo XIII", rank: 1 },
+  { at: PLACES.mondragon, from: 1314, to: 9999, names: [[1314, "Palacio de Mondragón"]], note: "siglo XIV" },
+  { at: PLACES.espirituSanto, from: 1505, to: 9999, names: [[1505, "Iglesia del Espíritu Santo"]], note: "1505" },
+  { at: PLACES.padreJesus, from: 1500, to: 9999, names: [[1500, "Iglesia de Padre Jesús"]], note: "siglos XV–XVI" },
+  { at: PLACES.reyMoro, from: 1300, to: 9999, names: [[1300, "La Mina"], [1709, "Casa del Rey Moro"]], note: "mina del siglo XIV" },
+  { at: PLACES.santoDomingo, from: 1485, to: 9999, names: [[1485, "Convento de Santo Domingo"]], note: "fundado en 1485" },
+  { at: PLACES.alameda, from: 1806, to: 9999, names: [[1806, "Alameda del Tajo"]], note: "parque, 1806" },
+  { at: PLACES.estacion, from: 1892, to: 9999, names: [[1892, "Estación de tren"]], note: "1892", rank: 1 },
+  { at: PLACES.socorro, from: 1918, to: 9999, names: [[1918, "Plaza del Socorro"]], note: "bandera andaluza, 1918" },
+  { at: PLACES.alcazaba, from: 950, to: 1830, names: [[950, "Alcazaba"], [1812, "Ruinas de la Alcazaba"]], note: "volada en 1812, ubicación aproximada", rank: 1 },
+  { at: PLACES.santaMaria, from: -650, to: 711, names: [[-650, "Poblado íbero"], [-206, "Arunda"]], note: "extensión desconocida", lift: 70, rank: 1 },
 ];
 
 // Off-scene places, shown as labels at the edge of the map.
 const EDGE_LABELS: Array<{ dir: [number, number]; from: number; to: number; name: string; note: string }> = [
-  { dir: [-9341, -5662], from: -25000, to: -800, name: "← Cueva de la Pileta", note: "cave paintings, ~11 km SW" },
-  { dir: [-6666, 9262], from: -206, to: 600, name: "← Acinipo", note: "Roman city, ~11 km NW" },
+  { dir: [-9341, -5662], from: -25000, to: -800, name: "← Cueva de la Pileta", note: "pinturas rupestres, a ~11 km al SO" },
+  { dir: [-6666, 9262], from: -206, to: 600, name: "← Acinipo", note: "ciudad romana, a ~11 km al NO" },
 ];
 
 interface Timed {
@@ -83,8 +83,32 @@ function makeLabel(text: string, note: string): { obj: CSS2DObject; set(name: st
   };
 }
 
-const stone = new THREE.MeshStandardMaterial({ color: 0xc2a27a, roughness: 0.9 });
-const darkStone = new THREE.MeshStandardMaterial({ color: 0x9c8466, roughness: 0.95 });
+/** Stone with an ashlar pattern: blocks in staggered rows, mortar joints and colour variation. */
+function masonry(color: number, block = 1.3, course = 0.62): THREE.MeshStandardMaterial {
+  const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.92 });
+  mat.onBeforeCompile = (s) => {
+    s.vertexShader = s.vertexShader
+      .replace("#include <common>", "#include <common>\nvarying vec3 vMW;\nvarying vec3 vMN;")
+      .replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\nvMW = (modelMatrix * vec4(transformed, 1.0)).xyz;\nvMN = normalize(mat3(modelMatrix) * objectNormal);");
+    s.fragmentShader = s.fragmentShader
+      .replace("#include <common>", "#include <common>\nvarying vec3 vMW;\nvarying vec3 vMN;\nfloat mHash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }")
+      .replace(
+        "#include <color_fragment>",
+        `#include <color_fragment>
+vec3 an = abs(vMN);
+vec2 q = an.y > 0.7 ? vMW.xz : vec2(an.x > an.z ? vMW.z : vMW.x, vMW.y);
+float row = floor(q.y / ${course.toFixed(2)});
+vec2 b = vec2((q.x / ${block.toFixed(2)}) + row * 0.5, q.y / ${course.toFixed(2)});
+vec2 f = fract(b);
+float joint = smoothstep(0.0, 0.05, min(min(f.x, 1.0 - f.x) * ${(block / course).toFixed(2)}, min(f.y, 1.0 - f.y)));
+float tone = 0.82 + 0.3 * mHash(floor(b));
+diffuseColor.rgb *= mix(0.55, tone, joint);`,
+      );
+  };
+  return mat;
+}
+const stone = masonry(0xc9a87e);
+const darkStone = masonry(0xa58a68, 1.1, 0.55);
 
 /** Pick the bridge direction with the shortest span that reaches the deck height on both sides. */
 function bridgeAxis(dem: Dem, c: readonly [number, number], deck: number): { ang: number; a: number; b: number; bottom: number } {
@@ -224,8 +248,8 @@ export function createLandmarks(dem: Dem, cityWall: number[][]): Landmarks {
       if (Math.abs(ga - gb) > 10 || Y((ax + bx) / 2, (an + bn) / 2) < Math.min(ga, gb) - 6) continue;
       const g = Math.min(ga, gb);
       wallBase = Math.min(wallBase, g);
-      const seg = box(Math.hypot(bx - ax, bn - an) + 0.6, 11, 2.4, darkStone);
-      seg.position.set((ax + bx) / 2, g + 2.5, -(an + bn) / 2);
+      const seg = box(Math.hypot(bx - ax, bn - an) + 0.6, 9, 2.2, darkStone);
+      seg.position.set((ax + bx) / 2, g + 1.5, -(an + bn) / 2);
       seg.rotation.y = Math.atan2(bn - an, bx - ax);
       wallGroup.add(seg);
     }

@@ -44,11 +44,46 @@ attribute vec3 aInfo; // year, bottom Y, isTop
 uniform float uYear;
 uniform float uGrow;
 varying float vFresh;
+varying vec4 vFacade; // height above ground, position along the wall, wall (1) or roof (0), year
+varying vec3 vBPos;
 `;
 const VERTEX_BODY = `
 float g = clamp((uYear - aInfo.x) / uGrow, 0.0, 1.0);
 if (aInfo.z > 0.5) transformed.y = mix(aInfo.y, transformed.y, g);
 vFresh = g > 0.0 ? 1.0 - clamp((uYear - aInfo.x) / (uGrow * 5.0), 0.0, 1.0) : 0.0;
+vFacade = vec4(transformed.y - aInfo.y - 3.0, dot(position.xz, vec2(-normal.z, normal.x)), 1.0 - abs(normal.y), aInfo.x);
+vBPos = position;
+`;
+// Facade detail: windows by floor, a darker base, shutters, and tile grooves on pitched-colour roofs.
+const FRAGMENT_HEAD = `
+varying float vFresh;
+varying vec4 vFacade;
+varying vec3 vBPos;
+float bHash(vec2 p) { return fract(sin(dot(p, vec2(41.3, 289.1))) * 15731.743); }
+`;
+const FRAGMENT_COLOR = `
+if (vFacade.z > 0.5) {
+  float h = vFacade.x;
+  float floorIx = floor(h / 3.1);
+  float fy = fract(h / 3.1);
+  bool old = vFacade.w < 1750.0;
+  float bay = old ? 4.6 : 3.4;
+  float col = floor(vFacade.y / bay);
+  float fx = fract(vFacade.y / bay);
+  float r = bHash(vec2(col, floorIx) + floor(vBPos.xz * 0.05));
+  float ww = old ? 0.18 : 0.26;
+  bool isWin = h > 0.4 && abs(fx - 0.5) < ww && fy > 0.32 && fy < (floorIx < 0.5 ? 0.92 : 0.8) && r > (old ? 0.45 : 0.12);
+  if (isWin) {
+    vec3 glass = vec3(0.10, 0.11, 0.13);
+    // Some green or brown shutters, typical of Andalusian towns.
+    if (r > 0.82) glass = r > 0.91 ? vec3(0.16, 0.30, 0.20) : vec3(0.33, 0.21, 0.13);
+    diffuseColor.rgb = glass;
+  }
+  diffuseColor.rgb *= mix(0.62, 1.0, smoothstep(0.0, 2.2, h));
+} else if (diffuseColor.r > diffuseColor.b * 1.35) {
+  float t = sin((vBPos.x * 0.8 + vBPos.z * 0.6) * 9.0);
+  diffuseColor.rgb *= 0.9 + 0.1 * t;
+}
 `;
 
 export function createBuildings(data: BuildingData): Buildings {
@@ -136,7 +171,8 @@ export function createBuildings(data: BuildingData): Buildings {
       .replace("#include <common>", "#include <common>" + VERTEX_HEAD)
       .replace("#include <begin_vertex>", "#include <begin_vertex>" + VERTEX_BODY);
     s.fragmentShader = s.fragmentShader
-      .replace("#include <common>", "#include <common>\nvarying float vFresh;")
+      .replace("#include <common>", "#include <common>" + FRAGMENT_HEAD)
+      .replace("#include <color_fragment>", "#include <color_fragment>" + FRAGMENT_COLOR)
       .replace(
         "#include <emissivemap_fragment>",
         "#include <emissivemap_fragment>\ntotalEmissiveRadiance += vec3(1.0, 0.55, 0.18) * vFresh * 0.9;",
