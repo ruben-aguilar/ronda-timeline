@@ -459,6 +459,15 @@
  ],
  "today": [
   {
+   "img": "textures/ortho_station.webp",
+   "thumb": "gallery/station_t.webp",
+   "title": "Estación y vías",
+   "caption": "Estación de Ronda y su playa de vías en la línea Bobadilla–Algeciras. La ortofoto PNOA de julio de 2022 muestra los andenes, los apartaderos y las naves del entorno. El detalle 3D sigue los trazados de OpenStreetMap; las secciones de carril y las traviesas son aproximadas.",
+   "credit": "Instituto Geográfico Nacional",
+   "license": "CC BY 4.0",
+   "source": "https://pnoa.ign.es/web/portal/pnoa-imagen/ortofotos-pnoa-maxima-actualidad"
+  },
+  {
    "img": "textures/ortho_northeast.webp",
    "thumb": "gallery/northeast_t.webp",
    "title": "Entrada noreste · A-367",
