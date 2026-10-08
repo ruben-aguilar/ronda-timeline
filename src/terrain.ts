@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { Dem, Y_OFFSET } from "./data";
+import { pbr } from "./textures";
 
 // Texture keyframes by year. Before 1935 the terrain uses the "historic" texture: the 2024
 // photo with the town replaced by countryside (scripts/make_landscape.py).
@@ -105,6 +106,7 @@ export function createTerrain(dem: Dem, loader: THREE.TextureLoader, anisotropy:
     t2024: { value: tex("ortho_2024.webp") },
     t2024c: { value: tex("ortho_2024_center.webp") },
     tMask: { value: tex("urban_mask.png", false) },
+    tCliff: { value: pbr("cliff").map },
     uW: { value: new THREE.Vector4(0, 0, 0, 0) },
     uHist: { value: 1 },
     uWild: { value: 0 },
@@ -114,8 +116,8 @@ export function createTerrain(dem: Dem, loader: THREE.TextureLoader, anisotropy:
   mat.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = shader.vertexShader
-      .replace("#include <common>", "#include <common>\nvarying vec2 vTUv;\nvarying float vUp;\nvarying vec3 vWPos;")
-      .replace("#include <begin_vertex>", "#include <begin_vertex>\nvTUv = uv;\nvUp = normal.y;\nvWPos = position;");
+      .replace("#include <common>", "#include <common>\nvarying vec2 vTUv;\nvarying float vUp;\nvarying vec3 vWPos;\nvarying vec3 vTN;")
+      .replace("#include <begin_vertex>", "#include <begin_vertex>\nvTUv = uv;\nvUp = normal.y;\nvWPos = position;\nvTN = normal;");
     shader.fragmentShader = shader.fragmentShader
       .replace(
         "#include <common>",
@@ -123,7 +125,9 @@ export function createTerrain(dem: Dem, loader: THREE.TextureLoader, anisotropy:
 varying vec2 vTUv;
 varying float vUp;
 varying vec3 vWPos;
-uniform sampler2D tHist, t1956, t1980, t2004, t2024, t2024c, tMask;
+uniform sampler2D tHist, t1956, t1980, t2004, t2024, t2024c, tMask, tCliff;
+varying vec3 vTN;
+float gCliffL;
 uniform vec4 uW;
 uniform float uHist, uWild;
 float gSteep, gStrata, gDetail;
@@ -134,7 +138,10 @@ ${NOISE_GLSL}`,
         /* glsl */ `
 vec2 uv = vTUv;
 float dist = length(vViewPosition);
-gSteep = 1.0 - smoothstep(0.5, 0.86, vUp);
+// Steepness from the triangle itself (derivatives), so cliff tops do not inherit the flat
+// plateau's averaged vertex normals.
+vec3 faceN = normalize(cross(dFdx(vWPos), dFdy(vWPos)));
+gSteep = 1.0 - smoothstep(0.6, 0.9, min(vUp, abs(faceN.y)));
 
 // 2024: a sharper photo for the central 2 x 2 km.
 vec3 p2024 = texture2D(t2024, uv).rgb;
@@ -157,10 +164,17 @@ vec3 col = hist * uHist + p1956 * uW.x + p1980 * uW.y + texture2D(t2004, uv).rgb
 
 // Cliffs: photos smear on steep faces, so draw layered limestone there.
 gStrata = tFbm(vec2(vWPos.y * 0.42 + tFbm(vWPos.xz * 0.015) * 5.0, (vWPos.x + vWPos.z) * 0.01));
-float grain = tNoise(vec2(vWPos.x + vWPos.z, vWPos.y) * 0.6);
-vec3 rock = mix(vec3(0.38, 0.32, 0.26), vec3(0.66, 0.58, 0.47), gStrata) * (0.8 + 0.3 * grain);
+// Photographed rock (Poly Haven "cliff_side"), projected on the two vertical planes. Only its
+// brightness is used, so the colour stays the grey-ochre of Ronda's sandstone.
+vec3 an = abs(faceN);
+vec2 wgt = an.xz / max(an.x + an.z, 1e-3);
+float lumX = dot(texture2D(tCliff, vec2(vWPos.z, vWPos.y) / 26.0).rgb, vec3(0.333));
+float lumZ = dot(texture2D(tCliff, vec2(vWPos.x, vWPos.y) / 26.0).rgb, vec3(0.333));
+float lumN = dot(texture2D(tCliff, vec2(vWPos.x, vWPos.y) / 7.0).rgb, vec3(0.333));
+gCliffL = (lumX * wgt.x + lumZ * wgt.y) / 0.113 * 0.75 + lumN / 0.113 * 0.25;
+vec3 rock = mix(vec3(0.40, 0.35, 0.29), vec3(0.68, 0.61, 0.50), gStrata * 0.5 + 0.25) * clamp(gCliffL, 0.35, 1.7);
 float green = clamp((col.g - col.r) * 5.0 + 0.1, 0.0, 1.0);
-col = mix(col, rock, gSteep * (1.0 - green * 0.55) * 0.92);
+col = mix(col, rock, clamp(gSteep * (1.0 - green * 0.55 * (1.0 - gSteep)) * 1.05, 0.0, 1.0));
 
 float lumC = dot(col, vec3(0.299, 0.587, 0.114));
 col = mix(vec3(lumC), col, 1.18);
@@ -174,7 +188,7 @@ diffuseColor.rgb *= col;
       .replace(
         "#include <normal_fragment_maps>",
         /* glsl */ `#include <normal_fragment_maps>
-float hB = tNoise(vWPos.xz * 0.7) * 0.6 + tNoise(vWPos.xz * 2.6) * 0.25 + gSteep * (gStrata * 2.2 + tNoise(vec2(vWPos.x + vWPos.z, vWPos.y) * 1.3) * 0.6);
+float hB = tNoise(vWPos.xz * 0.7) * 0.6 + tNoise(vWPos.xz * 2.6) * 0.25 + gSteep * (gStrata * 1.2 + gCliffL * 2.5);
 normal = tPerturb(-vViewPosition, normal, vec2(dFdx(hB), dFdy(hB)) * gDetail * 1.2, faceDirection);`,
       )
       .replace(

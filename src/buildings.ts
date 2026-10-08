@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { BuildingData, Y_OFFSET } from "./data";
+import { pbr } from "./textures";
 
 // All Catastro buildings in one mesh. Each building has two forms:
 // - an old form, used before its Catastro year (the last rebuild): the number of floors and the
@@ -132,6 +133,7 @@ vKH = vec2(kind, aB.z);
 
 // Colour and facade by style year: walls, windows, doors, painted base, roof material.
 const FRAGMENT_HEAD = /* glsl */ `
+uniform sampler2D tPlaster, tRoof;
 varying float vFresh;
 varying vec4 vFacade;
 varying vec3 vBPos;
@@ -173,6 +175,14 @@ if (!isModern) {
   }
 }
 
+// Photographed textures: plaster on walls (brightness only), clay tiles on tiled roofs.
+if (isWall) {
+  vec3 pl = texture2D(tPlaster, vec2(vFacade.y, vFacade.x) / 4.0).rgb;
+  diffuseColor.rgb *= clamp(pl / vec3(0.433, 0.395, 0.334), 0.6, 1.4) * 0.5 + 0.5;
+} else if (diffuseColor.r > diffuseColor.b * 1.35) {
+  vec3 rt = texture2D(tRoof, vBPos.xz / 2.6 + vec2(hsh * 7.0)).rgb;
+  diffuseColor.rgb = mix(diffuseColor.rgb, rt / vec3(0.296, 0.193, 0.096) * diffuseColor.rgb, 0.85);
+}
 if (isWall) {
   float h = vFacade.x;
   float floorIx = floor(h / 3.1);
@@ -210,10 +220,6 @@ if (isWall) {
     diffuseColor.rgb = z;
   }
   diffuseColor.rgb *= mix(0.62, 1.0, smoothstep(0.0, 2.2, h));
-} else if (diffuseColor.r > diffuseColor.b * 1.35) {
-  // Curved tile courses.
-  float t = sin((vBPos.x * 0.8 + vBPos.z * 0.6) * 9.0);
-  diffuseColor.rgb *= 0.88 + 0.12 * t;
 }
 `;
 
@@ -349,7 +355,7 @@ export function createBuildings(data: BuildingData, exclude: (x: number, n: numb
   geo.setIndex(index);
   geo.computeBoundingSphere();
 
-  const uniforms = { uYear: { value: 2026 }, uGrow: { value: 5 } };
+  const uniforms = { uYear: { value: 2026 }, uGrow: { value: 5 }, tPlaster: { value: pbr("plaster").map }, tRoof: { value: pbr("roof").map } };
   const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85 });
   mat.onBeforeCompile = (s) => {
     Object.assign(s.uniforms, uniforms);

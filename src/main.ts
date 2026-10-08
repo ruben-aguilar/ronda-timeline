@@ -10,6 +10,7 @@ import { CamMode, createCameraRig, VIEWPOINTS } from "./camera";
 import { loadBuildings, loadDem } from "./data";
 import { createLandmarks } from "./landmarks";
 import { createMonuments } from "./monuments";
+import { createAlameda } from "./alameda";
 import { createTerrain } from "./terrain";
 import { createTrees } from "./trees";
 import { CONFIDENCE_LABEL, Era, eraAt, formatNumber, formatYear, NOW, posAt, yearAt, yearsPerStep } from "./timeline";
@@ -116,6 +117,8 @@ async function main() {
   const landmarks = createLandmarks(dem);
   scene.add(landmarks.group);
   scene.add(await createTrees(dem));
+  const alameda = await createAlameda(dem);
+  scene.add(alameda.group);
 
   // Cámara.
   const rig = createCameraRig(camera, labelRenderer.domElement, dem);
@@ -260,6 +263,7 @@ async function main() {
     terrain.setYear(year);
     landmarks.update(year, camera);
     monuments.update(year);
+    alameda.update(year);
 
     const era = eraAt(year);
     if (era !== currentEra) {

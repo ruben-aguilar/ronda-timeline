@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { orientedBox, OBB } from "./buildings";
 import { BuildingData, Dem, elevation, Y_OFFSET } from "./data";
-import { metricUV, textures, texturedMaterial } from "./textures";
+import { metricUV, texturedMaterial } from "./textures";
 
 // Hand-built models for the main monuments. Where a monument stands on a Catastro footprint,
 // the model uses that footprint (so it sits exactly where the real building is) and the generic
@@ -147,21 +147,24 @@ function timed(group: THREE.Group, base: number, from: number, to: number, end =
 }
 
 export function createMonuments(dem: Dem, data: BuildingData): Monuments {
-  const T = textures();
+  // Target colours (linear) chosen from photos of Ronda: warm sandstone, ochre rammed earth,
+  // whitewash, light yellow arena sand.
   const mat = {
-    stone: texturedMaterial(T.stone, { bump: 2 }),
-    darkStone: texturedMaterial(T.darkStone, { bump: 2 }),
-    rubble: texturedMaterial(T.rubble, { color: 0xf0dcbc, bump: 2.5 }),
-    tapial: texturedMaterial(T.tapial, { bump: 1.6 }),
-    white: texturedMaterial(T.whitewash, { bump: 0.6 }),
-    ochre: texturedMaterial(T.ochre, { bump: 0.6 }),
-    tiles: texturedMaterial(T.tiles, { bump: 3, roughness: 0.8 }),
-    sand: texturedMaterial(T.sand, { bump: 1 }),
-    red: new THREE.MeshStandardMaterial({ color: 0x7a1f17, roughness: 0.7 }),
+    stone: texturedMaterial("sandstone", { albedo: [0.5, 0.39, 0.26] }),
+    darkStone: texturedMaterial("blocks", { albedo: [0.46, 0.38, 0.28] }),
+    rubble: texturedMaterial("rubble", { albedo: [0.47, 0.39, 0.28] }),
+    tapial: texturedMaterial("tapial", { albedo: [0.52, 0.42, 0.29] }),
+    white: texturedMaterial("plaster", { albedo: [0.82, 0.8, 0.74] }),
+    cream: texturedMaterial("plaster", { albedo: [0.78, 0.68, 0.5] }),
+    ochre: texturedMaterial("plaster", { albedo: [0.7, 0.52, 0.3] }),
+    tiles: texturedMaterial("roof", { albedo: [0.4, 0.2, 0.1], scale: 0.8 }),
+    sand: texturedMaterial("gravel", { albedo: [0.62, 0.44, 0.2], scale: 0.6, normalScale: 0.4 }),
+    red: new THREE.MeshStandardMaterial({ color: 0x6e2318, roughness: 0.7 }),
     dark: new THREE.MeshStandardMaterial({ color: 0x15110e, roughness: 1 }),
-    road: new THREE.MeshStandardMaterial({ color: 0x5b5650, roughness: 0.95 }),
+    road: texturedMaterial("cobble", { albedo: [0.32, 0.3, 0.27] }),
     iron: new THREE.MeshStandardMaterial({ color: 0x23201d, roughness: 0.6, metalness: 0.4 }),
   };
+
   // Lathe and ring pieces can face either way; draw both sides.
   for (const m of Object.values(mat)) m.side = THREE.DoubleSide;
 
@@ -231,17 +234,57 @@ export function createMonuments(dem: Dem, data: BuildingData): Monuments {
       steps.push(new THREE.Vector2(r, 1.4 + i * 0.22), new THREE.Vector2(r + 0.25, 1.4 + i * 0.22));
     }
     b.add(at(new THREE.LatheGeometry(steps.reverse(), 96)), mat.darkStone);
-    // Two levels of arcades: 68 Tuscan columns per level, with an architrave over each level.
-    for (const [lo, hi] of [[3.4, 5.5], [5.8, 7.8]]) {
+    // Two levels of arcades: 68 Tuscan columns per level carrying 68 round arches.
+    const RA = ARENA + 2.6;
+    const bayW = (2 * Math.PI * RA) / 68;
+    for (const [lo, hi] of [[3.4, 5.6], [5.9, 7.9]]) {
+      const H = hi - lo;
+      const r = bayW / 2 - 0.32;
+      const spring = H - r - 0.3;
+      const bay = new THREE.Shape();
+      bay.moveTo(-bayW / 2, 0);
+      bay.lineTo(-r, 0);
+      bay.lineTo(-r, spring);
+      bay.absarc(0, spring, r, Math.PI, 0, true);
+      bay.lineTo(r, 0);
+      bay.lineTo(bayW / 2, 0);
+      bay.lineTo(bayW / 2, H);
+      bay.lineTo(-bayW / 2, H);
+      bay.closePath();
+      const bayGeo = metricUV(new THREE.ExtrudeGeometry(bay, { depth: 0.45, bevelEnabled: false, curveSegments: 10 }));
+      const arches: THREE.BufferGeometry[] = [];
       const cols: THREE.BufferGeometry[] = [];
       for (let i = 0; i < 68; i++) {
         const a = (i / 68) * Math.PI * 2;
-        cols.push(new THREE.CylinderGeometry(0.22, 0.26, hi - lo, 8).translate(Math.cos(a) * (ARENA + 2.6), (lo + hi) / 2, Math.sin(a) * (ARENA + 2.6)));
+        const am = a + Math.PI / 68;
+        // Panel faces the centre: rotate local +Z to point inwards.
+        const m4 = new THREE.Matrix4().compose(
+          new THREE.Vector3(Math.cos(am) * RA, lo, Math.sin(am) * RA),
+          new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -am - Math.PI / 2),
+          new THREE.Vector3(1, 1, 1),
+        );
+        arches.push(bayGeo.clone().applyMatrix4(m4));
+        cols.push(new THREE.CylinderGeometry(0.2, 0.24, spring, 10).translate(Math.cos(a) * (RA - 0.3), lo + spring / 2, Math.sin(a) * (RA - 0.3)));
       }
+      b.addRaw(at(mergeGeometries(arches)!), mat.cream);
       b.add(at(mergeGeometries(cols)!), mat.stone);
-      b.add(at(new THREE.CylinderGeometry(ARENA + 2.8, ARENA + 2.8, 0.45, 128, 1, true).translate(0, hi + 0.2, 0)), mat.stone);
-      b.add(at(new THREE.RingGeometry(ARENA + 2.4, R, 128, 1).rotateX(-Math.PI / 2).translate(0, lo - 0.05, 0)), mat.darkStone);
+      b.add(at(new THREE.RingGeometry(ARENA + 2.2, R, 128, 1).rotateX(-Math.PI / 2).translate(0, lo - 0.05, 0)), mat.darkStone);
+      // Back wall of the gallery.
+      b.add(at(new THREE.CylinderGeometry(R - 0.6, R - 0.6, H, 128, 1, true).translate(0, lo + H / 2, 0)), mat.white);
     }
+    // Railing along the upper gallery.
+    b.add(at(new THREE.CylinderGeometry(RA - 0.35, RA - 0.35, 0.9, 128, 1, true).translate(0, 5.9 + 0.45, 0)), mat.cream);
+    // Small windows on the outer facade, two rows.
+    const wins: THREE.BufferGeometry[] = [];
+    for (let i = 0; i < 48; i++) {
+      const a = (i / 48) * Math.PI * 2 + 0.03;
+      for (const y of [4.2, 7.3]) {
+        const w = new THREE.BoxGeometry(0.9, 1.3, 0.4);
+        w.rotateY(-a);
+        wins.push(w.translate(Math.cos(a) * (R + 0.05), y, Math.sin(a) * (R + 0.05)));
+      }
+    }
+    b.add(at(mergeGeometries(wins)!), mat.dark);
     // Red wooden barrier and the sand.
     b.add(at(new THREE.CylinderGeometry(ARENA, ARENA, 1.5, 128, 1, true).translate(0, 0.75, 0)), mat.red);
     b.add(at(new THREE.CircleGeometry(ARENA, 128).rotateX(-Math.PI / 2).translate(0, 0.05, 0)), mat.sand);
@@ -403,17 +446,27 @@ export function createMonuments(dem: Dem, data: BuildingData): Monuments {
    * A stone bridge: the profile of the gorge with arches cut into it, extruded across, plus
    * arch rings, buttresses, a cornice, parapets and the road.
    */
-  const bridge = (c: Pt, deck: number, width: number, arches: Array<[number, number, number]>, opts: { buttress?: boolean; window?: boolean } = {}) => {
+  const bridge = (
+    c: Pt,
+    deck: number,
+    width: number,
+    arches: Array<[number, number, number]>,
+    opts: { buttress?: boolean; window?: boolean; photo?: THREE.Texture } = {},
+  ) => {
     const ax = bridgeAxis(c, deck);
     const L0 = -ax.b - 4;
     const L1 = ax.a + 4;
     const yd = deck - Y_OFFSET;
     const groundAt = (s: number) => Math.min(elevation(dem, c[0] + Math.sin(ax.ang) * s, c[1] + Math.cos(ax.ang) * s), deck - 1) - Y_OFFSET - 4;
     const h = deck - ax.bottom;
+    const yb = ax.bottom - Y_OFFSET - 4;
+    // With a photo, arches are given in photo fractions: [centre 0..1, width 0..1, spring 0..1].
     const notches = arches
-      .map(([fc, w, fy]) => {
-        const cx = (L0 + L1) / 2 + fc * (L1 - L0);
-        const spring = Math.max(ax.bottom - Y_OFFSET + fy * h, groundAt(cx - w / 2) + 3, groundAt(cx + w / 2) + 3);
+      .map(([fc, w0, fy]) => {
+        const cx = opts.photo ? L0 + fc * (L1 - L0) : (L0 + L1) / 2 + fc * (L1 - L0);
+        const w = opts.photo ? w0 * (L1 - L0) : w0;
+        const sp = opts.photo ? yb + fy * (yd - yb) : ax.bottom - Y_OFFSET + fy * h;
+        const spring = Math.max(sp, groundAt(cx - w / 2) + 3, groundAt(cx + w / 2) + 3);
         return { cx, w, spring };
       })
       .filter((a) => a.spring + a.w / 2 < yd - 4)
@@ -440,9 +493,24 @@ export function createMonuments(dem: Dem, data: BuildingData): Monuments {
     const body = new THREE.ExtrudeGeometry(shape, { depth: width, bevelEnabled: false, curveSegments: 24 });
     body.translate(0, 0, -width / 2);
     b.add(body, mat.stone, frame);
+    if (opts.photo) {
+      // The real photo on both faces, stretched over the outline (deck at the top of the photo).
+      const face = new THREE.ShapeGeometry(shape, 24);
+      const p = face.attributes.position;
+      const uv = new Float32Array(p.count * 2);
+      for (let i = 0; i < p.count; i++) {
+        uv[i * 2] = (p.getX(i) - L0) / (L1 - L0);
+        uv[i * 2 + 1] = (p.getY(i) - yb) / (yd - yb);
+      }
+      face.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
+      const front = new THREE.MeshStandardMaterial({ map: opts.photo, roughness: 0.92 });
+      const back = new THREE.MeshStandardMaterial({ map: opts.photo, roughness: 0.92, side: THREE.BackSide });
+      b.addRaw(face.clone().translate(0, 0, width / 2 + 0.04).applyMatrix4(frame), front);
+      b.addRaw(face.clone().translate(0, 0, -width / 2 - 0.04).applyMatrix4(frame), back);
+    }
     for (const side of [-1, 1]) {
       const z = side * (width / 2 + 0.25);
-      for (const a of notches) {
+      for (const a of opts.photo ? [] : notches) {
         // Voussoir ring around each arch.
         const ring = new THREE.TorusGeometry(a.w / 2 + 0.7, 0.75, 6, 32, Math.PI);
         b.add(ring.translate(a.cx, a.spring, z), mat.darkStone, frame);
@@ -460,7 +528,7 @@ export function createMonuments(dem: Dem, data: BuildingData): Monuments {
         }
       }
       // Cornice and parapet.
-      b.add(new THREE.BoxGeometry(L1 - L0 + 2, 0.9, 1.2).translate((L0 + L1) / 2, yd - 1.6, side * (width / 2 + 0.3)), mat.darkStone, frame);
+      if (!opts.photo) b.add(new THREE.BoxGeometry(L1 - L0 + 2, 0.9, 1.2).translate((L0 + L1) / 2, yd - 1.6, side * (width / 2 + 0.3)), mat.darkStone, frame);
       b.add(new THREE.BoxGeometry(L1 - L0, 1.2, 0.6).translate((L0 + L1) / 2, yd + 0.6, side * (width / 2 - 0.3)), mat.stone, frame);
     }
     b.add(new THREE.BoxGeometry(L1 - L0, 0.2, width - 1.2).translate((L0 + L1) / 2, yd + 0.1, 0), mat.road, frame);
@@ -468,7 +536,12 @@ export function createMonuments(dem: Dem, data: BuildingData): Monuments {
   };
 
   {
-    const nb = bridge([6, -26], 719, 15, [[0, 18, 0.36], [-0.3, 7, 0.55], [0.3, 7, 0.55]], { buttress: true, window: true });
+    // Arch positions measured on the photo "Ronda - Puente Nuevo tall.jpg" (Joe Mabel, CC BY-SA 3.0):
+    // upper left arch, the central opening between the two great piers, upper right arch.
+    const photo = new THREE.TextureLoader().load("textures/photo/puente_nuevo.webp");
+    photo.colorSpace = THREE.SRGBColorSpace;
+    photo.anisotropy = 8;
+    const nb = bridge([6, -26], 719, 15, [[0.185, 0.17, 0.87], [0.5, 0.11, 0.7], [0.835, 0.13, 0.85]], { photo });
     add(nb.builder, nb.bottom, 1759, 1793);
     const first = bridge([6, -26], 714, 9, [[0, 34, 0.75]]);
     add(first.builder, first.bottom, 1735, 1740, 1741);

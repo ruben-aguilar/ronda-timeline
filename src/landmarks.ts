@@ -60,7 +60,7 @@ const EDGE_LABELS: Array<{ dir: [number, number]; from: number; to: number; name
   { dir: [-6666, 9262], from: -206, to: 600, name: "← Acinipo", note: "ciudad romana, a ~11 km al NO" },
 ];
 
-function makeLabel(text: string, note: string): { obj: CSS2DObject; set(name: string): void } {
+export function makeLabel(text: string, note: string): { obj: CSS2DObject; set(name: string): void } {
   const el = document.createElement("div");
   el.className = "label";
   const t = document.createElement("div");
