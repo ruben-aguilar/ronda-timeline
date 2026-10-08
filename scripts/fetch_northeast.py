@@ -17,8 +17,8 @@ SERVICE = "https://www.ign.es/wms-inspire/pnoa-ma"
 # Local east/north bounds: 800..2000 m. Four 600 m tiles, 0.293 m/output pixel.
 CX, CY = 306617, 4068323
 REGION = sys.argv[1] if len(sys.argv) > 1 else "northeast"
-assert REGION in ("northeast", "station")
-WEST, SOUTH = (0, 500) if REGION == "station" else (800, 800)
+assert REGION in ("northeast", "station", "tajo")
+WEST, SOUTH = {"northeast": (800, 800), "station": (0, 500), "tajo": (-650, -650)}[REGION]
 
 
 def fetch_tile(ij):

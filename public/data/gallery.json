@@ -459,6 +459,15 @@
  ],
  "today": [
   {
+   "img": "textures/ortho_tajo.webp",
+   "thumb": "gallery/tajo_t.webp",
+   "title": "El Tajo y Puente Nuevo",
+   "caption": "Ortofoto IGN de julio de 2022. El Puente Nuevo une La Ciudad y El Mercadillo sobre el Guadalevín. Se distinguen los bordes del Tajo, los jardines y los caminos del valle. El modelo 3D es una reconstrucción aproximada basada en fotografías.",
+   "credit": "Instituto Geográfico Nacional",
+   "license": "CC BY 4.0",
+   "source": "https://pnoa.ign.es/web/portal/pnoa-imagen/ortofotos-pnoa-maxima-actualidad"
+  },
+  {
    "img": "textures/ortho_station.webp",
    "thumb": "gallery/station_t.webp",
    "title": "Estación y vías",

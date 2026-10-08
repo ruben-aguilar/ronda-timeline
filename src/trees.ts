@@ -78,6 +78,14 @@ export async function createTrees(dem: Dem): Promise<THREE.Group> {
   const trunkMat = new THREE.MeshStandardMaterial({ color: 0x625342, roughness: 1 });
   const batches = new Map<string, number[]>();
   for (let i = 0; i < raw.length / 3; i++) {
+    const x = raw[i * 3] / 8, n = raw[i * 3 + 1] / 8;
+    if (Math.hypot(x, n) < 600) {
+      const slopeX = (elevation(dem, x + 3, n) - elevation(dem, x - 3, n)) / 6;
+      const slopeN = (elevation(dem, x, n + 3) - elevation(dem, x, n - 3)) / 6;
+      // A canopy detected in the aerial image may actually be on the cliff top.
+      // Do not plant full-size trees on the near-vertical gorge faces beneath it.
+      if (Math.hypot(slopeX, slopeN) > 1.25) continue;
+    }
     const key = `${Math.floor(raw[i * 3] / 2000)},${Math.floor(raw[i * 3 + 1] / 2000)}`;
     if (!batches.has(key)) batches.set(key, []);
     batches.get(key)!.push(i);

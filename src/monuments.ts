@@ -3,6 +3,7 @@ import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js
 import { orientedBox, OBB } from "./buildings";
 import { BuildingData, Dem, elevation, Y_OFFSET } from "./data";
 import { metricUV, texturedMaterial } from "./textures";
+import { createPuenteNuevo } from "./puente-nuevo";
 
 // Hand-built models for the main monuments. Where a monument stands on a Catastro footprint,
 // the model uses that footprint (so it sits exactly where the real building is) and the generic
@@ -464,7 +465,7 @@ export function createMonuments(dem: Dem, data: BuildingData): Monuments {
     deck: number,
     width: number,
     arches: Array<[number, number, number]>,
-    opts: { buttress?: boolean; window?: boolean; photo?: THREE.Texture; material?: THREE.Material } = {},
+    opts: { buttress?: boolean; window?: boolean; material?: THREE.Material } = {},
   ) => {
     const ax = bridgeAxis(c, deck);
     const L0 = -ax.b - 4;
@@ -472,13 +473,11 @@ export function createMonuments(dem: Dem, data: BuildingData): Monuments {
     const yd = deck - Y_OFFSET;
     const groundAt = (s: number) => Math.min(elevation(dem, c[0] + Math.sin(ax.ang) * s, c[1] + Math.cos(ax.ang) * s), deck - 1) - Y_OFFSET - 4;
     const h = deck - ax.bottom;
-    const yb = ax.bottom - Y_OFFSET - 4;
-    // With a photo, arches are given in photo fractions: [centre 0..1, width 0..1, spring 0..1].
     const notches = arches
       .map(([fc, w0, fy]) => {
-        const cx = opts.photo ? L0 + fc * (L1 - L0) : (L0 + L1) / 2 + fc * (L1 - L0);
-        const w = opts.photo ? w0 * (L1 - L0) : w0;
-        const sp = opts.photo ? yb + fy * (yd - yb) : ax.bottom - Y_OFFSET + fy * h;
+        const cx = (L0 + L1) / 2 + fc * (L1 - L0);
+        const w = w0;
+        const sp = ax.bottom - Y_OFFSET + fy * h;
         const spring = Math.max(sp, groundAt(cx - w / 2) + 3, groundAt(cx + w / 2) + 3);
         return { cx, w, spring };
       })
@@ -506,24 +505,9 @@ export function createMonuments(dem: Dem, data: BuildingData): Monuments {
     const body = new THREE.ExtrudeGeometry(shape, { depth: width, bevelEnabled: false, curveSegments: 24 });
     body.translate(0, 0, -width / 2);
     b.add(body, opts.material ?? mat.stone, frame);
-    if (opts.photo) {
-      // The real photo on both faces, stretched over the outline (deck at the top of the photo).
-      const face = new THREE.ShapeGeometry(shape, 24);
-      const p = face.attributes.position;
-      const uv = new Float32Array(p.count * 2);
-      for (let i = 0; i < p.count; i++) {
-        uv[i * 2] = (p.getX(i) - L0) / (L1 - L0);
-        uv[i * 2 + 1] = (p.getY(i) - yb) / (yd - yb);
-      }
-      face.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
-      const front = new THREE.MeshStandardMaterial({ map: opts.photo, roughness: 0.92 });
-      const back = new THREE.MeshStandardMaterial({ map: opts.photo, roughness: 0.92, side: THREE.BackSide });
-      b.addRaw(face.clone().translate(0, 0, width / 2 + 0.04).applyMatrix4(frame), front);
-      b.addRaw(face.clone().translate(0, 0, -width / 2 - 0.04).applyMatrix4(frame), back);
-    }
     for (const side of [-1, 1]) {
       const z = side * (width / 2 + 0.25);
-      for (const a of opts.photo ? [] : notches) {
+      for (const a of notches) {
         // Voussoir ring around each arch.
         const ring = new THREE.TorusGeometry(a.w / 2 + 0.7, 0.75, 6, 32, Math.PI);
         b.add(ring.translate(a.cx, a.spring, z), mat.darkStone, frame);
@@ -541,7 +525,7 @@ export function createMonuments(dem: Dem, data: BuildingData): Monuments {
         }
       }
       // Cornice and parapet.
-      if (!opts.photo) b.add(new THREE.BoxGeometry(L1 - L0 + 2, 0.9, 1.2).translate((L0 + L1) / 2, yd - 1.6, side * (width / 2 + 0.3)), mat.darkStone, frame);
+      b.add(new THREE.BoxGeometry(L1 - L0 + 2, 0.9, 1.2).translate((L0 + L1) / 2, yd - 1.6, side * (width / 2 + 0.3)), mat.darkStone, frame);
       b.add(new THREE.BoxGeometry(L1 - L0, 1.2, 0.6).translate((L0 + L1) / 2, yd + 0.6, side * (width / 2 - 0.3)), mat.stone, frame);
     }
     b.add(new THREE.BoxGeometry(L1 - L0, 0.2, width - 1.2).translate((L0 + L1) / 2, yd + 0.1, 0), mat.road, frame);
@@ -549,13 +533,9 @@ export function createMonuments(dem: Dem, data: BuildingData): Monuments {
   };
 
   {
-    // Arch positions measured on the photo "Ronda - Puente Nuevo tall.jpg" (Joe Mabel, CC BY-SA 3.0):
-    // upper left arch, the central opening between the two great piers, upper right arch.
-    const photo = new THREE.TextureLoader().load("textures/photo/puente_nuevo.webp");
-    photo.colorSpace = THREE.SRGBColorSpace;
-    photo.anisotropy = 8;
-    const nb = bridge([6, -26], 719, 15, [[0.185, 0.17, 0.87], [0.5, 0.11, 0.7], [0.835, 0.13, 0.85]], { photo });
-    add(nb.builder, nb.bottom, 1759, 1793);
+    const nuevo = timed(createPuenteNuevo(), 621 - Y_OFFSET, 1759, 1793);
+    group.add(nuevo.pivot);
+    updaters.push(nuevo.update);
     const first = bridge([6, -26], 714, 9, [[0, 34, 0.75]]);
     add(first.builder, first.bottom, 1735, 1740, 1741);
     const viejo = bridge([239, -134], 683, 7, [[0, 10, 0.5]]);
@@ -572,7 +552,8 @@ export function createMonuments(dem: Dem, data: BuildingData): Monuments {
     for (let i = 0; i < MEDINA.length; i++) {
       const [x0, n0] = MEDINA[i];
       const [x1, n1] = MEDINA[(i + 1) % MEDINA.length];
-      if (n0 > -100 && n1 > -100) continue;
+      // The schematic medieval wall must not place a tower in the gorge beside Puente Nuevo.
+      if (n0 > -180 || n1 > -180) continue;
       const len = Math.hypot(x1 - x0, n1 - n0);
       const steps = Math.max(1, Math.ceil(len / 12));
       for (let k = 0; k < steps; k++) {

@@ -16,6 +16,8 @@ import { createTerrain } from "./terrain";
 import { createSky } from "./sky";
 import { createTrees } from "./trees";
 import { createRailway } from "./railway";
+import { createTajo } from "./tajo";
+import { refineBridgeFoundations } from "./puente-nuevo";
 import { CONFIDENCE_LABEL, Era, eraAt, formatNumber, formatYear, NOW, posAt, yearAt, yearsPerStep } from "./timeline";
 import { buildTimelineUI } from "./ui";
 
@@ -93,6 +95,7 @@ async function main() {
 
   const loading = document.getElementById("loading")!;
   const [dem, bdata] = await Promise.all([loadDem(), loadBuildings(), sky.ready]);
+  refineBridgeFoundations(dem);
   // Keep the loading screen until textures and their shared clones have image data.
   let texturesPending = false;
   THREE.DefaultLoadingManager.onStart = () => { texturesPending = true; };
@@ -106,10 +109,11 @@ async function main() {
   scene.add(buildings.mesh);
   const landmarks = createLandmarks(dem);
   scene.add(landmarks.group);
-  const [trees, alameda, railway] = await Promise.all([createTrees(dem), createAlameda(dem), createRailway(dem)]);
+  const [trees, alameda, railway, tajo] = await Promise.all([createTrees(dem), createAlameda(dem), createRailway(dem), createTajo(dem)]);
   scene.add(trees);
   scene.add(alameda.group);
   scene.add(railway.group);
+  scene.add(tajo.group);
 
   // Cámara.
   const rig = createCameraRig(camera, labelRenderer.domElement, dem);
@@ -322,6 +326,7 @@ async function main() {
       terrain.setYear(year);
       monuments.update(year);
       alameda.update(year);
+      tajo.update(year);
       renderer.shadowMap.needsUpdate = true;
       dirty = true;
     }

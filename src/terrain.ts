@@ -79,10 +79,13 @@ export function createTerrain(dem: Dem, loader: THREE.TextureLoader, anisotropy:
     uNortheast: { value: 0 },
     tStation: { value: null as THREE.Texture | null },
     uStation: { value: 0 },
+    tTajo: { value: null as THREE.Texture | null },
+    uTajo: { value: 0 },
   };
   const details = [
     { name: "northeast", west: 800, south: 800, distance: 1300, texture: uniforms.tNortheast, weight: uniforms.uNortheast, requested: false, ready: false },
     { name: "station", west: 0, south: 500, distance: 900, texture: uniforms.tStation, weight: uniforms.uStation, requested: false, ready: false },
+    { name: "tajo", west: -650, south: -650, distance: 650, texture: uniforms.tTajo, weight: uniforms.uTajo, requested: false, ready: false },
   ];
   let detailYear = 0;
 
@@ -99,8 +102,8 @@ export function createTerrain(dem: Dem, loader: THREE.TextureLoader, anisotropy:
 varying vec2 vTUv;
 varying float vUp;
 varying vec3 vWPos;
-uniform sampler2D tHist, t1956, t1980, t2004, t2024, t2024c, tMask, tCliff, tNortheast, tStation;
-uniform float uNortheast, uStation;
+uniform sampler2D tHist, t1956, t1980, t2004, t2024, t2024c, tMask, tCliff, tNortheast, tStation, tTajo;
+uniform float uNortheast, uStation, uTajo;
 varying vec3 vTN;
 float gCliffL;
 uniform vec4 uW;
@@ -133,6 +136,9 @@ if (nin > 0.0) p2024 = mix(p2024, texture2D(tNortheast, clamp(nuv, 0.0, 1.0)).rg
 vec2 suv = (uv - vec2(0.5, 0.625)) / 0.3;
 float stationWeight = smoothstep(0.0, 0.025, min(min(suv.x, suv.y), min(1.0 - suv.x, 1.0 - suv.y))) * uStation;
 if (stationWeight > 0.0) p2024 = mix(p2024, texture2D(tStation, clamp(suv, 0.0, 1.0)).rgb, stationWeight);
+vec2 tuv = (uv - vec2(0.3375)) / 0.3;
+float tajoWeight = smoothstep(0.0, 0.025, min(min(tuv.x, tuv.y), min(1.0 - tuv.x, 1.0 - tuv.y))) * uTajo;
+if (tajoWeight > 0.0) p2024 = mix(p2024, texture2D(tTajo, clamp(tuv, 0.0, 1.0)).rgb, tajoWeight);
 
 }
 vec3 hist = vec3(0.0);

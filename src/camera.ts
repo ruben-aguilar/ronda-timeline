@@ -17,6 +17,7 @@ export const VIEWPOINTS: Viewpoint[] = [
   { id: "general", name: "Vista general", cam: [-1250, 650, 350], tgt: [60, -120, 20] },
   { id: "tajo", name: "El Tajo desde el valle", cam: [-360, -240, 90], tgt: [6, -26, 45] },
   { id: "puente", name: "Puente Nuevo de cerca", cam: [-160, -60, 90], tgt: [6, -26, 42] },
+  { id: "puente-rio", name: "Puente Nuevo desde el río", cam: [-235, -135, 48], tgt: [6, -26, 10] },
   { id: "toros", name: "Plaza de toros", cam: [-10, 70, 26], tgt: [-100, 156, 4] },
   { id: "santamaria", name: "Santa María la Mayor", cam: [88, -492, 30], tgt: [32, -372, 16] },
   { id: "almocabar", name: "Puerta de Almocábar", cam: [140, -800, 28], tgt: [114, -712, 8] },
