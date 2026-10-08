@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ronda a través del tiempo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script type="module" crossorigin src="./assets/index-DGvNGfMe.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-fsDuqPZ8.css">
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="loading">
+      <div class="loading-title">Ronda</div>
+      <div class="loading-sub">a través del tiempo</div>
+      <div class="loading-bar"><span></span></div>
+    </div>
+
+    <header id="era-card">
+      <button id="era-toggle" aria-label="Ocultar panel" title="Ocultar o mostrar el panel">
+        <svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6" /></svg>
+      </button>
+      <div id="era-title"></div>
+      <div id="era-sub"></div>
+      <div id="era-body">
+        <p id="era-text"></p>
+        <div id="era-gallery"></div>
+        <div id="era-conf"></div>
+      </div>
+    </header>
+
+    <div id="lightbox" aria-hidden="true">
+      <button class="lb-close" aria-label="Cerrar">×</button>
+      <button class="lb-prev" aria-label="Anterior">‹</button>
+      <figure>
+        <img alt="" />
+        <figcaption>
+          <div class="lb-title"></div>
+          <div class="lb-caption"></div>
+          <div class="lb-credit"></div>
+        </figcaption>
+      </figure>
+      <button class="lb-next" aria-label="Siguiente">›</button>
+    </div>
+
+    <div id="clock">
+      <div id="year"></div>
+      <div id="count"></div>
+      <button id="info-btn" title="Fuentes y créditos" aria-label="Fuentes y créditos">i</button>
+    </div>
+
+    <aside id="cambar"></aside>
+    <div id="splash"></div>
+    <footer id="timeline"></footer>
+
+    <div id="info">
+      <div class="info-card">
+        <button class="close" aria-label="Cerrar">×</button>
+        <h2>Ronda a través del tiempo</h2>
+        <p>Un recorrido por la historia de Ronda, desde la prehistoria hasta hoy. Antes de 1956 la ciudad es una reconstrucción: las fechas de los edificios son estimaciones por barrios y monumentos fechados.</p>
+        <h3>Controles</h3>
+        <p>Espacio: reproducir o pausar · ← →: mover el tiempo · Doble clic: volar a un punto · Modos de cámara a la derecha.</p>
+        <h3>Fuentes</h3>
+        <ul>
+          <li>Modelo del terreno MDT05 y ortofotos PNOA: © Instituto Geográfico Nacional (CC BY 4.0).</li>
+          <li>Vuelo Americano 1956–57 y Vuelo Interministerial 1973–86: IGN, PNOA histórico.</li>
+          <li>Edificios: Dirección General del Catastro (INSPIRE).</li>
+          <li>Situación de monumentos, Alameda y paseos: © colaboradores de OpenStreetMap.</li>
+          <li>Texturas de piedra, tapial, revoco, tejas, roca, arena, empedrado y grava: Poly Haven (CC0).</li>
+          <li>Imágenes de la galería: Wikimedia Commons; autor y licencia en cada imagen.</li>
+          <li>Fachada del Puente Nuevo: foto «Ronda - Puente Nuevo tall» de Joe Mabel, Wikimedia Commons (CC BY-SA 3.0).</li>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>
