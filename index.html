@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ronda through time</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="loading">Loading terrain, aerial photos and 16,000 buildings…</div>
+
+    <header id="era-card">
+      <div id="era-title"></div>
+      <div id="era-sub"></div>
+      <p id="era-text"></p>
+      <div id="era-conf"></div>
+    </header>
+
+    <div id="clock">
+      <div id="year"></div>
+      <div id="count"></div>
+    </div>
+
+    <div id="splash"></div>
+
+    <footer id="timeline">
+      <div class="controls">
+        <button id="play" aria-label="Play">▶</button>
+        <button id="autocam" title="Let the camera move by itself">Auto camera</button>
+      </div>
+      <div id="bar">
+        <div id="bands"></div>
+        <div id="ticks"></div>
+        <div id="thumb"></div>
+      </div>
+    </footer>
+
+    <div id="help">Drag to rotate · right-drag to pan · scroll to zoom · space to play · ← → to step</div>
+    <div id="credits">
+      Terrain: IGN MDT05 · Photos: IGN PNOA, Vuelo Americano 1956, Interministerial 1973–86 · Buildings: Dirección General del Catastro · Landmarks: OpenStreetMap.
+      Dates before 1956 are estimates.
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
