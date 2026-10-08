@@ -14,10 +14,13 @@ same adjusted height data.
 
 The model has four openings, including the lower arch, two projecting piers,
 individual arch voussoirs, coping, paving and a barred chamber window.
-Existing CC0 Poly Haven ashlar colour, normal and roughness maps supply the
-stone detail. A low-frequency shader varies weathering and base dampness.
-Lighting is calculated by the scene instead of being baked into a facade photo.
-Five merged material meshes replace the prior bridge. The existing 1759–1793
+The original 2388 × 3528 Joe Mabel photograph now supplies all bridge masonry.
+Region-specific UV mapping aligns the piers and arches and keeps the photograph's
+rock/sky away from the outer lower masonry. There is no repeated ashlar tile,
+procedural weathering or generic stone normal map. The reverse face and returns
+reuse portions of this photograph; source lighting remains baked into the image.
+See `public/textures/photo/README.md` for source, license and adaptation details.
+Two merged material meshes draw the bridge. The existing 1759–1793
 construction animation and the earlier bridge remain in place.
 
 `uv run scripts/fetch_northeast.py tajo` downloads a 1.2 km square IGN detail
