@@ -35,6 +35,7 @@ interface LabelDef {
 }
 
 const LABELS: LabelDef[] = [
+  { at: [1766, 1561], from: 2022, to: 9999, names: [[2022, "Entrada noreste · A-367"]], note: "carretera de Ardales a Ronda", lift: 20 },
   { at: PLACES.puenteNuevo, from: 1735, to: 9999, names: [[1735, "Primer puente (se hunde en 1741)"], [1759, "Puente Nuevo (en obras)"], [1793, "Puente Nuevo"]], note: "1759–1793", lift: 110, rank: 1 },
   { at: PLACES.puenteViejo, from: 1616, to: 9999, names: [[1616, "Puente Viejo"]], note: "reconstruido en 1616" },
   { at: PLACES.puenteArabe, from: 1300, to: 9999, names: [[1300, "Puente Árabe"]], note: "puente medieval" },

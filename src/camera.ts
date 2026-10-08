@@ -24,6 +24,7 @@ export const VIEWPOINTS: Viewpoint[] = [
   { id: "alameda", name: "Alameda del Tajo y miradores", cam: [-470, 170, 210], tgt: [-280, 290, 0] },
   { id: "ciudad", name: "La Ciudad (medina)", cam: [520, -760, 180], tgt: [40, -380, 10] },
   { id: "mercadillo", name: "El Mercadillo", cam: [-480, 420, 230], tgt: [-60, 180, 10] },
+  { id: "noreste", name: "Entrada noreste · A-367", cam: [1470, 1280, 135], tgt: [1770, 1720, 10] },
   { id: "cenital", name: "Vista cenital", cam: [60, -101, 2300], tgt: [60, -100, 0] },
   { id: "paseo", name: "A pie: Balcón del Tajo", cam: [-338, 319, 1.7], tgt: [-700, 250, 140], mode: "walk" },
 ];

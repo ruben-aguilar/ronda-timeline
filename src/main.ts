@@ -97,7 +97,7 @@ async function main() {
   THREE.DefaultLoadingManager.onStart = () => { texturesPending = true; };
   THREE.DefaultLoadingManager.onLoad = () => { texturesPending = false; };
   const loader = new THREE.TextureLoader();
-  const terrain = createTerrain(dem, loader, renderer.capabilities.getMaxAnisotropy());
+  const terrain = createTerrain(dem, loader, renderer.capabilities.getMaxAnisotropy(), () => { dirty = true; });
   scene.add(terrain.mesh);
   const monuments = createMonuments(dem, bdata);
   scene.add(monuments.group);

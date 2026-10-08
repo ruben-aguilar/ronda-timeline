@@ -55,7 +55,7 @@ vec3 tPerturb(vec3 surfPos, vec3 n, vec2 dHdxy, float face) {
 }
 `;
 
-export function createTerrain(dem: Dem, loader: THREE.TextureLoader, anisotropy: number): Terrain {
+export function createTerrain(dem: Dem, loader: THREE.TextureLoader, anisotropy: number, invalidate: () => void): Terrain {
   const tex = (name: string, srgb = true) => {
     const t = loader.load(`textures/${name}`);
     if (srgb) t.colorSpace = THREE.SRGBColorSpace;
@@ -75,7 +75,11 @@ export function createTerrain(dem: Dem, loader: THREE.TextureLoader, anisotropy:
     uW: { value: new THREE.Vector4(0, 0, 0, 0) },
     uHist: { value: 1 },
     uWild: { value: 0 },
+    tNortheast: { value: null as THREE.Texture | null },
+    uNortheast: { value: 0 },
   };
+  let northeastRequested = false, northeastReady = false;
+  let northeastYear = 0;
 
   const mat = new THREE.MeshStandardMaterial({ roughness: 0.93, metalness: 0 });
   mat.onBeforeCompile = (shader) => {
@@ -90,7 +94,8 @@ export function createTerrain(dem: Dem, loader: THREE.TextureLoader, anisotropy:
 varying vec2 vTUv;
 varying float vUp;
 varying vec3 vWPos;
-uniform sampler2D tHist, t1956, t1980, t2004, t2024, t2024c, tMask, tCliff;
+uniform sampler2D tHist, t1956, t1980, t2004, t2024, t2024c, tMask, tCliff, tNortheast;
+uniform float uNortheast;
 varying vec3 vTN;
 float gCliffL;
 uniform vec4 uW;
@@ -115,6 +120,11 @@ p2024 = texture2D(t2024, uv).rgb;
 vec2 cuv = (uv - 0.25) * 2.0;
 float cin = smoothstep(0.0, 0.02, min(min(cuv.x, cuv.y), min(1.0 - cuv.x, 1.0 - cuv.y)));
 if (cin > 0.0) p2024 = mix(p2024, texture2D(t2024c, clamp(cuv, 0.0, 1.0)).rgb, cin);
+// IGN July 2022, local bounds [800, 2000] east/north. Blend only the inner
+// borders: the north/east sides end at the terrain boundary itself.
+vec2 nuv = (uv - 0.7) / 0.3;
+float nin = smoothstep(0.0, 0.025, min(nuv.x, nuv.y)) * uNortheast;
+if (nin > 0.0) p2024 = mix(p2024, texture2D(tNortheast, clamp(nuv, 0.0, 1.0)).rgb, nin);
 
 }
 vec3 hist = vec3(0.0);
@@ -170,7 +180,8 @@ normal = tPerturb(-vViewPosition, normal, vec2(dFdx(hB), dFdy(hB)) * gDetail * 0
       .replace(
         "#include <fog_fragment>",
         `#include <fog_fragment>
-float edge = smoothstep(0.40, 0.5, max(abs(vTUv.x - 0.5), abs(vTUv.y - 0.5)));
+// Preserve outskirts: soften only the final 60 m, not the last 400 m.
+float edge = smoothstep(0.485, 0.5, max(abs(vTUv.x - 0.5), abs(vTUv.y - 0.5)));
 gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, edge);`,
       );
   };
@@ -250,6 +261,20 @@ gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, edge);`,
     update(camera) {
       mesh.updateMatrixWorld();
       let changed = false;
+      const dx = Math.max(800 - camera.position.x, 0, camera.position.x - 2000);
+      const dn = Math.max(800 + camera.position.z, 0, -camera.position.z - 2000);
+      if (!northeastRequested && northeastYear > 0 && Math.hypot(dx, dn) < 1300) {
+        northeastRequested = true;
+        // Independent manager: this optional image does not block initial loading.
+        new THREE.TextureLoader(new THREE.LoadingManager()).load("textures/ortho_northeast.webp", (texture) => {
+          texture.colorSpace = THREE.SRGBColorSpace;
+          texture.anisotropy = Math.min(anisotropy, 8);
+          uniforms.tNortheast.value = texture;
+          northeastReady = true;
+          uniforms.uNortheast.value = northeastYear;
+          invalidate();
+        }, undefined, () => { /* Retain the base orthophoto if the detail tile is unavailable. */ });
+      }
       for (const tile of tiles) {
         const before = tile.getCurrentLevel();
         tile.update(camera);
@@ -262,6 +287,8 @@ gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, edge);`,
       uniforms.uHist.value = w[0];
       uniforms.uW.value.set(w[1], w[2], w[3], w[4]);
       uniforms.uWild.value = 1 - THREE.MathUtils.smoothstep(year, -3000, -200);
+      northeastYear = THREE.MathUtils.smoothstep(year, 2020, 2022);
+      uniforms.uNortheast.value = northeastReady ? northeastYear : 0;
     },
   };
 }
