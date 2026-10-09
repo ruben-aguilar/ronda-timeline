@@ -76,3 +76,55 @@ GPU load and camera position and do not establish a general speed increase.
 No browser, shader or asset errors were reported. Backward seeking restored all
 original tree matrices exactly. The historical renderer keeps its original roof
 index sequence; the extra modern triangles are not submitted in older periods.
+
+## Second visual pass — 9 October 2026
+
+Reviewed the old town, Cijara, San Francisco, station/industrial area, El Fuerte,
+Ciudad Deportiva and the northeast, plus the Puente Nuevo river view. The new
+geometry remains restricted to the 2022+ layer in the final timeline period.
+
+Corrections:
+
+- Clipped hip roofs had open vertical edges above the wall tops, especially at
+  courtyards and L-shaped corners. Close those edges with plaster faces. Preserve
+  the courtyard holes. Do not add windows to the short roof-edge faces.
+- The clipped roof vertices used map coordinates for tile UVs. Interpolate the
+  original slope coordinates so the photographic tile grain follows each roof
+  face. Retain the aerial photograph as the main roof colour and detail source;
+  add subtle tile grain only at close range, fading out by 200 m.
+- Ground, roofs and courts now share one orthophoto projection and overlap order.
+  Courts previously omitted the south/Tajo detail photos, and roof overlap order
+  differed from the ground around station/northeast tiles.
+- Playing surfaces are clipped to the DEM's actual 5 m triangles. Their interiors
+  no longer bridge over terrain changes between sparse outline vertices.
+- Replace separate tilted wall boxes with joined, upright wall strips. Join
+  corners, bury foundations, remove internal end caps and use continuous metric
+  masonry UVs. Top faces now have a horizontal texture projection rather than
+  a collapsed vertical projection. Keep the Almocábar gate opening clear.
+- Close the gap below level pool rims on sloping ground. Anchor ripple detail in
+  world space. Pools reflect the same sky photo used by the background, with a
+  viewing-angle-dependent strength. This reuses the sky texture and adds no
+  reflection render pass or continuous animation.
+
+No new imagery or claimed construction dates were added. Generic roof forms,
+wall heights and pool basin depths remain visual estimates. Reflections show the
+sky; they do not reproduce surrounding buildings or trees. The imagery and DEM
+resolution still limit street-level accuracy.
+
+Checks passed: production build; eight-sector modern browser check; historical
+layer/tree restoration; mobile camera menu; history/settings/language/playback
+checks; geometry checks for concave courts on uneven terrain, both polygon
+windings, upward wall caps, outward wall faces, courtyard roof area, square-roof
+UVs and finite attributes throughout the real building mesh.
+
+The added code is about 1.6 kB compressed across the main and optional modern
+bundles. No image download was added. Hidden flat lids under modern pitched roofs
+and unused modern copies of historical-only roofs are no longer submitted.
+Final render measurements are recorded in `performance/modern-second-pass.json`.
+
+With both views warmed and optional assets loaded, median GPU time changed from
+3.37 to 3.33 ms in the general view and from 2.74 to 2.82 ms at El Tajo. Draw calls
+remain 399 and 294 respectively. Submitted triangles increase by about 4%; these
+counts include all passes. The differences in GPU time are small and do not show
+a general speed increase. The benchmark now waits for optional assets instead of
+using a fixed startup delay, which could measure different scene states.

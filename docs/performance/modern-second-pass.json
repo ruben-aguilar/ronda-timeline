@@ -1,0 +1,84 @@
+{
+  "date": "2026-10-09",
+  "baseline": "215b99c",
+  "conditions": "Chrome ANGLE Metal, 1440x900 DPR1, AO enabled, cached shadows, both views warmed with optional images and geometry loaded; 5 warm-up draws and 40 GPU timer samples per view. GPU time, not end-to-end FPS.",
+  "before": {
+    "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+    "viewport": [
+      1440,
+      900
+    ],
+    "pixelRatio": 1,
+    "results": [
+      {
+        "view": "general",
+        "medianMs": 3.374874,
+        "p90Ms": 3.998874,
+        "calls": 399,
+        "triangles": 1339017
+      },
+      {
+        "view": "tajo",
+        "medianMs": 2.740166,
+        "p90Ms": 4.242375,
+        "calls": 294,
+        "triangles": 1216453
+      }
+    ],
+    "errors": []
+  },
+  "after": {
+    "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+    "viewport": [
+      1440,
+      900
+    ],
+    "pixelRatio": 1,
+    "results": [
+      {
+        "view": "general",
+        "medianMs": 3.33325,
+        "p90Ms": 3.652999,
+        "calls": 399,
+        "triangles": 1394478
+      },
+      {
+        "view": "tajo",
+        "medianMs": 2.824708,
+        "p90Ms": 3.2475,
+        "calls": 294,
+        "triangles": 1267588
+      }
+    ],
+    "errors": []
+  },
+  "modernChecks": {
+    "stats": {
+      "source": "OpenStreetMap",
+      "features": 410,
+      "sectors": 50,
+      "mappedWallSegments": 466,
+      "correctedTrees": 56,
+      "wall": false
+    },
+    "restored": {
+      "visible": false,
+      "wall": true,
+      "sameTrees": true
+    },
+    "errors": [],
+    "checks": "Eight sectors, lazy loading, historical tree restoration, period gates, mobile camera menu"
+  },
+  "geometryChecks": {
+    "terrainTriangles": 200,
+    "roofArea": 687.9999856948853,
+    "roofClosureTriangles": 36,
+    "actualBuildingVertices": 1555918
+  },
+  "notes": [
+    "Fixed benchmark startup: wait for modern layer and network idle in both views before measuring. Fixed delays previously compared different asset/LOD states.",
+    "Draw calls unchanged; added submitted triangles about 4.1% (general) and 4.2% (El Tajo).",
+    "Compressed JavaScript grows about 1.6 kB; no new image assets.",
+    "Single-machine timings vary. Historical reconstruction and layer restoration checks pass."
+  ]
+}

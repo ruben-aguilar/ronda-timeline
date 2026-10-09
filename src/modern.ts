@@ -3,6 +3,9 @@ import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js
 import { Dem, elevation, Y_OFFSET } from "./data";
 import { orientedBox } from "./buildings";
 import { texturedMaterial } from "./textures";
+import { SKY_SAMPLE_GLSL } from "./sky";
+import { MODERN_PHOTO_GLSL } from "./modern-photo";
+import { terrainSurface, masonryWall } from "./modern-geometry";
 
 type Point = [number, number];
 interface Feature {
@@ -26,7 +29,7 @@ interface Bucket {
 }
 
 /** Current map outlines. Fitting sizes and wall elevations are visual estimates. */
-export async function createModern(dem: Dem, roofTextures: Record<string, THREE.IUniform>, trees: THREE.Group) {
+export async function createModern(dem: Dem, roofTextures: Record<string, THREE.IUniform>, trees: THREE.Group, skyUniforms: Record<string, THREE.IUniform>) {
   const response = await fetch("data/modern.json");
   if (!response.ok) throw new Error(`Modern map detail: HTTP ${response.status}`);
   const { features, clearTreeIndices }: { features: Feature[]; clearTreeIndices: number[] } = await response.json();
@@ -103,9 +106,15 @@ export async function createModern(dem: Dem, roofTextures: Record<string, THREE.
       if (Math.max(...levels)-Math.min(...levels)>2.0) continue;
       const level=Math.max(...levels)+0.12;
       b.water.push(ringGeometry(points,level));
-      for (let i=0;i<points.length;i++) b.rims.push(edgeStrip(points[i],points[(i+1)%points.length],0.25,0.18,level-0.06));
+      for (let i=0;i<points.length;i++) {
+        const a=points[i],c=points[(i+1)%points.length];
+        b.rims.push(edgeStrip(a,c,0.25,0.18,level-0.06));
+        // Close the space below a level pool rim where the DEM slopes across the basin.
+        const low=Math.min(ground(...a),ground(...c))-0.25;
+        b.rims.push(edgeStrip(a,c,0.18,level-low,low));
+      }
     } else if (f.kind === "pitch") {
-      const surfaceGeometry = ringGeometry(points);
+      const surfaceGeometry = terrainSurface(points,ground,dem.cell,dem.size);
       surfaceGeometry.setAttribute("modernTurf", new THREE.Float32BufferAttribute(new Float32Array(surfaceGeometry.getAttribute("position").count).fill(f.surfaceFrom ? 1 : 0), 1));
       b.surfaces.push(surfaceGeometry);
       const o=orientedBox(points), length=2*o.a, width=2*o.b;
@@ -142,25 +151,35 @@ export async function createModern(dem: Dem, roofTextures: Record<string, THREE.
       const wall=f.kind==="city_wall";
       const mappedHeight=Number.parseFloat(f.height ?? "");
       const h=Number.isFinite(mappedHeight)?THREE.MathUtils.clamp(mappedHeight,0.5,10):wall?5.5:1.8;
+      if(wall) {
+        // Split only at the separately modelled gate; all other segments share corners.
+        let path:Point[]=[];
+        const flush=()=>{if(path.length>1){b.walls.push(masonryWall(path,ground,h));wallCount+=path.length-1;}path=[];};
+        for(let i=1;i<f.points.length;i++) {
+          const a=f.points[i-1],c=f.points[i],count=Math.ceil(Math.hypot(c[0]-a[0],c[1]-a[1])/3);
+          for(let j=0;j<count;j++) {
+            const p:Point=[a[0]+(c[0]-a[0])*j/count,a[1]+(c[1]-a[1])*j/count];
+            const q:Point=[a[0]+(c[0]-a[0])*(j+1)/count,a[1]+(c[1]-a[1])*(j+1)/count];
+            if(Math.hypot((p[0]+q[0])/2-114,(p[1]+q[1])/2+712)<19){flush();continue;}
+            if(!path.length)path.push(p);path.push(q);
+          }
+        }
+        flush();continue;
+      }
       for (let i=1;i<f.points.length;i++) {
         const a=f.points[i-1], c=f.points[i];
         const length=Math.hypot(c[0]-a[0],c[1]-a[1]);
-        const count=Math.ceil(length/(wall?3:2.5));
+        const count=Math.ceil(length/2.5);
         for (let j=0;j<count;j++) {
           const p:Point=[a[0]+(c[0]-a[0])*j/count,a[1]+(c[1]-a[1])*j/count];
           const q:Point=[a[0]+(c[0]-a[0])*(j+1)/count,a[1]+(c[1]-a[1])*(j+1)/count];
-          // Keep the separately modelled Almocábar gate and its opening clear.
-          if (wall && Math.hypot((p[0]+q[0])/2-114,(p[1]+q[1])/2+712)<19) continue;
-          if (wall) { b.walls.push(edgeStrip(p,q,1.5,h));wallCount++; }
-          else {
-            beam(b.fittings,vector(p),vector(p,h),0.065);
-            line(b.lines,vector(p,h),vector(q,h));
-            line(b.lines,vector(p,h*0.45),vector(q,h*0.45));
-            // Open wire mesh with visible gaps, no opaque fence panels.
-            for(let k=1;k<=6;k++) {
-              const t=k/7,r:Point=[p[0]+(q[0]-p[0])*t,p[1]+(q[1]-p[1])*t];
-              line(b.lines,vector(r,0.1),vector(r,h));
-            }
+          beam(b.fittings,vector(p),vector(p,h),0.065);
+          line(b.lines,vector(p,h),vector(q,h));
+          line(b.lines,vector(p,h*0.45),vector(q,h*0.45));
+          // Open wire mesh with visible gaps, no opaque fence panels.
+          for(let k=1;k<=6;k++) {
+            const t=k/7,r:Point=[p[0]+(q[0]-p[0])*t,p[1]+(q[1]-p[1])*t];
+            line(b.lines,vector(r,0.1),vector(r,h));
           }
         }
       }
@@ -177,19 +196,9 @@ export async function createModern(dem: Dem, roofTextures: Record<string, THREE.
       uniform float uPresentYear;
       uniform vec4 uPitchBox;
       uniform vec2 uPitchSize;
-      uniform sampler2D tModernBase,tModernCenter,tModernStation,tModernNortheast,tModernWest;
-      uniform float uRoofStation,uRoofNortheast,uRoofWest;
-      float edge(vec2 uv){return smoothstep(0.0,0.025,min(min(uv.x,uv.y),min(1.0-uv.x,1.0-uv.y)));}`)
+      ${MODERN_PHOTO_GLSL}`)
       .replace('#include <map_fragment>',`#include <map_fragment>
-      vec3 photo=texture2D(tModernBase,vMapUV).rgb;
-      vec2 uv=(vMapUV-0.25)*2.0;float w=edge(uv);
-      if(w>0.0)photo=mix(photo,texture2D(tModernCenter,uv).rgb,w);
-      uv=(vMapUV-vec2(0.2875,0.625))/0.3;w=edge(uv)*uRoofWest;
-      if(w>0.0)photo=mix(photo,texture2D(tModernWest,uv).rgb,w);
-      uv=(vMapUV-vec2(0.5,0.625))/0.3;w=edge(uv)*uRoofStation;
-      if(w>0.0)photo=mix(photo,texture2D(tModernStation,uv).rgb,w);
-      uv=(vMapUV-0.7)/0.3;w=edge(uv)*uRoofNortheast;
-      if(w>0.0)photo=mix(photo,texture2D(tModernNortheast,uv).rgb,w);
+      vec3 photo=modernPhoto(vMapUV);
       if (vTurf > 0.5 && uPresentYear >= 2023.0) {
         vec2 delta=vMapUV*4000.0-2000.0-uPitchBox.xy;
         vec2 p=vec2(dot(delta,uPitchBox.zw),dot(delta,vec2(-uPitchBox.w,uPitchBox.z)));
@@ -209,10 +218,26 @@ export async function createModern(dem: Dem, roofTextures: Record<string, THREE.
   };
   const water = new THREE.MeshStandardMaterial({color:0x448e9e,roughness:0.24,metalness:0.15,side:THREE.DoubleSide});
   water.onBeforeCompile = shader => {
-    shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
-      float ripple=sin(vViewPosition.x*1.7+vViewPosition.z)*sin(vViewPosition.z*2.4)*0.035;
-      float fresnel=pow(1.0-abs(dot(normalize(vNormal),normalize(vViewPosition))),3.0);
-      diffuseColor.rgb=mix(diffuseColor.rgb*(1.0+ripple),vec3(0.5,0.65,0.74),fresnel*0.55);`);
+    Object.assign(shader.uniforms,skyUniforms);
+    shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vWaterPosition;')
+      .replace('#include <begin_vertex>','#include <begin_vertex>\nvWaterPosition=(modelMatrix*vec4(position,1.0)).xyz;');
+    shader.fragmentShader=shader.fragmentShader.replace('#include <common>',`#include <common>
+      varying vec3 vWaterPosition;
+      float waterReflection;
+      vec3 reflectedSky;
+      ${SKY_SAMPLE_GLSL}`)
+      .replace('#include <color_fragment>',`#include <color_fragment>
+      // Ripples stay fixed in map space when the camera moves. Reflect the existing
+      // sky photograph; no second image, reflection render pass or animated simulation.
+      vec2 p=vWaterPosition.xz;
+      float ripple=sin(p.x*1.7+p.y)*sin(p.y*2.4);
+      vec3 waterNormal=normalize(vec3(cos(p.x*1.7+p.y)*0.018,1.0,sin(p.y*2.4)*0.018));
+      vec3 incident=normalize(vWaterPosition-cameraPosition);
+      waterReflection=0.02+0.68*pow(1.0-abs(dot(waterNormal,incident)),5.0);
+      reflectedSky=sampleSky(reflect(incident,waterNormal));
+      diffuseColor.rgb*= (1.0+ripple*0.035)*(1.0-waterReflection);`)
+      .replace('#include <emissivemap_fragment>',`#include <emissivemap_fragment>
+      totalEmissiveRadiance+=reflectedSky*waterReflection;`);
   };
   const rim = new THREE.MeshStandardMaterial({color:0xc7c1ae,roughness:0.85});
   const wallMaterial=texturedMaterial('masonry',{albedo:[0.48,0.4,0.29],scale:0.7});
@@ -222,17 +247,14 @@ export async function createModern(dem: Dem, roofTextures: Record<string, THREE.
   const merge = (parts:THREE.BufferGeometry[],material:THREE.Material,parent:THREE.Group,shadow=false) => {
     if(!parts.length)return;
     const geometries=parts.map(g=>g.index?g.toNonIndexed():g);
-    // Every batch uses the same minimal attributes. Walls get world-space masonry UVs.
+    // Keep metric wall UVs, including the horizontal cap projection.
     for(const g of geometries) {
-      for(const key of Object.keys(g.attributes))if(!['position','normal','modernTurf'].includes(key))g.deleteAttribute(key);
-      if(material===wallMaterial) {
-        const a=g.getAttribute('position'),normal=g.getAttribute('normal'),uv=[];
-        for(let i=0;i<a.count;i++)uv.push(Math.abs(normal.getX(i))>0.5?a.getZ(i):a.getX(i),a.getY(i));
-        g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
-      }
+      for(const key of Object.keys(g.attributes))if(!['position','normal','modernTurf',...(material===wallMaterial?['uv']:[])].includes(key))g.deleteAttribute(key);
     }
     const geometry=mergeGeometries(geometries,false)!;
-    const mesh=new THREE.Mesh(geometry,material);mesh.receiveShadow=true;mesh.castShadow=shadow;
+    const mesh=new THREE.Mesh(geometry,material);
+    mesh.name=material===surface?'Mapped court surfaces':material===water?'Pool water':material===wallMaterial?'Joined masonry walls':'Pool coping and basin walls';
+    mesh.receiveShadow=true;mesh.castShadow=shadow;
     parent.add(mesh);
     new Set([...parts,...geometries]).forEach(g=>g.dispose());
   };

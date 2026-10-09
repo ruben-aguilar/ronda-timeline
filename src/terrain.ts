@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { Dem, Y_OFFSET } from "./data";
 import { pbr } from "./textures";
+import { MODERN_PHOTO_GLSL } from "./modern-photo";
 
 // Texture keyframes by year. Before 1935 the terrain uses the "historic" texture: the 2024
 // photo with the town replaced by countryside (scripts/make_landscape.py).
@@ -87,6 +88,10 @@ export function createTerrain(dem: Dem, loader: THREE.TextureLoader, anisotropy:
     tTajo: { value: null as THREE.Texture | null },
     uTajo: { value: 0 },
   };
+  const roofTextures = { tModernBase: uniforms.t2024, tModernCenter: uniforms.t2024c,
+      tModernWest: uniforms.tWest, tModernSouth: uniforms.tSouth, uRoofWest: uniforms.uWest, uRoofSouth: uniforms.uSouth,
+      tModernStation: uniforms.tStation, tModernNortheast: uniforms.tNortheast, tModernTajo: uniforms.tTajo,
+      uRoofStation: uniforms.uStation, uRoofNortheast: uniforms.uNortheast, uRoofTajo: uniforms.uTajo };
   const details = [
     { name: "west", west: -850, south: 500, distance: 650, texture: uniforms.tWest, weight: uniforms.uWest, requested: false, ready: false },
     { name: "south", west: -650, south: -1750, distance: 650, texture: uniforms.tSouth, weight: uniforms.uSouth, requested: false, ready: false },
@@ -99,7 +104,7 @@ export function createTerrain(dem: Dem, loader: THREE.TextureLoader, anisotropy:
 
   const mat = new THREE.MeshStandardMaterial({ roughness: 0.93, metalness: 0 });
   mat.onBeforeCompile = (shader) => {
-    Object.assign(shader.uniforms, uniforms);
+    Object.assign(shader.uniforms, uniforms, roofTextures);
     shader.vertexShader = shader.vertexShader
       .replace("#include <common>", "#include <common>\nvarying vec2 vTUv;\nvarying float vUp;\nvarying vec3 vWPos;\nvarying vec3 vTN;")
       .replace("#include <begin_vertex>", "#include <begin_vertex>\nvTUv = uv;\nvUp = normal.y;\nvWPos = position;\nvTN = normal;");
@@ -110,14 +115,14 @@ export function createTerrain(dem: Dem, loader: THREE.TextureLoader, anisotropy:
 varying vec2 vTUv;
 varying float vUp;
 varying vec3 vWPos;
-uniform sampler2D tHist, t1956, t1980, t2004, t2024, t2024c, tMask, tCliff, tNortheast, tStation, tTajo, tWest, tSouth;
-uniform float uNortheast, uStation, uTajo, uWest, uSouth;
+uniform sampler2D tHist, t1956, t1980, t2004, tMask, tCliff;
 varying vec3 vTN;
 float gCliffL;
 uniform vec4 uW;
 uniform float uHist, uWild;
 float gSteep, gStrata, gDetail;
-${NOISE_GLSL}`,
+${NOISE_GLSL}
+${MODERN_PHOTO_GLSL}`,
       )
       .replace(
         "#include <map_fragment>",
@@ -132,27 +137,7 @@ gSteep = 1.0 - smoothstep(0.6, 0.9, min(vUp, abs(faceN.y)));
 // 2024: a sharper photo for the central 2 x 2 km.
 vec3 p2024 = vec3(0.0);
 if (uW.w > 0.0) {
-p2024 = texture2D(t2024, uv).rgb;
-vec2 cuv = (uv - 0.25) * 2.0;
-float cin = smoothstep(0.0, 0.02, min(min(cuv.x, cuv.y), min(1.0 - cuv.x, 1.0 - cuv.y)));
-if (cin > 0.0) p2024 = mix(p2024, texture2D(t2024c, clamp(cuv, 0.0, 1.0)).rgb, cin);
-// IGN July 2022, local bounds [800, 2000] east/north. Blend only the inner
-// borders: the north/east sides end at the terrain boundary itself.
-vec2 wuv = (uv - vec2(0.2875, 0.625)) / 0.3;
-float westWeight = smoothstep(0.0, 0.025, min(min(wuv.x,wuv.y), min(1.0-wuv.x,1.0-wuv.y))) * uWest;
-if (westWeight > 0.0) p2024 = mix(p2024,texture2D(tWest,clamp(wuv,0.0,1.0)).rgb,westWeight);
-vec2 souv = (uv - vec2(0.3375, 0.0625)) / 0.3;
-float southWeight = smoothstep(0.0,0.025,min(min(souv.x,souv.y),min(1.0-souv.x,1.0-souv.y))) * uSouth;
-if (southWeight > 0.0) p2024 = mix(p2024,texture2D(tSouth,clamp(souv,0.0,1.0)).rgb,southWeight);
-vec2 nuv = (uv - 0.7) / 0.3;
-float nin = smoothstep(0.0, 0.025, min(nuv.x, nuv.y)) * uNortheast;
-if (nin > 0.0) p2024 = mix(p2024, texture2D(tNortheast, clamp(nuv, 0.0, 1.0)).rgb, nin);
-vec2 suv = (uv - vec2(0.5, 0.625)) / 0.3;
-float stationWeight = smoothstep(0.0, 0.025, min(min(suv.x, suv.y), min(1.0 - suv.x, 1.0 - suv.y))) * uStation;
-if (stationWeight > 0.0) p2024 = mix(p2024, texture2D(tStation, clamp(suv, 0.0, 1.0)).rgb, stationWeight);
-vec2 tuv = (uv - vec2(0.3375)) / 0.3;
-float tajoWeight = smoothstep(0.0, 0.025, min(min(tuv.x, tuv.y), min(1.0 - tuv.x, 1.0 - tuv.y))) * uTajo;
-if (tajoWeight > 0.0) p2024 = mix(p2024, texture2D(tTajo, clamp(tuv, 0.0, 1.0)).rgb, tajoWeight);
+p2024 = modernPhoto(uv);
 
 }
 vec3 hist = vec3(0.0);
@@ -287,10 +272,7 @@ gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, edge);`,
   return {
     mesh,
     // Reuse the terrain's images: no duplicate downloads or GPU textures for roofs.
-    roofTextures: { tModernBase: uniforms.t2024, tModernCenter: uniforms.t2024c,
-      tModernWest: uniforms.tWest, tModernSouth: uniforms.tSouth, uRoofWest: uniforms.uWest, uRoofSouth: uniforms.uSouth,
-      tModernStation: uniforms.tStation, tModernNortheast: uniforms.tNortheast, tModernTajo: uniforms.tTajo,
-      uRoofStation: uniforms.uStation, uRoofNortheast: uniforms.uNortheast, uRoofTajo: uniforms.uTajo },
+    roofTextures,
     update(camera) {
       mesh.updateMatrixWorld();
       let changed = false;

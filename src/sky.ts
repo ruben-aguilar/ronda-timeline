@@ -1,6 +1,42 @@
 import * as THREE from "three";
 import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
 
+/** Shared sky sampling keeps water reflections aligned with the visible clouds and sun. */
+export const SKY_SAMPLE_GLSL = /* glsl */ `
+      uniform sampler2D uSky;
+      uniform float uReady;
+      uniform vec3 uSun, uHaze;
+      const float SKY_PI = 3.14159265359;
+      vec3 sampleSky(vec3 direction) {
+        vec3 d = normalize(direction);
+        float afternoon = 1.0 - smoothstep(0.36, 0.57, uSun.y);
+        vec3 haze = uHaze * mix(vec3(1.0), vec3(1.08, 1.0, 0.89), afternoon);
+        // The source sun is at pixel (1218, 239) in a 2048 x 1024 panorama.
+        // Align azimuth and elevation while leaving the horizon level in both light modes.
+        float sourceAzimuth = ((1218.5 / 2048.0) - 0.5) * 2.0 * SKY_PI;
+        float sourceElevation = (0.5 - 239.5 / 1024.0) * SKY_PI;
+        float elevationScale = tan(sourceElevation) / max(tan(asin(uSun.y)), 0.1);
+        // The model ends after 4 km. Extend the sky a little below the true horizon
+        // so aerial views do not expose a large, flat lower hemisphere beyond that edge.
+        // The sun is above this adjustment in both lighting modes.
+        float elevation = asin(clamp(d.y, -1.0, 1.0));
+        elevation += 0.14 * (1.0 - smoothstep(-0.14, 0.30, elevation));
+        float skyHeight = sin(elevation);
+        vec2 horizontal = d.xz / max(length(d.xz), 0.00001);
+        vec3 sampleDirection = normalize(vec3(horizontal.x * cos(elevation), skyHeight * elevationScale, horizontal.y * cos(elevation)));
+        float u = (atan(d.z, d.x) + sourceAzimuth - atan(uSun.z, uSun.x)) / (2.0 * SKY_PI) + 0.5;
+        float v = asin(clamp(sampleDirection.y, -1.0, 1.0)) / SKY_PI + 0.5;
+        vec3 sky = mix(haze, vec3(0.075, 0.19, 0.40), smoothstep(0.0, 0.85, skyHeight));
+        if (uReady > 0.5) {
+          sky = texture2D(uSky, vec2(fract(u), v)).rgb;
+          sky *= mix(vec3(1.0), vec3(1.11, 0.98, 0.83), afternoon);
+        }
+        // Hide the lower hemisphere and join the distant terrain without a hard seam.
+        sky = mix(haze, sky, smoothstep(-0.04, 0.06, skyHeight));
+        return sky;
+      }
+`;
+
 /** A photographed sky in one draw call. No cloud simulation or per-frame texture updates. */
 export function createSky(sun: THREE.Vector3, haze: THREE.Color) {
   const uniforms = {
@@ -23,38 +59,10 @@ export function createSky(sun: THREE.Vector3, haze: THREE.Color) {
       }
     `,
     fragmentShader: /* glsl */ `
-      uniform sampler2D uSky;
-      uniform float uReady;
-      uniform vec3 uSun, uHaze;
+      ${SKY_SAMPLE_GLSL}
       varying vec3 vDirection;
-      const float PI = 3.14159265359;
       void main() {
-        vec3 d = normalize(vDirection);
-        float afternoon = 1.0 - smoothstep(0.36, 0.57, uSun.y);
-        vec3 haze = uHaze * mix(vec3(1.0), vec3(1.08, 1.0, 0.89), afternoon);
-        // The source sun is at pixel (1218, 239) in a 2048 x 1024 panorama.
-        // Align azimuth and elevation while leaving the horizon level in both light modes.
-        float sourceAzimuth = ((1218.5 / 2048.0) - 0.5) * 2.0 * PI;
-        float sourceElevation = (0.5 - 239.5 / 1024.0) * PI;
-        float elevationScale = tan(sourceElevation) / max(tan(asin(uSun.y)), 0.1);
-        // The model ends after 4 km. Extend the sky a little below the true horizon
-        // so aerial views do not expose a large, flat lower hemisphere beyond that edge.
-        // The sun is above this adjustment in both lighting modes.
-        float elevation = asin(clamp(d.y, -1.0, 1.0));
-        elevation += 0.14 * (1.0 - smoothstep(-0.14, 0.30, elevation));
-        float skyHeight = sin(elevation);
-        vec2 horizontal = d.xz / max(length(d.xz), 0.00001);
-        vec3 sampleDirection = normalize(vec3(horizontal.x * cos(elevation), skyHeight * elevationScale, horizontal.y * cos(elevation)));
-        float u = (atan(d.z, d.x) + sourceAzimuth - atan(uSun.z, uSun.x)) / (2.0 * PI) + 0.5;
-        float v = asin(clamp(sampleDirection.y, -1.0, 1.0)) / PI + 0.5;
-        vec3 sky = mix(haze, vec3(0.075, 0.19, 0.40), smoothstep(0.0, 0.85, skyHeight));
-        if (uReady > 0.5) {
-          sky = texture2D(uSky, vec2(fract(u), v)).rgb;
-          sky *= mix(vec3(1.0), vec3(1.11, 0.98, 0.83), afternoon);
-        }
-        // Hide the lower hemisphere and join the distant terrain without a hard seam.
-        sky = mix(haze, sky, smoothstep(-0.04, 0.06, skyHeight));
-        gl_FragColor = vec4(sky, 1.0);
+        gl_FragColor = vec4(sampleSky(vDirection), 1.0);
         // OutputPass applies exposure, tone mapping and display colour conversion once.
       }
     `,
@@ -81,5 +89,5 @@ export function createSky(sun: THREE.Vector3, haze: THREE.Color) {
       // Keep a usable clear sky if this optional image cannot be downloaded.
       console.warn("Sky image unavailable; using the clear-sky fallback.", error);
     });
-  return { mesh, ready };
+  return { mesh, ready, uniforms };
 }

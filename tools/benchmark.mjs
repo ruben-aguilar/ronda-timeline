@@ -14,7 +14,15 @@ try {
   page.on('console', m => { if (m.type() === 'error' && !m.text().includes('404')) errors.push(m.text()); });
   await page.goto(`${url}/#year=2026`);
   await page.waitForFunction(() => window.__ronda, { timeout: 60000 });
-  await page.waitForTimeout(3000);
+  // Warm both views and let optional regional imagery/modern geometry finish.
+  // A fixed startup delay can compare different LOD/asset states on a cold cache.
+  await page.waitForFunction(() => !document.querySelector('[data-view="deportes"]') ||
+    window.__ronda.dbg.scene.getObjectByName('Present-day mapped detail')?.visible);
+  for (const view of ['general', 'tajo']) {
+    await page.evaluate(view => { window.__ronda.view(2026, view); window.__ronda.resume?.(); }, view);
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500);
+  }
   const result = await page.evaluate(async () => {
     const r = window.__ronda, d = r.dbg, gl = d.renderer.getContext();
     const ext = gl.getExtension('WEBGL_debug_renderer_info');

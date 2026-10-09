@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { BuildingData, Y_OFFSET } from "./data";
 import { pbr } from "./textures";
+import { MODERN_PHOTO_GLSL } from "./modern-photo";
 
 // All Catastro buildings in one mesh. Each building has two forms:
 // - an old form, used before its Catastro year (the last rebuild): the number of floors and the
@@ -91,7 +92,7 @@ export function orientedBox(pts: number[][]): OBB {
 }
 
 const VERTEX_HEAD = /* glsl */ `
-attribute vec4 aInfo; // appear year, bottom Y, kind (0 wall foot, 1 wall top, 2 flat roof, 3 historic roof, 4 clipped modern roof), historic zone
+attribute vec4 aInfo; // appear year, bottom Y, kind (0 wall foot, 1 wall top, 2 flat roof, 3 historic roof, 4 clipped modern roof, 5 roof edge), historic zone
 attribute vec4 aB;    // rebuild year, modern floors, hash, roof mode (0 none, 1 old form only, 2 always)
 attribute float aIndustrial; // cadastral industrial use
 attribute vec3 aR;    // walls: (position along the wall, wall length, 0); pitched roofs: (along the eave, down the slope, slope length)
@@ -147,26 +148,8 @@ vWallH = top - bottom - 3.0;
 // Colour and facade by style year: walls, windows, doors, painted base, roof material.
 const FRAGMENT_HEAD = /* glsl */ `
 uniform sampler2D tPlaster, tRoof, tWood, tPaving;
-uniform sampler2D tModernBase, tModernCenter, tModernStation, tModernNortheast, tModernTajo, tModernWest, tModernSouth;
-uniform float uRoofStation, uRoofNortheast, uRoofTajo, uRoofPhoto, uRoofWest, uRoofSouth;
-float photoEdge(vec2 uv) { return smoothstep(0.0, 0.025, min(min(uv.x, uv.y), min(1.0-uv.x, 1.0-uv.y))); }
-vec3 roofPhoto(vec2 uv) {
-  vec3 c = texture2D(tModernBase, uv).rgb;
-  vec2 p = (uv - 0.25) * 2.0;
-  float w = photoEdge(p);
-  if (w > 0.0) c = mix(c, texture2D(tModernCenter, p).rgb, w);
-  p = (uv - vec2(0.2875, 0.625)) / 0.3; w = photoEdge(p) * uRoofWest;
-  if (w > 0.0) c = mix(c, texture2D(tModernWest, p).rgb, w);
-  p = (uv - vec2(0.3375, 0.0625)) / 0.3; w = photoEdge(p) * uRoofSouth;
-  if (w > 0.0) c = mix(c, texture2D(tModernSouth, p).rgb, w);
-  p = (uv - vec2(0.5, 0.625)) / 0.3; w = photoEdge(p) * uRoofStation;
-  if (w > 0.0) c = mix(c, texture2D(tModernStation, p).rgb, w);
-  p = (uv - 0.7) / 0.3; w = photoEdge(p) * uRoofNortheast;
-  if (w > 0.0) c = mix(c, texture2D(tModernNortheast, p).rgb, w);
-  p = (uv - 0.3375) / 0.3; w = photoEdge(p) * uRoofTajo;
-  if (w > 0.0) c = mix(c, texture2D(tModernTajo, p).rgb, w);
-  return c;
-}
+uniform float uRoofPhoto;
+${MODERN_PHOTO_GLSL}
 varying float vFresh;
 varying vec4 vFacade;
 varying vec3 vBPos;
@@ -203,7 +186,12 @@ float kindF = vKH.x;
 bool isWall = vFacade.z > 0.5;
 gBump = 0.0;
 
-if (isWall) {
+if (isWall && kindF > 4.5) {
+  // Close cut roof edges with plaster, without another row of windows in the attic.
+  vec3 plaster = texture2D(tPlaster, vec2(vR.x, vFacade.x) / 4.0).rgb;
+  diffuseColor.rgb *= mix(0.9, 1.08, clamp(lumOf(plaster) / 0.4, 0.0, 1.0));
+  gBump = lumOf(plaster) * 0.025;
+} else if (isWall) {
   // ---------------------------------------------------------------- walls
   vec3 wc;
   if (isModern) wc = diffuseColor.rgb;
@@ -364,7 +352,14 @@ if (isWall) {
 if (!isWall && uRoofPhoto > 0.0) {
   // Orthographic projection preserves actual roof colour, skylights and terraces.
   // Photos contain baked lighting; keep a little material variation at close range.
-  vec3 photographed = roofPhoto(vec2(vBPos.x + 2000.0, 2000.0 - vBPos.z) / 4000.0);
+  vec3 photographed = modernPhoto(vec2(vBPos.x + 2000.0, 2000.0 - vBPos.z) / 4000.0);
+  // The aerial image supplies colour and roof features; close views retain the fine
+  // grain of photographed clay tiles. Fade the grain before it can alias at distance.
+  if (kindF > 2.5) {
+    vec3 grain = texture2D(tRoof, vec2(vR.x, vR.y) / 3.6 + vec2(hsh * 5.0, 0.0)).rgb;
+    float detail = 1.0 - smoothstep(60.0, 200.0, length(vViewPosition));
+    photographed *= mix(1.0, clamp(lumOf(grain) / 0.212, 0.65, 1.35), detail * 0.28);
+  }
   diffuseColor.rgb = mix(diffuseColor.rgb, photographed, uRoofPhoto * 0.92);
   gBump *= 1.0 - uRoofPhoto * 0.85;
 }
@@ -466,12 +461,16 @@ export function createBuildings(data: BuildingData, exclude: (x: number, n: numb
     const all = [...contour, ...holes.flat()];
     const start = pos.length / 3;
     for (const v of all) push(v.x, 0, v.y, 0, 1, 0, roof, 2);
+    const flatStart = index.length;
     for (const [a, b, c] of tris) {
       const A = all[a], B = all[b], C = all[c];
       const cross = (B.x - A.x) * (C.y - A.y) - (B.y - A.y) * (C.x - A.x);
       if (cross > 0) index.push(start + a, start + b, start + c);
       else index.push(start + a, start + c, start + b);
     }
+
+    // A closed present-day pitched shell needs no hidden flat lid below it.
+    if (roofMode === 2) roofSpans.push({ start: flatStart, end: index.length, present: false });
 
     // Hip roof on the oriented box (about 24 degrees), shown according to roofMode.
     if (roofMode > 0) {
@@ -489,6 +488,7 @@ export function createBuildings(data: BuildingData, exclude: (x: number, n: numb
       // Each vertex: plan point, height, coordinate along the eave, plan distance from the ridge.
       const face = (pts: Array<[[number, number], number, number, number]>) => {
         // Normal from the first three points (world: X = x, Y = y, Z = -n).
+        const uvPts = pts.slice(0,3);
         const w = pts.map(([[x, n], y]) => new THREE.Vector3(x, y, -n));
         const nrm = new THREE.Vector3().subVectors(w[1], w[0]).cross(new THREE.Vector3().subVectors(w[2], w[0])).normalize();
         if (nrm.y < 0) {
@@ -499,11 +499,27 @@ export function createBuildings(data: BuildingData, exclude: (x: number, n: numb
         const oldStart = index.length;
         for (let k = 1; k < ids.length - 1; k++) index.push(ids[0], ids[k], ids[k + 1]);
         roofSpans.push({ start: oldStart, end: index.length, present: false });
+        // Old-form-only roofs are never rendered in the modern period.
+        if (roofMode !== 2) return;
         const presentStart = index.length;
         // Clip every cadastral roof triangle (including courtyard holes) to this slope.
         // This preserves an L-shaped eave instead of bridging it with a bounding box.
         const boundary = pts.map(p => p[0]);
         const orientation = signedArea(boundary) >= 0 ? 1 : -1;
+        const [origin, height] = pts[0];
+        const roofHeight = (x: number, n: number) => height-(nrm.x*(x-origin[0])-nrm.z*(n-origin[1]))/nrm.y;
+        // Interpolate the original slope UVs, rather than using map X/N as tile UVs.
+        const [p0,p1,p2] = uvPts;
+        const uvOrigin=p0[0];
+        const dx1=p1[0][0]-uvOrigin[0], dn1=p1[0][1]-uvOrigin[1];
+        const dx2=p2[0][0]-uvOrigin[0], dn2=p2[0][1]-uvOrigin[1];
+        const det=dx1*dn2-dn1*dx2;
+        const roofUV = (x: number, n: number): [number,number,number] => {
+          const t=((x-uvOrigin[0])*dn2-(n-uvOrigin[1])*dx2)/det;
+          const v=(dx1*(n-uvOrigin[1])-dn1*(x-uvOrigin[0]))/det;
+          return [p0[2]+t*(p1[2]-p0[2])+v*(p2[2]-p0[2]),
+            (p0[3]+t*(p1[3]-p0[3])+v*(p2[3]-p0[3]))/B*slope,slope];
+        };
         for (const triangle of tris) {
           let polygon: number[][] = triangle.map(i => [all[i].x, all[i].y]);
           for (let edge = 0; edge < boundary.length && polygon.length; edge++) {
@@ -521,12 +537,35 @@ export function createBuildings(data: BuildingData, exclude: (x: number, n: numb
           }
           if(polygon.length<3 || Math.abs(signedArea(polygon))<0.0001)continue;
           if(signedArea(polygon)<0)polygon.reverse();
-          const [origin, height]=pts[0];
           const clippedIds=polygon.map(([x,n]) => {
-            const y=height-(nrm.x*(x-origin[0])-nrm.z*(n-origin[1]))/nrm.y;
-            return push(x,y,n,nrm.x,nrm.y,nrm.z,roof,4,[x,n,slope]);
+            return push(x,roofHeight(x,n),n,nrm.x,nrm.y,nrm.z,roof,4,roofUV(x,n));
           });
           for(let k=1;k<clippedIds.length-1;k++)index.push(clippedIds[0],clippedIds[k],clippedIds[k+1]);
+        }
+        // Split every outer/courtyard edge at the hip boundaries, then close the
+        // vertical gap between its eave and the clipped sloping roof.
+        for (const ring of rings) for (let k=0;k<ring.length;k++) {
+          const P=ring[k],Q=ring[(k+1)%ring.length];
+          const dx=Q[0]-P[0],dn=Q[1]-P[1],length=Math.hypot(dx,dn);
+          if(length<0.05)continue;
+          let lo=0,hi=1;
+          for (let e=0;e<boundary.length;e++) {
+            const a=boundary[e],b=boundary[(e+1)%boundary.length];
+            const distance=(p:number[])=>orientation*((b[0]-a[0])*(p[1]-a[1])-(b[1]-a[1])*(p[0]-a[0]));
+            const dp=distance(P),dq=distance(Q);
+            if(dp<0 && dq<0){hi=-1;break;}
+            if((dp<0)!==(dq<0)) {const t=dp/(dp-dq);if(dp<0)lo=Math.max(lo,t);else hi=Math.min(hi,t);}
+          }
+          if(hi-lo<1e-6)continue;
+          const x0=P[0]+dx*lo,n0=P[1]+dn*lo,x1=P[0]+dx*hi,n1=P[1]+dn*hi;
+          const y0=Math.max(0,roofHeight(x0,n0)),y1=Math.max(0,roofHeight(x1,n1));
+          if(Math.max(y0,y1)<0.01)continue;
+          const nx=dn/length,nz=dx/length;
+          const v0=push(x0,0,n0,nx,0,nz,wall,5,[lo*length,length,0]);
+          const v1=push(x1,0,n1,nx,0,nz,wall,5,[hi*length,length,0]);
+          const v2=push(x1,y1,n1,nx,0,nz,wall,5,[hi*length,length,0]);
+          const v3=push(x0,y0,n0,nx,0,nz,wall,5,[lo*length,length,0]);
+          index.push(v0,v1,v2,v0,v2,v3);
         }
         roofSpans.push({ start: presentStart, end: index.length, present: true });
       };

@@ -437,7 +437,7 @@ async function main() {
     const year = yearAt(pos);
     if (year >= 2022 && !modernRequested) {
       modernRequested = true;
-      void import("./modern").then(m => m.createModern(dem, terrain.roofTextures, trees)).then(detail => {
+      void import("./modern").then(m => m.createModern(dem, terrain.roofTextures, trees, sky.uniforms)).then(detail => {
         modern = detail;
         scene.add(detail.group);
         monuments.update(yearAt(pos), true);
