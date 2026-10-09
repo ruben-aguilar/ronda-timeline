@@ -1032,3 +1032,10 @@ summary:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
   #era-text { display: block; }
   #era-card { max-height: 44dvh; }
 }
+
+.music-controls { border-top: 1px solid var(--line); padding-top: 10px; }
+.scene-settings .music-controls button { width: 100%; border: 0; padding: 0 0 12px; }
+.music-controls input { width: 110px; accent-color: var(--gold); }
+.music-controls p { text-align: left; color: var(--muted); font-size: 10px; line-height: 1.5; margin: 10px 0 0; }
+.music-controls p:empty { display: none; }
+.scene-settings { max-height: calc(100dvh - 170px); overflow-y: auto; }

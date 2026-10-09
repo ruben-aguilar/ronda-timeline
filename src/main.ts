@@ -21,6 +21,7 @@ import { createTajo } from "./tajo";
 import { refineBridgeFoundations } from "./puente-nuevo";
 import { CONFIDENCE_LABEL, Era, eraAt, formatNumber, formatYear, eraRange, PLAY_SECONDS, posAt, yearAt, yearsPerStep } from "./timeline";
 import { buildTimelineUI } from "./ui";
+import { createMusic } from "./music";
 
 const HAZE = new THREE.Color("#b9c6d2");
 const SUN_DIR = new THREE.Vector3(-1400, 1150, 900).normalize();
@@ -189,7 +190,14 @@ async function main() {
   setCollapsed(localStorage.getItem("eraCollapsed") === "1");
   toggle.addEventListener("click", () => setCollapsed(!card.classList.contains("collapsed")));
 
+  let musicEnabled = false;
+  const music = createMusic(on => {
+    musicEnabled = on;
+    const button = document.getElementById("music-toggle");
+    button?.setAttribute("aria-pressed", String(on));
+  });
   const showEra = (e: Era, animate = true) => {
+    music.setEra(e.id);
     if (animate) {
       gallery.show(e.id);
       more.open = sources.open = false;
@@ -288,8 +296,14 @@ async function main() {
   settings.innerHTML = `
     <label>Luz <select id="light-select" aria-label="Luz"><option value="day">Día</option><option value="late">Tarde</option></select></label>
     <label>Detalle <select id="detail-select" aria-label="Detalle"><option value="auto">Auto</option><option value="2">Alto</option><option value="1">Medio</option><option value="0">Ligero</option></select></label>
-    <button aria-pressed="true" title="Mostrar u ocultar nombres">Nombres</button>
-    <label>Idioma <select id="language-select" aria-label="Idioma"><option value="es" lang="es">Español</option><option value="en" lang="en">English</option></select></label>`;
+    <button id="labels-toggle" aria-pressed="true" title="Mostrar u ocultar nombres">Nombres</button>
+    <label>Idioma <select id="language-select" aria-label="Idioma"><option value="es" lang="es">Español</option><option value="en" lang="en">English</option></select></label>
+    <div class="music-controls">
+      <button id="music-toggle" aria-pressed="false" aria-describedby="music-description">Música</button>
+      <label>Volumen <input id="music-volume" type="range" min="0" max="100" value="35" aria-label="Volumen de la música" /></label>
+      <p id="music-description">Cuerdas suaves · música original inspirada en cada etapa</p>
+      <p id="music-status" role="status"></p>
+    </div>`;
   document.getElementById("clock")!.appendChild(settings);
   const settingsButton = document.getElementById("settings-btn")!;
   const setSettingsOpen = (open: boolean, restoreFocus = false) => {
@@ -328,12 +342,24 @@ async function main() {
     automatic = value === "auto";
     setQuality(automatic ? 2 : Number(value));
   };
-  settings.querySelector("button")!.onclick = (event) => {
+  settings.querySelector<HTMLButtonElement>("#labels-toggle")!.onclick = (event) => {
     labelsOn = !labelsOn;
     (event.currentTarget as HTMLButtonElement).setAttribute("aria-pressed", String(labelsOn));
     labelRenderer.domElement.classList.toggle("hide-names", !labelsOn);
     dirty = true;
   };
+  settings.querySelector<HTMLButtonElement>("#music-toggle")!.onclick = async () => {
+    const button = settings.querySelector<HTMLButtonElement>("#music-toggle")!;
+    button.disabled = true;
+    const requested = !musicEnabled;
+    const on = await music.setEnabled(requested);
+    button.disabled = false;
+    document.getElementById("music-status")!.textContent = requested && !on ? t("No se pudo iniciar el audio. Pulsa Música para intentarlo de nuevo.") : "";
+  };
+  settings.querySelector<HTMLInputElement>("#music-volume")!.addEventListener("input", event => {
+    music.setVolume(Number((event.target as HTMLInputElement).value) / 100);
+  });
+  void music.setEnabled(true);
   document.addEventListener("visibilitychange", () => { timer.reset(); dirty = true; lastRender = 0; });
   const previousCamera = new THREE.Matrix4();
   let previousYear = NaN;
