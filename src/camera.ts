@@ -21,6 +21,8 @@ export const VIEWPOINTS: Viewpoint[] = [
   { id: "toros", name: "Plaza de toros", cam: [-10, 70, 26], tgt: [-100, 156, 4] },
   { id: "santamaria", name: "Santa María la Mayor", cam: [88, -492, 30], tgt: [32, -372, 16] },
   { id: "almocabar", name: "Puerta de Almocábar", cam: [140, -800, 28], tgt: [114, -712, 8] },
+  { id: "viejo", name: "Puente Viejo", cam: [395, -235, 60], tgt: [239, -134, 6] },
+  { id: "socorro", name: "Plaza del Socorro", cam: [160, 90, 90], tgt: [19, 233, 5] },
   { id: "banos", name: "Baños árabes", cam: [345, -300, 24], tgt: [280, -239, 3] },
   { id: "alameda", name: "Alameda del Tajo y miradores", cam: [-470, 170, 210], tgt: [-280, 290, 0] },
   { id: "ciudad", name: "La Ciudad (medina)", cam: [520, -760, 180], tgt: [40, -380, 10] },
@@ -30,6 +32,16 @@ export const VIEWPOINTS: Viewpoint[] = [
   { id: "cenital", name: "Vista cenital", cam: [60, -101, 2300], tgt: [60, -100, 0] },
   { id: "paseo", name: "A pie: Balcón del Tajo", cam: [-338, 319, 1.7], tgt: [-700, 250, 140], mode: "walk" },
 ];
+
+/** Local places discussed in each chapter. Off-map sites have no camera link. */
+export const ERA_VIEWS: Record<string, string[]> = {
+  prehistory: ["ciudad"], iberian: ["ciudad"], roman: ["ciudad"],
+  visigoth: ["ciudad"], andalus: ["ciudad"], taifa: ["ciudad", "tajo"],
+  frontier: ["banos", "almocabar"], castile: ["santamaria", "viejo"],
+  bridges: ["puente", "toros"], romantic: ["tajo", "alameda", "estacion"],
+  early20: ["socorro"], war: ["cenital"], democracy: ["estacion", "noreste"],
+  today: ["puente-rio", "ciudad"],
+};
 
 const EYE = 1.7;
 
@@ -209,7 +221,7 @@ export function createCameraRig(camera: THREE.PerspectiveCamera, dom: HTMLElemen
     tween = { from: camera.position.clone(), to: hit.clone().add(off), tFrom: controls.target.clone(), tTo: hit, t: 0 };
   });
   window.addEventListener("keydown", (e) => {
-    if ((e.target as HTMLElement)?.closest("input, select, button, textarea")) return;
+    if ((e.target as HTMLElement)?.closest("input, select, button, textarea, summary, a")) return;
     keys.add(e.code);
   });
   window.addEventListener("keyup", (e) => keys.delete(e.code));

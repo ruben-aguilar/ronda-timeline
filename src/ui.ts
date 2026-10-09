@@ -1,5 +1,5 @@
 import { t, bindTranslations, onLanguageChange } from "./i18n";
-import { ERAS, EVENTS, Era, NOW, formatYear, posAt, yearAt } from "./timeline";
+import { ERAS, EVENTS, Era, NOW, formatYear, eraRange, posAt, yearAt } from "./timeline";
 
 export interface TimelineUI {
   setPos(p: number, year: number, era: Era): void;
@@ -7,7 +7,7 @@ export interface TimelineUI {
   togglePlay(): void;
 }
 
-const TICKS = [-25000, -800, -206, 411, 711, 1039, 1485, 1700, 1800, 1900, 1936, 1956, 1975, 2000, NOW];
+const TICKS = [...ERAS.map(era => era.from), NOW];
 const SPEEDS = [0.5, 1, 2, 4];
 
 export function buildTimelineUI(opts: {
@@ -95,10 +95,10 @@ export function buildTimelineUI(opts: {
     b.style.width = `${(p1 - p0) * 100}%`;
     b.style.setProperty("--c", e.color);
     b.innerHTML = `<span>${t(e.title)}</span>`;
-    b.dataset.tip = `<b>${t(e.title)}</b><br>${formatYear(e.from)} – ${e.to >= NOW ? t("hoy") : formatYear(e.to)}`;
+    b.dataset.tip = `<b>${t(e.title)}</b><br>${eraRange(e)} · ${e.seconds} s / 1×`;
     b.addEventListener("click", (ev) => {
       ev.stopPropagation();
-      opts.onSeek(p0 + 0.0005);
+      opts.onSeek(p0);
     });
     erasEl.appendChild(b);
     return { e, b };
@@ -113,7 +113,7 @@ export function buildTimelineUI(opts: {
     m.dataset.tip = `<b>${formatYear(ev.year)}</b><br>${t(ev.title)}`;
     m.addEventListener("click", (e) => {
       e.stopPropagation();
-      opts.onSeek(posAt(ev.year) + 0.0008);
+      opts.onSeek(posAt(ev.year));
     });
     eventsEl.appendChild(m);
   }
@@ -121,10 +121,26 @@ export function buildTimelineUI(opts: {
   for (const y of TICKS) {
     const tick = document.createElement("div");
     tick.className = "tl-tick";
+    if (y === TICKS[0]) tick.classList.add("first");
     tick.style.left = `${posAt(y) * 100}%`;
     tick.textContent = y === NOW ? t("Hoy") : y < 0 ? formatYear(y) : String(y);
     ticksEl.appendChild(tick);
   }
+
+  // A short chapter can be narrower than its date label. Keep visible dates apart.
+  const fitTicks = () => {
+    let right = -Infinity;
+    const ticks = [...ticksEl.querySelectorAll<HTMLElement>(".tl-tick")];
+    const endLeft = ticks.at(-1)!.getBoundingClientRect().left;
+    ticks.forEach((tick, i) => {
+      const rect = tick.getBoundingClientRect();
+      const fits = rect.left >= right + 8 && (i === ticks.length - 1 || rect.right + 8 <= endLeft);
+      tick.style.visibility = fits ? "visible" : "hidden";
+      if (fits) right = rect.right;
+    });
+  };
+  new ResizeObserver(fitTicks).observe(ticksEl);
+  void document.fonts.ready.then(fitTicks);
 
   // Scrubbing and hover tooltip.
   let dragging = false;
@@ -178,7 +194,7 @@ export function buildTimelineUI(opts: {
     tip.classList.remove("show");
     for (const { e, b } of eraEls) {
       b.querySelector("span")!.textContent = t(e.title);
-      b.dataset.tip = `<b>${t(e.title)}</b><br>${formatYear(e.from)} – ${e.to >= NOW ? t("hoy") : formatYear(e.to)}`;
+      b.dataset.tip = `<b>${t(e.title)}</b><br>${eraRange(e)} · ${e.seconds} s / 1×`;
     }
     eventsEl.querySelectorAll<HTMLButtonElement>("button").forEach((button, i) => {
       const ev = EVENTS[i];
@@ -189,6 +205,7 @@ export function buildTimelineUI(opts: {
       const y = TICKS[i];
       tick.textContent = y === NOW ? t("Hoy") : y < 0 ? formatYear(y) : String(y);
     });
+    fitTicks();
   });
   return {
     setPos(p, year, era) {
@@ -198,7 +215,7 @@ export function buildTimelineUI(opts: {
       if (era !== lastEra) {
         lastEra = era;
         eraName.textContent = t(era.title);
-        eraSub.textContent = `${formatYear(era.from)} – ${era.to >= NOW ? t("hoy") : formatYear(era.to)}`;
+        eraSub.textContent = eraRange(era);
         dot.style.background = era.color;
         for (const { e, b } of eraEls) b.classList.toggle("active", e === era);
       }

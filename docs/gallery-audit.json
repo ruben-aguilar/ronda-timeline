@@ -1,0 +1,311 @@
+{
+  "reviewed": "2026-10-09",
+  "images": [
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Pileta_interior.jpg",
+      "asset": "gallery/prehistory_0.webp",
+      "catalogueDate": "2010-10",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Entrada_pileta.jpg",
+      "asset": "gallery/prehistory_1.webp",
+      "catalogueDate": "2010-10",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Pileta_plano.png",
+      "asset": "gallery/prehistory_2.webp",
+      "catalogueDate": "2010-10",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Above_cueva_de_la_pileta.jpg",
+      "asset": "gallery/prehistory_3.webp",
+      "catalogueDate": "2010-08-29 10:22:03",
+      "license": "CC BY 2.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Acinipo.jpg",
+      "asset": "gallery/iberian_0.webp",
+      "catalogueDate": "2009-10-11 14:18:37",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Acinipo_plano_grande.png",
+      "asset": "gallery/iberian_1.webp",
+      "catalogueDate": "2014-07-30 18:53:25",
+      "license": "CC BY-SA 3.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Frederic_Leighton_(1830-1896)_-_Puerta_de_los_Vientos,_near_Ronda,_Spain_-_N04006_-_National_Gallery.jpg",
+      "asset": "gallery/iberian_2.webp",
+      "catalogueDate": "between 1886 and 1889",
+      "license": "Public domain"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Teatro_romano_de_Acinipo,_Ronda.jpg",
+      "asset": "gallery/roman_0.webp",
+      "catalogueDate": "2009-10-11 14:16:41",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Teatro_Acinipo_(Ronda).jpg",
+      "asset": "gallery/roman_1.webp",
+      "catalogueDate": "2020-10-03",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Acinipo_Termas.JPG",
+      "asset": "gallery/roman_2.webp",
+      "catalogueDate": "2013-12-31",
+      "license": "CC BY-SA 3.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Acinipo_Domus_1.JPG",
+      "asset": "gallery/roman_3.webp",
+      "catalogueDate": "2003-12-31",
+      "license": "CC BY-SA 3.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Coin_of_Acinipo_DGRG.png",
+      "asset": "gallery/roman_4.webp",
+      "catalogueDate": "1854",
+      "license": "Public domain"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Acinipo-Brique_fun%C3%A9raire-Mus%C3%A9e_Sefardi.jpg",
+      "asset": "gallery/visigoth_0.webp",
+      "catalogueDate": "2022-02-04 10:47:02",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Iglesia_rupestre_de_la_Cabeza_Ronda_(Malaga)_por_parpadeo.jpg",
+      "asset": "gallery/visigoth_1.webp",
+      "catalogueDate": "2010-11-28",
+      "license": "CC BY-SA 3.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Alminar_de_San_Sebasti%C3%A1n_(Ronda).jpg",
+      "asset": "gallery/andalus_0.webp",
+      "catalogueDate": "2018-02-03",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Muralla_Urbana,_Ronda_02.JPG",
+      "asset": "gallery/andalus_1.webp",
+      "catalogueDate": "2010-10-26 17:59:25",
+      "license": "CC BY-SA 3.0 es"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Ronda-Puerta_del_alminar_de_San_S%C3%A9basti%C3%A0n-20110912.jpg",
+      "asset": "gallery/taifa_0.webp",
+      "catalogueDate": "Taken on 12 September 2011.",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Muralla_Urbana,_Ronda_04.JPG",
+      "asset": "gallery/taifa_1.webp",
+      "catalogueDate": "2010-10-26 17:59:25",
+      "license": "CC BY-SA 3.0 es"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Ronda_-_Ba%C3%B1os_%C3%A1rabes.jpg",
+      "asset": "gallery/frontier_0.webp",
+      "catalogueDate": "2024-04-10 12:22:23",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Arab_baths.jpg",
+      "asset": "gallery/frontier_1.webp",
+      "catalogueDate": "2010-04-06",
+      "license": "Public domain"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Puerta_de_Almocabar,_Ronda.JPG",
+      "asset": "gallery/frontier_2.webp",
+      "catalogueDate": "2011-12-20",
+      "license": "CC BY-SA 3.0 es"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Casa_del_Rey_Moro_(Ronda).jpg",
+      "asset": "gallery/frontier_3.webp",
+      "catalogueDate": "2003-01-18 15:50:37",
+      "license": "CC BY-SA 3.0 es"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Church_of_Santa_Mar%C3%ADa_la_Mayor,_Ronda.JPG",
+      "asset": "gallery/castile_0.webp",
+      "catalogueDate": "2008-10-04",
+      "license": "Public domain"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Ronda_-_Palacio_de_Mondrag%C3%B3n.jpg",
+      "asset": "gallery/castile_1.webp",
+      "catalogueDate": "2024-04-10 15:42:44",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Patio_mud%C3%A9jar,_Palacio_de_Mondrag%C3%B3n_(Ronda).jpg",
+      "asset": "gallery/castile_2.webp",
+      "catalogueDate": "2018-02-03",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Ronda_-_Puente_Viejo.jpg",
+      "asset": "gallery/castile_3.webp",
+      "catalogueDate": "2024-04-10 11:58:37",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Iglesia_del_Esp%C3%ADritu_Santo,_Ronda,_2023.jpg",
+      "asset": "gallery/castile_4.webp",
+      "catalogueDate": "2023-10-04 12:36:13",
+      "license": "CC BY 4.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Iglesia_del_Padre_Jes%C3%BAs.jpg",
+      "asset": "gallery/castile_5.webp",
+      "catalogueDate": "2008-07",
+      "license": "CC BY 2.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Francisco_de_Goya_-_Portrait_of_the_Matador_Pedro_Romero_-_Google_Art_Project.jpg",
+      "asset": "gallery/bridges_0.webp",
+      "catalogueDate": "between circa 1795 and circa 1798",
+      "license": "Public domain"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Goya_-_Pedro_Romero_matando_a_toro_parado_(Pedro_Romero_Killing_the_Halted_Bull).jpg",
+      "asset": "gallery/bridges_1.webp",
+      "catalogueDate": "in or before 1816",
+      "license": "Public domain"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Puente_Nuevo_(Ronda)_01.jpg",
+      "asset": "gallery/bridges_2.webp",
+      "catalogueDate": "1853",
+      "license": "Public domain"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Puente_Nuevo_(Ronda).jpg",
+      "asset": "gallery/bridges_3.webp",
+      "catalogueDate": "1847",
+      "license": "Public domain"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Plaza_de_Toros_Ronda_1102.jpg",
+      "asset": "gallery/bridges_4.webp",
+      "catalogueDate": "2011",
+      "license": "CC BY-SA 3.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Fotografi_av_Ronda_(M%C3%A1laga)._El_Tajo_de_Ronda_con_los_molinos_-_Hallwylska_museet_-_104974.tif",
+      "asset": "gallery/romantic_0.webp",
+      "catalogueDate": "before 1895",
+      "license": "Public domain"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Fotografi_av_Ronda_(M%C3%A1laga)._Vista_general_por_la_parte_del_norte_-_Hallwylska_museet_-_104969.tif",
+      "asset": "gallery/romantic_1.webp",
+      "catalogueDate": "before 1895",
+      "license": "Public domain"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Ronda_-_KMB_-_16001000211804.jpg",
+      "asset": "gallery/romantic_2.webp",
+      "catalogueDate": "1878",
+      "license": "Public domain"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:%22Pont_Romain,_a_Ronda%22_(19937326305).jpg",
+      "asset": "gallery/romantic_3.webp",
+      "catalogueDate": "1874",
+      "license": "CC BY 2.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:%22Les_enfants_toreros,_sc%C3%A8ne_andalouse,_a_Ronda%22_(19314684224).jpg",
+      "asset": "gallery/romantic_4.webp",
+      "catalogueDate": "1874",
+      "license": "CC BY 2.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Gauc%C3%ADn_in_the_Serran%C3%ADa_de_Ronda,_1838.jpg",
+      "asset": "gallery/romantic_5.webp",
+      "catalogueDate": "1838",
+      "license": "No restrictions"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Estaci%C3%B3n_de_Ronda.jpg",
+      "asset": "gallery/romantic_6.webp",
+      "catalogueDate": "Julio de 2009.",
+      "license": "Public domain"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Fotografi_av_Ronda_(M%C3%A1laga)._Vista_del_Tajo_de_Ronda,_tomada_del_Puente_Nuevo_-_Hallwylska_museet_-_104970.tif",
+      "asset": "gallery/early20_0.webp",
+      "catalogueDate": "before 1895",
+      "license": "Public domain"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Monumento_a_Rilke,_Ronda.JPG",
+      "asset": "gallery/early20_1.webp",
+      "catalogueDate": "2008-10-04",
+      "license": "Public domain"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Casino_de_Ronda.jpg",
+      "asset": "gallery/early20_2.webp",
+      "catalogueDate": "2008-09",
+      "license": "CC BY 2.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Ronda-Ernest-Hemingway.jpg",
+      "asset": "gallery/war_1.webp",
+      "catalogueDate": "2016-10-25",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Plaza_de_Toros_de_Ronda_04.JPG",
+      "asset": "gallery/war_2.webp",
+      "catalogueDate": "2013-09-12 03:28:52",
+      "license": "CC BY-SA 3.0 es"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Ronda-Espana0048.JPG",
+      "asset": "gallery/democracy_1.webp",
+      "catalogueDate": "2005-03-26",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Ronda_-_Puente_Nuevo_tall.jpg",
+      "asset": "gallery/today_0.webp",
+      "catalogueDate": "late April or early May 1996",
+      "license": "CC BY-SA 3.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Panorama_of_Ronda.jpg",
+      "asset": "gallery/today_1.webp",
+      "catalogueDate": "2019-10-06 15:55:31",
+      "license": "CC BY-SA 4.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Ronda_Alameda_del_Tajo.jpg",
+      "asset": "gallery/today_2.webp",
+      "catalogueDate": "2018-04-24 10:35:46",
+      "license": "CC BY-SA 2.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:PlazaDeTorosDeRonda.jpg",
+      "asset": "gallery/today_3.webp",
+      "catalogueDate": "2008-10-23, 17:00–18:00",
+      "license": "CC BY-SA 3.0"
+    },
+    {
+      "source": "https://commons.wikimedia.org/wiki/File:Childe_Hassam,_American_(1859-1935)_-_Ronda_-_A2142_-_Hispanic_Society_of_America.jpg",
+      "asset": "gallery/hassam-ronda-1910.jpg",
+      "catalogueDate": "1910 (painting)",
+      "license": "Public domain"
+    }
+  ]
+}

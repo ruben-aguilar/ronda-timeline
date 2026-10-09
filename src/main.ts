@@ -7,7 +7,7 @@ import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer.js";
 import "./style.css";
 import { countUpTo, createBuildings } from "./buildings";
-import { CamMode, createCameraRig, VIEWPOINTS } from "./camera";
+import { CamMode, createCameraRig, VIEWPOINTS, ERA_VIEWS } from "./camera";
 import { loadBuildings, loadDem } from "./data";
 import { createLandmarks } from "./landmarks";
 import { createMonuments } from "./monuments";
@@ -19,7 +19,7 @@ import { createTrees } from "./trees";
 import { createRailway } from "./railway";
 import { createTajo } from "./tajo";
 import { refineBridgeFoundations } from "./puente-nuevo";
-import { CONFIDENCE_LABEL, Era, eraAt, formatNumber, formatYear, NOW, posAt, yearAt, yearsPerStep } from "./timeline";
+import { CONFIDENCE_LABEL, Era, eraAt, formatNumber, formatYear, eraRange, PLAY_SECONDS, posAt, yearAt, yearsPerStep } from "./timeline";
 import { buildTimelineUI } from "./ui";
 
 const HAZE = new THREE.Color("#b9c6d2");
@@ -132,18 +132,17 @@ async function main() {
       height: THREE.MathUtils.lerp(150, 360, t),
     };
   };
-  buildCameraBar(rig);
 
   // Estado.
   let pos = posAt(Number(new URLSearchParams(location.hash.slice(1)).get("year")) || -25000);
   let playing = false;
   let speed = 1;
   let currentEra: Era | null = null;
-  const PLAY_SECONDS = 150; // a 1×: de la prehistoria a hoy
 
   const ui = buildTimelineUI({
     years: buildings.years,
     onSeek(p) {
+      pausePlayback();
       pos = p;
     },
     onPlay(on) {
@@ -154,6 +153,13 @@ async function main() {
       speed = s;
     },
   });
+
+  const pausePlayback = () => {
+    playing = false;
+    ui.setPlaying(false);
+  };
+  buildCameraBar(rig, pausePlayback);
+  rig.controls.addEventListener("start", pausePlayback);
 
   new ResizeObserver(([entry]) => {
     document.documentElement.style.setProperty("--timeline-height", `${entry.target.getBoundingClientRect().height}px`);
@@ -167,7 +173,12 @@ async function main() {
   const eraConf = document.getElementById("era-conf")!;
   const splash = document.getElementById("splash")!;
 
-  const gallery = await createGallery();
+  const gallery = await createGallery(pausePlayback);
+  const more = document.getElementById("era-more") as HTMLDetailsElement;
+  const sources = document.getElementById("era-sources") as HTMLDetailsElement;
+  for (const panel of [more, sources]) panel.addEventListener("toggle", () => {
+    if (panel.open) pausePlayback();
+  });
   const card = document.getElementById("era-card")!;
   const toggle = document.getElementById("era-toggle")!;
   const setCollapsed = (on: boolean) => {
@@ -179,10 +190,42 @@ async function main() {
   toggle.addEventListener("click", () => setCollapsed(!card.classList.contains("collapsed")));
 
   const showEra = (e: Era, animate = true) => {
-    if (animate) gallery.show(e.id);
+    if (animate) {
+      gallery.show(e.id);
+      more.open = sources.open = false;
+      document.getElementById("era-card")!.scrollTop = 0;
+    }
     eraTitle.textContent = t(e.title);
-    eraSub.textContent = `${formatYear(e.from)} – ${e.to >= NOW ? t("hoy") : formatYear(e.to)} · ${t(e.subtitle)}`;
+    eraSub.textContent = `${eraRange(e)} · ${t(e.subtitle)}`;
     eraText.textContent = t(e.text);
+    document.getElementById("era-places")!.replaceChildren(...(ERA_VIEWS[e.id] ?? []).map(id => {
+      const view = VIEWPOINTS.find(v => v.id === id)!;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.dataset.place = id;
+      button.textContent = `↗ ${t(view.name)}`;
+      button.title = t("Ir a este lugar · mantiene la fecha actual");
+      button.addEventListener("click", () => {
+        pausePlayback();
+        if (matchMedia("(prefers-reduced-motion: reduce)").matches) rig.jumpTo(view);
+        else rig.goTo(view);
+      });
+      return button;
+    }));
+    document.getElementById("era-detail")!.textContent = t(e.detail);
+    document.getElementById("era-look")!.textContent = t(e.look);
+    document.getElementById("era-note")!.textContent = t(e.note);
+    const sourceLinks = document.getElementById("era-source-links")!;
+    sourceLinks.replaceChildren(...e.sources.map(source => {
+      const li = document.createElement("li");
+      const link = document.createElement("a");
+      link.textContent = source.title;
+      link.href = source.url;
+      link.target = "_blank";
+      link.rel = "noopener";
+      li.appendChild(link);
+      return li;
+    }));
     eraConf.innerHTML = `<span class="dots">${"●".repeat(e.confidence + 1)}${"○".repeat(3 - e.confidence)}</span> ${t(CONFIDENCE_LABEL[e.confidence])}`;
     document.documentElement.style.setProperty("--era", e.color);
     splash.innerHTML = `<div class="splash-title">${t(e.title)}</div><div class="splash-sub">${t(e.subtitle)}</div>`;
@@ -193,7 +236,7 @@ async function main() {
   };
 
   window.addEventListener("keydown", (ev) => {
-    if ((ev.target as HTMLElement).closest("input, select, button, textarea")) return;
+    if ((ev.target as HTMLElement).closest("input, select, button, textarea, summary, a")) return;
     if (ev.code === "Space") {
       ev.preventDefault();
       ui.togglePlay();
@@ -238,12 +281,36 @@ async function main() {
   };
   const settings = document.createElement("div");
   settings.className = "scene-settings";
+  settings.id = "scene-settings";
+  settings.hidden = true;
+  settings.setAttribute("role", "region");
+  settings.setAttribute("aria-labelledby", "settings-btn");
   settings.innerHTML = `
     <label>Luz <select id="light-select" aria-label="Luz"><option value="day">Día</option><option value="late">Tarde</option></select></label>
     <label>Detalle <select id="detail-select" aria-label="Detalle"><option value="auto">Auto</option><option value="2">Alto</option><option value="1">Medio</option><option value="0">Ligero</option></select></label>
     <button aria-pressed="true" title="Mostrar u ocultar nombres">Nombres</button>
     <label>Idioma <select id="language-select" aria-label="Idioma"><option value="es" lang="es">Español</option><option value="en" lang="en">English</option></select></label>`;
-  document.body.appendChild(settings);
+  document.getElementById("clock")!.appendChild(settings);
+  const settingsButton = document.getElementById("settings-btn")!;
+  const setSettingsOpen = (open: boolean, restoreFocus = false) => {
+    settings.hidden = !open;
+    settingsButton.setAttribute("aria-expanded", String(open));
+    if (open) pausePlayback();
+    if (restoreFocus) settingsButton.focus();
+  };
+  settingsButton.addEventListener("click", () => setSettingsOpen(!!settings.hidden));
+  document.addEventListener("pointerdown", event => {
+    const target = event.target as Node;
+    if (!settings.contains(target) && !settingsButton.contains(target)) setSettingsOpen(false);
+  });
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && !settings.hidden) {
+      setSettingsOpen(false, true);
+      event.preventDefault();
+    }
+  });
+  document.getElementById("info-btn")!.addEventListener("click", () => setSettingsOpen(false));
+  document.addEventListener("ronda:interface", () => setSettingsOpen(false));
   bindTranslations(settings);
   const languageSelect = settings.querySelector<HTMLSelectElement>("#language-select")!;
   languageSelect.value = getLanguage();
@@ -388,7 +455,7 @@ async function main() {
 }
 
 /** Barra de cámara: modos y vistas. */
-function buildCameraBar(rig: ReturnType<typeof createCameraRig>) {
+function buildCameraBar(rig: ReturnType<typeof createCameraRig>, pausePlayback: () => void) {
   const bar = document.getElementById("cambar")!;
   const modes: Array<[CamMode, string, string, string]> = [
     ["cine", "Cine", "La cámara se mueve sola mientras pasa el tiempo.", '<path d="M3 6h12v12H3zM15 10l6-3.5v11L15 14z"/>'],
@@ -434,9 +501,13 @@ function buildCameraBar(rig: ReturnType<typeof createCameraRig>) {
   rig.onModeChange = sync;
   sync(rig.mode);
   onLanguageChange(() => { sync(rig.mode); refreshToggle(); });
-  bar.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((b) => b.addEventListener("click", () => rig.setMode(b.dataset.mode as CamMode)));
+  bar.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((b) => b.addEventListener("click", () => {
+    if (b.dataset.mode !== "cine") pausePlayback();
+    rig.setMode(b.dataset.mode as CamMode);
+  }));
   bar.querySelectorAll<HTMLButtonElement>("[data-view]").forEach((b) =>
     b.addEventListener("click", () => {
+      pausePlayback();
       rig.goTo(VIEWPOINTS.find((v) => v.id === b.dataset.view)!);
       viewMenu.classList.remove("open");
       viewToggle.setAttribute("aria-expanded", "false");

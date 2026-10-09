@@ -41,6 +41,7 @@ try {
   const idleStart = await page.evaluate(() => window.__ronda.stats().renderedFrames);
   await page.waitForTimeout(700);
   assert.equal(await page.evaluate(() => window.__ronda.stats().renderedFrames), idleStart, 'An idle orbit must stop rendering');
+  await page.locator('#settings-btn').click();
   await page.getByLabel('Luz', { exact: true }).selectOption('late');
   await page.waitForTimeout(200);
   assert.ok(await page.evaluate(start => window.__ronda.stats().renderedFrames > start, idleStart), 'Changing light must invalidate the frame');
@@ -53,6 +54,7 @@ try {
   await page.getByRole('button', { name: 'Nombres', exact: true }).click();
   assert.equal(await page.locator('.labels').evaluate(el => el.classList.contains('hide-names')), true);
   await page.getByRole('button', { name: 'Nombres', exact: true }).click();
+  await page.keyboard.press('Escape');
   await page.getByRole('button', { name: 'Reproducir', exact: true }).click();
   await page.waitForTimeout(250);
   await page.getByRole('button', { name: 'Pausa', exact: true }).click();
@@ -60,13 +62,14 @@ try {
   await page.waitForTimeout(100);
   assert.equal(await page.evaluate(() => Number(location.hash.split('=')[1]) === Math.round(window.__ronda.stats().year)), true, 'Paused URL must match the displayed scene');
   await page.evaluate(() => { window.__ronda.view(2026, 'tajo'); window.__ronda.resume(); });
-  await page.getByRole('button', { name: 'Puente Nuevo Puente Nuevo', exact: true }).click();
+  await page.locator('.g-thumb').first().click();
   assert.equal(await page.locator('#lightbox').getAttribute('aria-hidden'), 'false');
   await page.keyboard.press('Escape');
   assert.equal(await page.locator('#lightbox').getAttribute('aria-hidden'), 'true');
   await page.screenshot({ path: 'docs/performance/desktop.png' });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForTimeout(500);
+  await page.locator('#settings-btn').click();
   const layout = await page.evaluate(() => {
     const box = s => { const r = document.querySelector(s).getBoundingClientRect(); return { x:r.x,y:r.y,right:r.right,bottom:r.bottom }; };
     return { settings:box('.scene-settings'), timeline:box('#timeline'), card:box('#era-card'), clock:box('#clock') };
@@ -74,12 +77,13 @@ try {
   assert.ok(layout.settings.x >= 0 && layout.settings.right <= 390, 'Mobile settings must fit');
   assert.ok(layout.settings.bottom <= layout.timeline.y, 'Settings must not overlap the timeline');
   assert.ok(layout.card.right <= layout.clock.x || layout.card.y >= layout.clock.bottom, 'Mobile title and year must not overlap');
+  await page.keyboard.press('Escape');
   await page.getByRole('button', { name: 'Vistas', exact: true }).click();
   assert.equal(await page.getByRole('button', { name: 'Vistas', exact: true }).getAttribute('aria-expanded'), 'true');
   await page.getByRole('button', { name: 'Plaza de toros', exact: true }).click();
   await page.waitForTimeout(2400);
   assert.equal(await page.getByRole('button', { name: 'Vistas', exact: true }).getAttribute('aria-expanded'), 'false');
-  await page.locator('.scene-settings').click();
+  await page.locator('#settings-btn').click();
   await page.evaluate(() => { window.__ronda.view(2026, 'tajo'); });
   await page.screenshot({ path: 'docs/performance/mobile.png' });
   assert.deepEqual(errors, []);

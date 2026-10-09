@@ -2,7 +2,7 @@
 # dependencies = ["pillow", "requests"]
 # ///
 """Download the era gallery from Wikimedia Commons (with author and licence) and crop our IGN
-aerial photos. Writes public/gallery/*.webp and public/data/gallery.json."""
+aerial photos. Writes public/gallery/*.webp and raw/gallery-proposal.json."""
 import io
 import json
 import re
@@ -173,4 +173,8 @@ for era, items in ITEMS.items():
             meta["credit"] = "Autor desconocido"
         out[era].append({"img": f"gallery/{stem}.webp", "thumb": f"gallery/{stem}_t.webp", "title": title, "caption": caption, **meta})
         print(era, i, meta["license"], "|", meta["credit"][:50])
-(ROOT / "public/data/gallery.json").write_text(json.dumps(out, ensure_ascii=False, indent=1))
+# The published catalog is editorially reviewed. Bootstrap output is a proposal only.
+# Asset stems remain stable so existing reviewed entries keep their images.
+(ROOT / "raw").mkdir(exist_ok=True)
+(ROOT / "raw/gallery-proposal.json").write_text(json.dumps(out, ensure_ascii=False, indent=1))
+print("Wrote raw/gallery-proposal.json; public/data/gallery.json was preserved.")

@@ -50,7 +50,7 @@ const LABELS: LabelDef[] = [
   { at: PLACES.reyMoro, from: 1300, to: 9999, names: [[1300, "La Mina"], [1709, "Casa del Rey Moro"]], note: "mina del siglo XIV" },
   { at: PLACES.santoDomingo, from: 1485, to: 9999, names: [[1485, "Convento de Santo Domingo"]], note: "fundado en 1485" },
   { at: PLACES.alameda, from: 1806, to: 9999, names: [[1806, "Alameda del Tajo"]], note: "parque, 1806" },
-  { at: PLACES.estacion, from: 1892, to: 9999, names: [[1892, "Estación de tren"]], note: "1892", rank: 1 },
+  { at: PLACES.estacion, from: 1891, to: 9999, names: [[1891, "Estación de tren"]], note: "1891", rank: 1 },
   { at: PLACES.socorro, from: 1918, to: 9999, names: [[1918, "Plaza del Socorro"]], note: "bandera andaluza, 1918" },
   { at: PLACES.alcazaba, from: 950, to: 1830, names: [[950, "Alcazaba"], [1812, "Ruinas de la Alcazaba"]], note: "volada en 1812, ubicación aproximada", rank: 1 },
   { at: PLACES.santaMaria, from: -650, to: 711, names: [[-650, "Poblado íbero"], [-206, "Arunda"]], note: "extensión desconocida", lift: 70, rank: 1 },

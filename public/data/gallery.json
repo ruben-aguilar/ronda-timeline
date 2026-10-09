@@ -1,534 +1,668 @@
 {
- "prehistory": [
-  {
-   "img": "gallery/prehistory_0.webp",
-   "thumb": "gallery/prehistory_0_t.webp",
-   "title": "Cueva de la Pileta",
-   "caption": "Interior de la cueva, con pinturas paleolíticas, a unos 11 km de Ronda.",
-   "credit": "user:falconaumanni",
-   "license": "CC BY-SA 4.0",
-   "source": "https://commons.wikimedia.org/wiki/File:Pileta_interior.jpg"
-  },
-  {
-   "img": "gallery/prehistory_1.webp",
-   "thumb": "gallery/prehistory_1_t.webp",
-   "title": "Entrada a la Pileta",
-   "caption": "La entrada de la cueva, en la sierra de Benaoján.",
-   "credit": "user:falconaumanni",
-   "license": "CC BY-SA 4.0",
-   "source": "https://commons.wikimedia.org/wiki/File:Entrada_pileta.jpg"
-  },
-  {
-   "img": "gallery/prehistory_2.webp",
-   "thumb": "gallery/prehistory_2_t.webp",
-   "title": "Plano de la cueva",
-   "caption": "Plano de las galerías de la Cueva de la Pileta.",
-   "credit": "user:falconaumanni",
-   "license": "CC BY-SA 4.0",
-   "source": "https://commons.wikimedia.org/wiki/File:Pileta_plano.png"
-  },
-  {
-   "img": "gallery/prehistory_3.webp",
-   "thumb": "gallery/prehistory_3_t.webp",
-   "title": "La Serranía",
-   "caption": "El paisaje de la Serranía de Ronda sobre la cueva.",
-   "credit": "BY-YOUR-⌘",
-   "license": "CC BY 2.0",
-   "source": "https://commons.wikimedia.org/wiki/File:Above_cueva_de_la_pileta.jpg"
-  }
- ],
- "iberian": [
-  {
-   "img": "gallery/iberian_0.webp",
-   "thumb": "gallery/iberian_0_t.webp",
-   "title": "Meseta de Acinipo",
-   "caption": "La meseta vecina de Acinipo estaba poblada desde la Edad del Bronce. El muro es del teatro romano posterior.",
-   "credit": "PEPE GADEIRAS",
-   "license": "CC BY-SA 4.0",
-   "source": "https://commons.wikimedia.org/wiki/File:Acinipo.jpg"
-  },
-  {
-   "img": "gallery/iberian_1.webp",
-   "thumb": "gallery/iberian_1_t.webp",
-   "title": "Plano de Acinipo",
-   "caption": "Plano del yacimiento de Acinipo.",
-   "credit": "Falconaumanni",
-   "license": "CC BY-SA 3.0",
-   "source": "https://commons.wikimedia.org/wiki/File:Acinipo_plano_grande.png"
-  },
-  {
-   "img": "gallery/iberian_2.webp",
-   "thumb": "gallery/iberian_2_t.webp",
-   "title": "Cerca de Ronda",
-   "caption": "Frederic Leighton pinta el paisaje de la Serranía en el siglo XIX.",
-   "credit": "Frederic Leighton",
-   "license": "Public domain",
-   "source": "https://commons.wikimedia.org/wiki/File:Frederic_Leighton_(1830-1896)_-_Puerta_de_los_Vientos,_near_Ronda,_Spain_-_N04006_-_National_Gallery.jpg"
-  }
- ],
- "roman": [
-  {
-   "img": "gallery/roman_0.webp",
-   "thumb": "gallery/roman_0_t.webp",
-   "title": "Teatro de Acinipo",
-   "caption": "El graderío del teatro romano, del siglo I a. C., tallado en la roca.",
-   "credit": "PEPE GADEIRAS",
-   "license": "CC BY-SA 4.0",
-   "source": "https://commons.wikimedia.org/wiki/File:Teatro_romano_de_Acinipo,_Ronda.jpg"
-  },
-  {
-   "img": "gallery/roman_1.webp",
-   "thumb": "gallery/roman_1_t.webp",
-   "title": "Escena del teatro",
-   "caption": "El muro de la escena del teatro de Acinipo.",
-   "credit": "LEONCIO HIDALGO",
-   "license": "CC BY-SA 4.0",
-   "source": "https://commons.wikimedia.org/wiki/File:Teatro_Acinipo_(Ronda).jpg"
-  },
-  {
-   "img": "gallery/roman_2.webp",
-   "thumb": "gallery/roman_2_t.webp",
-   "title": "Termas de Acinipo",
-   "caption": "Restos de las termas romanas.",
-   "credit": "Falconaumanni",
-   "license": "CC BY-SA 3.0",
-   "source": "https://commons.wikimedia.org/wiki/File:Acinipo_Termas.JPG"
-  },
-  {
-   "img": "gallery/roman_3.webp",
-   "thumb": "gallery/roman_3_t.webp",
-   "title": "Casa romana",
-   "caption": "Restos de una domus en Acinipo.",
-   "credit": "Falconaumanni",
-   "license": "CC BY-SA 3.0",
-   "source": "https://commons.wikimedia.org/wiki/File:Acinipo_Domus_1.JPG"
-  },
-  {
-   "img": "gallery/roman_4.webp",
-   "thumb": "gallery/roman_4_t.webp",
-   "title": "Moneda de Acinipo",
-   "caption": "Moneda de la ciudad, con espigas y racimos.",
-   "credit": "Sir William Smith (1813–1893)",
-   "license": "Public domain",
-   "source": "https://commons.wikimedia.org/wiki/File:Coin_of_Acinipo_DGRG.png"
-  }
- ],
- "visigoth": [
-  {
-   "img": "gallery/visigoth_0.webp",
-   "thumb": "gallery/visigoth_0_t.webp",
-   "title": "Ladrillo funerario",
-   "caption": "Ladrillo funerario de Acinipo, de la Antigüedad tardía.",
-   "credit": "Ji-Elle",
-   "license": "CC BY-SA 4.0",
-   "source": "https://commons.wikimedia.org/wiki/File:Acinipo-Brique_fun%C3%A9raire-Mus%C3%A9e_Sefardi.jpg"
-  },
-  {
-   "img": "gallery/visigoth_1.webp",
-   "thumb": "gallery/visigoth_1_t.webp",
-   "title": "Virgen de la Cabeza",
-   "caption": "Iglesia excavada en la roca frente a Ronda. Su origen es altomedieval, quizá mozárabe.",
-   "credit": "Parpadeo",
-   "license": "CC BY-SA 3.0",
-   "source": "https://commons.wikimedia.org/wiki/File:Iglesia_rupestre_de_la_Cabeza_Ronda_(Malaga)_por_parpadeo.jpg"
-  }
- ],
- "andalus": [
-  {
-   "img": "gallery/andalus_0.webp",
-   "thumb": "gallery/andalus_0_t.webp",
-   "title": "Alminar de San Sebastián",
-   "caption": "Alminar de una antigua mezquita, de época nazarí.",
-   "credit": "José Luis Filpo Cabana",
-   "license": "CC BY-SA 4.0",
-   "source": "https://commons.wikimedia.org/wiki/File:Alminar_de_San_Sebasti%C3%A1n_(Ronda).jpg"
-  },
-  {
-   "img": "gallery/andalus_1.webp",
-   "thumb": "gallery/andalus_1_t.webp",
-   "title": "Murallas",
-   "caption": "Tramo de la muralla de la medina.",
-   "credit": "Tajchman",
-   "license": "CC BY-SA 3.0 es",
-   "source": "https://commons.wikimedia.org/wiki/File:Muralla_Urbana,_Ronda_02.JPG"
-  }
- ],
- "taifa": [
-  {
-   "img": "gallery/taifa_0.webp",
-   "thumb": "gallery/taifa_0_t.webp",
-   "title": "Puerta del alminar",
-   "caption": "Arco de herradura del alminar de San Sebastián.",
-   "credit": "Daniel VILLAFRUELA.",
-   "license": "CC BY-SA 4.0",
-   "source": "https://commons.wikimedia.org/wiki/File:Ronda-Puerta_del_alminar_de_San_S%C3%A9basti%C3%A0n-20110912.jpg"
-  },
-  {
-   "img": "gallery/taifa_1.webp",
-   "thumb": "gallery/taifa_1_t.webp",
-   "title": "La medina amurallada",
-   "caption": "Las murallas cierran la meseta por el sur.",
-   "credit": "Tajchman",
-   "license": "CC BY-SA 3.0 es",
-   "source": "https://commons.wikimedia.org/wiki/File:Muralla_Urbana,_Ronda_04.JPG"
-  }
- ],
- "frontier": [
-  {
-   "img": "gallery/frontier_0.webp",
-   "thumb": "gallery/frontier_0_t.webp",
-   "title": "Baños árabes",
-   "caption": "Los baños, junto al arroyo de las Culebras, siglos XIII y XIV.",
-   "credit": "Benjamin Smith",
-   "license": "CC BY-SA 4.0",
-   "source": "https://commons.wikimedia.org/wiki/File:Ronda_-_Ba%C3%B1os_%C3%A1rabes.jpg"
-  },
-  {
-   "img": "gallery/frontier_1.webp",
-   "thumb": "gallery/frontier_1_t.webp",
-   "title": "Bóvedas de los baños",
-   "caption": "Sala con bóvedas y lucernarios en forma de estrella.",
-   "credit": "Zedutchgandalf",
-   "license": "Public domain",
-   "source": "https://commons.wikimedia.org/wiki/File:Arab_baths.jpg"
-  },
-  {
-   "img": "gallery/frontier_2.webp",
-   "thumb": "gallery/frontier_2_t.webp",
-   "title": "Puerta de Almocábar",
-   "caption": "Puerta principal de la medina, del siglo XIII.",
-   "credit": "Gumerg",
-   "license": "CC BY-SA 3.0 es",
-   "source": "https://commons.wikimedia.org/wiki/File:Puerta_de_Almocabar,_Ronda.JPG"
-  },
-  {
-   "img": "gallery/frontier_3.webp",
-   "thumb": "gallery/frontier_3_t.webp",
-   "title": "La Mina",
-   "caption": "La Casa del Rey Moro, sobre la mina que bajaba al río.",
-   "credit": "Elisa.rolle",
-   "license": "CC BY-SA 3.0 es",
-   "source": "https://commons.wikimedia.org/wiki/File:Casa_del_Rey_Moro_(Ronda).jpg"
-  }
- ],
- "castile": [
-  {
-   "img": "gallery/castile_0.webp",
-   "thumb": "gallery/castile_0_t.webp",
-   "title": "Santa María la Mayor",
-   "caption": "La antigua mezquita mayor, iglesia desde 1485.",
-   "credit": "Wwal",
-   "license": "Public domain",
-   "source": "https://commons.wikimedia.org/wiki/File:Church_of_Santa_Mar%C3%ADa_la_Mayor,_Ronda.JPG"
-  },
-  {
-   "img": "gallery/castile_1.webp",
-   "thumb": "gallery/castile_1_t.webp",
-   "title": "Palacio de Mondragón",
-   "caption": "Palacio de origen medieval, reformado tras la conquista.",
-   "credit": "Benjamin Smith",
-   "license": "CC BY-SA 4.0",
-   "source": "https://commons.wikimedia.org/wiki/File:Ronda_-_Palacio_de_Mondrag%C3%B3n.jpg"
-  },
-  {
-   "img": "gallery/castile_2.webp",
-   "thumb": "gallery/castile_2_t.webp",
-   "title": "Patio mudéjar",
-   "caption": "Patio del Palacio de Mondragón.",
-   "credit": "Jl FilpoC",
-   "license": "CC BY-SA 4.0",
-   "source": "https://commons.wikimedia.org/wiki/File:Patio_mud%C3%A9jar,_Palacio_de_Mondrag%C3%B3n_(Ronda).jpg"
-  },
-  {
-   "img": "gallery/castile_3.webp",
-   "thumb": "gallery/castile_3_t.webp",
-   "title": "Puente Viejo",
-   "caption": "El Puente Viejo, reconstruido en 1616.",
-   "credit": "Benjamin Smith",
-   "license": "CC BY-SA 4.0",
-   "source": "https://commons.wikimedia.org/wiki/File:Ronda_-_Puente_Viejo.jpg"
-  },
-  {
-   "img": "gallery/castile_4.webp",
-   "thumb": "gallery/castile_4_t.webp",
-   "title": "Espíritu Santo",
-   "caption": "Iglesia de 1505, junto a la puerta de Almocábar.",
-   "credit": "Thomas Dahlstrøm Nielsen",
-   "license": "CC BY 4.0",
-   "source": "https://commons.wikimedia.org/wiki/File:Iglesia_del_Esp%C3%ADritu_Santo,_Ronda,_2023.jpg"
-  },
-  {
-   "img": "gallery/castile_5.webp",
-   "thumb": "gallery/castile_5_t.webp",
-   "title": "Padre Jesús",
-   "caption": "Iglesia de Padre Jesús, en el barrio bajo.",
-   "credit": "Matías!",
-   "license": "CC BY 2.0",
-   "source": "https://commons.wikimedia.org/wiki/File:Iglesia_del_Padre_Jes%C3%BAs.jpg"
-  }
- ],
- "bridges": [
-  {
-   "img": "gallery/bridges_0.webp",
-   "thumb": "gallery/bridges_0_t.webp",
-   "title": "Pedro Romero",
-   "caption": "Goya retrata al torero rondeño Pedro Romero (hacia 1795–98).",
-   "credit": "Francisco Goya",
-   "license": "Public domain",
-   "source": "https://commons.wikimedia.org/wiki/File:Francisco_de_Goya_-_Portrait_of_the_Matador_Pedro_Romero_-_Google_Art_Project.jpg"
-  },
-  {
-   "img": "gallery/bridges_1.webp",
-   "thumb": "gallery/bridges_1_t.webp",
-   "title": "Tauromaquia",
-   "caption": "Goya: Pedro Romero matando a un toro parado (grabado, hacia 1816).",
-   "credit": "Francisco Goya",
-   "license": "Public domain",
-   "source": "https://commons.wikimedia.org/wiki/File:Goya_-_Pedro_Romero_matando_a_toro_parado_(Pedro_Romero_Killing_the_Halted_Bull).jpg"
-  },
-  {
-   "img": "gallery/bridges_2.webp",
-   "thumb": "gallery/bridges_2_t.webp",
-   "title": "El Puente Nuevo",
-   "caption": "Litografía basada en un dibujo de Tenison, siglo XIX.",
-   "credit": "Litografía basada en un dibujo de Tenison.",
-   "license": "Public domain",
-   "source": "https://commons.wikimedia.org/wiki/File:Puente_Nuevo_(Ronda)_01.jpg"
-  },
-  {
-   "img": "gallery/bridges_3.webp",
-   "thumb": "gallery/bridges_3_t.webp",
-   "title": "El Tajo y el puente",
-   "caption": "Grabado anónimo del Tajo con el Puente Nuevo.",
-   "credit": "Autor desconocido",
-   "license": "Public domain",
-   "source": "https://commons.wikimedia.org/wiki/File:Puente_Nuevo_(Ronda).jpg"
-  },
-  {
-   "img": "gallery/bridges_4.webp",
-   "thumb": "gallery/bridges_4_t.webp",
-   "title": "Plaza de la Maestranza",
-   "caption": "La plaza de toros, inaugurada en 1785.",
-   "credit": "Michel wal",
-   "license": "CC BY-SA 3.0",
-   "source": "https://commons.wikimedia.org/wiki/File:Plaza_de_Toros_Ronda_1102.jpg"
-  }
- ],
- "romantic": [
-  {
-   "img": "gallery/romantic_0.webp",
-   "thumb": "gallery/romantic_0_t.webp",
-   "title": "El Tajo y los molinos",
-   "caption": "Fotografía anterior a 1895: los molinos al pie del Tajo.",
-   "credit": "Jean Laurent",
-   "license": "Public domain",
-   "source": "https://commons.wikimedia.org/wiki/File:Fotografi_av_Ronda_(M%C3%A1laga)._El_Tajo_de_Ronda_con_los_molinos_-_Hallwylska_museet_-_104974.tif"
-  },
-  {
-   "img": "gallery/romantic_1.webp",
-   "thumb": "gallery/romantic_1_t.webp",
-   "title": "Ronda desde el norte",
-   "caption": "Vista general de la ciudad, antes de 1895.",
-   "credit": "Autor desconocido",
-   "license": "Public domain",
-   "source": "https://commons.wikimedia.org/wiki/File:Fotografi_av_Ronda_(M%C3%A1laga)._Vista_general_por_la_parte_del_norte_-_Hallwylska_museet_-_104969.tif"
-  },
-  {
-   "img": "gallery/romantic_2.webp",
-   "thumb": "gallery/romantic_2_t.webp",
-   "title": "Molinos del Tajo, 1878",
-   "caption": "Los molinos harineros al pie del Tajo, en una foto de 1878.",
-   "credit": "Carl Curman",
-   "license": "Public domain",
-   "source": "https://commons.wikimedia.org/wiki/File:Ronda_-_KMB_-_16001000211804.jpg"
-  },
-  {
-   "img": "gallery/romantic_3.webp",
-   "thumb": "gallery/romantic_3_t.webp",
-   "title": "Puente en Ronda",
-   "caption": "Grabado del viaje de Davillier y Doré por España (1874).",
-   "credit": "Gustave Doré",
-   "license": "CC BY 2.0",
-   "source": "https://commons.wikimedia.org/wiki/File:%22Pont_Romain,_a_Ronda%22_(19937326305).jpg"
-  },
-  {
-   "img": "gallery/romantic_4.webp",
-   "thumb": "gallery/romantic_4_t.webp",
-   "title": "Niños toreros",
-   "caption": "Escena andaluza en Ronda, del mismo libro (1874).",
-   "credit": "Gustave Doré",
-   "license": "CC BY 2.0",
-   "source": "https://commons.wikimedia.org/wiki/File:%22Les_enfants_toreros,_sc%C3%A8ne_andalouse,_a_Ronda%22_(19314684224).jpg"
-  },
-  {
-   "img": "gallery/romantic_5.webp",
-   "thumb": "gallery/romantic_5_t.webp",
-   "title": "La Serranía en 1838",
-   "caption": "Gaucín, en la Serranía de los bandoleros y los viajeros románticos.",
-   "credit": "Internet Archive Book Images",
-   "license": "No restrictions",
-   "source": "https://commons.wikimedia.org/wiki/File:Gauc%C3%ADn_in_the_Serran%C3%ADa_de_Ronda,_1838.jpg"
-  },
-  {
-   "img": "gallery/romantic_6.webp",
-   "thumb": "gallery/romantic_6_t.webp",
-   "title": "La estación",
-   "caption": "La estación del ferrocarril Bobadilla–Algeciras, abierto en 1892 (foto actual).",
-   "credit": "Ambil",
-   "license": "Public domain",
-   "source": "https://commons.wikimedia.org/wiki/File:Estaci%C3%B3n_de_Ronda.jpg"
-  }
- ],
- "early20": [
-  {
-   "img": "gallery/early20_0.webp",
-   "thumb": "gallery/early20_0_t.webp",
-   "title": "El Tajo hacia 1900",
-   "caption": "El Tajo visto desde el Puente Nuevo, finales del siglo XIX.",
-   "credit": "Autor desconocido",
-   "license": "Public domain",
-   "source": "https://commons.wikimedia.org/wiki/File:Fotografi_av_Ronda_(M%C3%A1laga)._Vista_del_Tajo_de_Ronda,_tomada_del_Puente_Nuevo_-_Hallwylska_museet_-_104970.tif"
-  },
-  {
-   "img": "gallery/early20_1.webp",
-   "thumb": "gallery/early20_1_t.webp",
-   "title": "Rilke",
-   "caption": "Estatua de Rainer Maria Rilke, que vivió en Ronda en 1912–13.",
-   "credit": "Wwal",
-   "license": "Public domain",
-   "source": "https://commons.wikimedia.org/wiki/File:Monumento_a_Rilke,_Ronda.JPG"
-  },
-  {
-   "img": "gallery/early20_2.webp",
-   "thumb": "gallery/early20_2_t.webp",
-   "title": "Círculo de Artistas",
-   "caption": "El casino de la Plaza del Socorro, junto al lugar de la Asamblea de 1918.",
-   "credit": "ArminFlickr",
-   "license": "CC BY 2.0",
-   "source": "https://commons.wikimedia.org/wiki/File:Casino_de_Ronda.jpg"
-  }
- ],
- "war": [
-  {
-   "img": "gallery/war_0.webp",
-   "thumb": "gallery/war_0_t.webp",
-   "title": "Vuelo Americano, 1956",
-   "caption": "Foto aérea de 1956 (IGN): la primera imagen completa de la ciudad.",
-   "credit": "Instituto Geográfico Nacional",
-   "license": "CC BY 4.0",
-   "source": "https://pnoa.ign.es/"
-  },
-  {
-   "img": "gallery/war_1.webp",
-   "thumb": "gallery/war_1_t.webp",
-   "title": "Hemingway",
-   "caption": "Monumento a Hemingway; Ronda inspiró escenas de «Por quién doblan las campanas».",
-   "credit": "Andalusien Aktuell",
-   "license": "CC BY-SA 4.0",
-   "source": "https://commons.wikimedia.org/wiki/File:Ronda-Ernest-Hemingway.jpg"
-  },
-  {
-   "img": "gallery/war_2.webp",
-   "thumb": "gallery/war_2_t.webp",
-   "title": "Trajes goyescos",
-   "caption": "Trajes de la corrida goyesca, celebrada desde 1954, en el museo de la plaza.",
-   "credit": "Tajchman",
-   "license": "CC BY-SA 3.0 es",
-   "source": "https://commons.wikimedia.org/wiki/File:Plaza_de_Toros_de_Ronda_04.JPG"
-  }
- ],
- "democracy": [
-  {
-   "img": "gallery/democracy_0.webp",
-   "thumb": "gallery/democracy_0_t.webp",
-   "title": "Vuelo Interministerial",
-   "caption": "Foto aérea de 1973–86 (IGN): la ciudad crece al norte de la vía.",
-   "credit": "Instituto Geográfico Nacional",
-   "license": "CC BY 4.0",
-   "source": "https://pnoa.ign.es/"
-  },
-  {
-   "img": "gallery/democracy_1.webp",
-   "thumb": "gallery/democracy_1_t.webp",
-   "title": "El Guadalevín",
-   "caption": "El río bajo el Puente Viejo. El turismo se convierte en la principal industria.",
-   "credit": "Diego Delso",
-   "license": "CC BY-SA 4.0",
-   "source": "https://commons.wikimedia.org/wiki/File:Ronda-Espana0048.JPG"
-  }
- ],
- "today": [
-  {
-   "img": "textures/ortho_tajo.webp",
-   "thumb": "gallery/tajo_t.webp",
-   "title": "El Tajo y Puente Nuevo",
-   "caption": "Ortofoto IGN de julio de 2022. El Puente Nuevo une La Ciudad y El Mercadillo sobre el Guadalevín. Se distinguen los bordes del Tajo, los jardines y los caminos del valle. El modelo 3D es una reconstrucción aproximada basada en fotografías.",
-   "credit": "Instituto Geográfico Nacional",
-   "license": "CC BY 4.0",
-   "source": "https://pnoa.ign.es/web/portal/pnoa-imagen/ortofotos-pnoa-maxima-actualidad"
-  },
-  {
-   "img": "textures/ortho_station.webp",
-   "thumb": "gallery/station_t.webp",
-   "title": "Estación y vías",
-   "caption": "Estación de Ronda y su playa de vías en la línea Bobadilla–Algeciras. La ortofoto PNOA de julio de 2022 muestra los andenes, los apartaderos y las naves del entorno. El detalle 3D sigue los trazados de OpenStreetMap; las secciones de carril y las traviesas son aproximadas.",
-   "credit": "Instituto Geográfico Nacional",
-   "license": "CC BY 4.0",
-   "source": "https://pnoa.ign.es/web/portal/pnoa-imagen/ortofotos-pnoa-maxima-actualidad"
-  },
-  {
-   "img": "textures/ortho_northeast.webp",
-   "thumb": "gallery/northeast_t.webp",
-   "title": "Entrada noreste · A-367",
-   "caption": "Vuelo de julio de 2022. La A-367 cruza este sector junto a la calle Santa María la Cañada. Se distinguen viviendas, huertas, olivares y naves; al sur está la Ciudad Deportiva. Imagen PNOA de 25 cm de resolución de origen.",
-   "credit": "Instituto Geográfico Nacional",
-   "license": "CC BY 4.0",
-   "source": "https://pnoa.ign.es/web/portal/pnoa-imagen/ortofotos-pnoa-maxima-actualidad"
-  },
-  {
-   "img": "gallery/today_0.webp",
-   "thumb": "gallery/today_0_t.webp",
-   "title": "Puente Nuevo",
-   "caption": "El Puente Nuevo desde el fondo del Tajo.",
-   "credit": "Joe Mabel",
-   "license": "CC BY-SA 3.0",
-   "source": "https://commons.wikimedia.org/wiki/File:Ronda_-_Puente_Nuevo_tall.jpg"
-  },
-  {
-   "img": "gallery/today_1.webp",
-   "thumb": "gallery/today_1_t.webp",
-   "title": "Panorama",
-   "caption": "Ronda sobre el Tajo, con el Puente Nuevo.",
-   "credit": "Tesla Delacroix",
-   "license": "CC BY-SA 4.0",
-   "source": "https://commons.wikimedia.org/wiki/File:Panorama_of_Ronda.jpg"
-  },
-  {
-   "img": "gallery/today_2.webp",
-   "thumb": "gallery/today_2_t.webp",
-   "title": "Alameda del Tajo",
-   "caption": "La entrada del parque de la Alameda, de 1806.",
-   "credit": "Fredrik Rubensson",
-   "license": "CC BY-SA 2.0",
-   "source": "https://commons.wikimedia.org/wiki/File:Ronda_Alameda_del_Tajo.jpg"
-  },
-  {
-   "img": "gallery/today_3.webp",
-   "thumb": "gallery/today_3_t.webp",
-   "title": "Plaza de toros",
-   "caption": "La plaza de la Real Maestranza, hoy.",
-   "credit": "Andreas Tille",
-   "license": "CC BY-SA 3.0",
-   "source": "https://commons.wikimedia.org/wiki/File:PlazaDeTorosDeRonda.jpg"
-  },
-  {
-   "img": "gallery/today_4.webp",
-   "thumb": "gallery/today_4_t.webp",
-   "title": "Ortofoto 2024",
-   "caption": "Foto aérea de 2024 (IGN, PNOA).",
-   "credit": "Instituto Geográfico Nacional",
-   "license": "CC BY 4.0",
-   "source": "https://pnoa.ign.es/"
-  }
- ]
+  "prehistory": [
+    {
+      "img": "gallery/prehistory_0.webp",
+      "thumb": "gallery/prehistory_0_t.webp",
+      "title": "Cueva de la Pileta",
+      "caption": "Sala principal de La Pileta, fotografiada en 2010. La imagen muestra el interior de la cueva; no todos los trazos de sus paredes se distinguen en esta toma.",
+      "credit": "user:falconaumanni",
+      "license": "CC BY-SA 4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Pileta_interior.jpg",
+      "date": "2010",
+      "kind": "Fotografía posterior"
+    },
+    {
+      "img": "gallery/prehistory_1.webp",
+      "thumb": "gallery/prehistory_1_t.webp",
+      "title": "Entrada a la Pileta",
+      "caption": "Entrada de La Pileta, en Benaoján, fotografiada en 2010. Es el acceso moderno al yacimiento.",
+      "credit": "user:falconaumanni",
+      "license": "CC BY-SA 4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Entrada_pileta.jpg",
+      "date": "2010",
+      "kind": "Fotografía posterior"
+    },
+    {
+      "img": "gallery/prehistory_2.webp",
+      "thumb": "gallery/prehistory_2_t.webp",
+      "title": "Plano de la cueva",
+      "caption": "Plano publicado en 2010 de las galerías de La Pileta. Es un documento moderno de orientación, no un dibujo prehistórico.",
+      "credit": "user:falconaumanni",
+      "license": "CC BY-SA 4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Pileta_plano.png",
+      "date": "2010",
+      "kind": "Plano moderno"
+    },
+    {
+      "img": "gallery/prehistory_3.webp",
+      "thumb": "gallery/prehistory_3_t.webp",
+      "title": "La Serranía",
+      "caption": "Paisaje junto a La Pileta en 2010. Sirve para situar la cueva en la Serranía; la vegetación no reconstruye un momento prehistórico.",
+      "credit": "BY-YOUR-⌘",
+      "license": "CC BY 2.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Above_cueva_de_la_pileta.jpg",
+      "date": "2010",
+      "kind": "Fotografía posterior"
+    }
+  ],
+  "iberian": [
+    {
+      "img": "gallery/iberian_0.webp",
+      "thumb": "gallery/iberian_0_t.webp",
+      "title": "Meseta de Acinipo",
+      "caption": "Acinipo en 2009. El lugar tuvo ocupación anterior a Roma, pero el gran muro visible pertenece al teatro romano posterior.",
+      "credit": "PEPE GADEIRAS",
+      "license": "CC BY-SA 4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Acinipo.jpg",
+      "date": "2009",
+      "kind": "Fotografía posterior"
+    },
+    {
+      "img": "gallery/iberian_1.webp",
+      "thumb": "gallery/iberian_1_t.webp",
+      "title": "Plano de Acinipo",
+      "caption": "Plano moderno del yacimiento de Acinipo, publicado en 2014. Incluye edificios romanos posteriores a esta etapa; no representa un poblado prerromano completo.",
+      "credit": "Falconaumanni",
+      "license": "CC BY-SA 3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Acinipo_plano_grande.png",
+      "date": "2014",
+      "kind": "Plano moderno"
+    }
+  ],
+  "roman": [
+    {
+      "img": "gallery/roman_0.webp",
+      "thumb": "gallery/roman_0_t.webp",
+      "title": "Teatro de Acinipo",
+      "caption": "Teatro romano de Acinipo en 2009. El graderío aprovecha la ladera y está excavado en la roca. Acinipo es un yacimiento distinto de la Arunda situada bajo Ronda.",
+      "credit": "PEPE GADEIRAS",
+      "license": "CC BY-SA 4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Teatro_romano_de_Acinipo,_Ronda.jpg",
+      "date": "2009",
+      "kind": "Fotografía posterior"
+    },
+    {
+      "img": "gallery/roman_1.webp",
+      "thumb": "gallery/roman_1_t.webp",
+      "title": "Escena del teatro",
+      "caption": "El muro de la escena del teatro de Acinipo.",
+      "credit": "LEONCIO HIDALGO",
+      "license": "CC BY-SA 4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Teatro_Acinipo_(Ronda).jpg",
+      "date": "2020",
+      "kind": "Fotografía posterior"
+    },
+    {
+      "img": "gallery/roman_2.webp",
+      "thumb": "gallery/roman_2_t.webp",
+      "title": "Termas de Acinipo",
+      "caption": "Restos de las termas romanas.",
+      "credit": "Falconaumanni",
+      "license": "CC BY-SA 3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Acinipo_Termas.JPG",
+      "date": "2013",
+      "kind": "Fotografía posterior"
+    },
+    {
+      "img": "gallery/roman_3.webp",
+      "thumb": "gallery/roman_3_t.webp",
+      "title": "Casa romana",
+      "caption": "Restos de una domus en Acinipo.",
+      "credit": "Falconaumanni",
+      "license": "CC BY-SA 3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Acinipo_Domus_1.JPG",
+      "date": "2003",
+      "kind": "Fotografía posterior"
+    },
+    {
+      "img": "gallery/roman_4.webp",
+      "thumb": "gallery/roman_4_t.webp",
+      "title": "Moneda de Acinipo",
+      "caption": "Ilustración de una moneda de Acinipo en un diccionario de geografía antigua de 1854. La moneda representada es antigua; el dibujo impreso es del siglo XIX.",
+      "credit": "Sir William Smith (1813–1893)",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Coin_of_Acinipo_DGRG.png",
+      "date": "1854",
+      "kind": "Ilustración de una moneda"
+    }
+  ],
+  "visigoth": [
+    {
+      "img": "gallery/visigoth_0.webp",
+      "thumb": "gallery/visigoth_0_t.webp",
+      "title": "Ladrillo funerario · siglos IV–VI",
+      "caption": "Pieza de arcilla moldeada procedente de Acinipo, catalogada entre los siglos IV y VI. Pertenece al Museo Sefardí de Toledo; esta foto se tomó en una exposición en París en 2022.",
+      "credit": "Ji-Elle",
+      "license": "CC BY-SA 4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Acinipo-Brique_fun%C3%A9raire-Mus%C3%A9e_Sefardi.jpg",
+      "date": "2022",
+      "kind": "Objeto antiguo · foto posterior"
+    }
+  ],
+  "andalus": [
+    {
+      "img": "gallery/visigoth_1.webp",
+      "thumb": "gallery/visigoth_1_t.webp",
+      "title": "Virgen de la Cabeza",
+      "caption": "Interior excavado en la roca de la Virgen de la Cabeza, fotografiado en 2010. El conjunto se fecha en los siglos IX–X: corresponde a época andalusí, no al periodo visigodo.",
+      "credit": "Parpadeo",
+      "license": "CC BY-SA 3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Iglesia_rupestre_de_la_Cabeza_Ronda_(Malaga)_por_parpadeo.jpg",
+      "date": "2010",
+      "kind": "Fotografía posterior"
+    }
+  ],
+  "taifa": [
+    {
+      "img": "gallery/taifa_1.webp",
+      "thumb": "gallery/taifa_1_t.webp",
+      "title": "La medina amurallada",
+      "caption": "Murallas de Ronda fotografiadas en 2010. Ayudan a situar la medina sobre la meseta; sus partes conservadas y restauradas no deben fecharse todas en el siglo XI.",
+      "credit": "Tajchman",
+      "license": "CC BY-SA 3.0 es",
+      "source": "https://commons.wikimedia.org/wiki/File:Muralla_Urbana,_Ronda_04.JPG",
+      "date": "2010",
+      "kind": "Fotografía posterior"
+    }
+  ],
+  "frontier": [
+    {
+      "img": "gallery/frontier_0.webp",
+      "thumb": "gallery/frontier_0_t.webp",
+      "title": "Dentro del hammam",
+      "caption": "Interior de los baños árabes de Ronda en 2024. Las bóvedas y los lucernarios permiten reconocer la arquitectura de este conjunto de los siglos XIII–XIV.",
+      "credit": "Benjamin Smith",
+      "license": "CC BY-SA 4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Ronda_-_Ba%C3%B1os_%C3%A1rabes.jpg",
+      "date": "2024",
+      "kind": "Fotografía posterior"
+    },
+    {
+      "img": "gallery/frontier_1.webp",
+      "thumb": "gallery/frontier_1_t.webp",
+      "title": "Los baños desde arriba",
+      "caption": "Vista exterior del recinto de los baños en 2010. Se observan los restos de sus dependencias; esta fotografía no muestra el interior abovedado.",
+      "credit": "Zedutchgandalf",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Arab_baths.jpg",
+      "date": "2010",
+      "kind": "Fotografía posterior"
+    },
+    {
+      "img": "gallery/frontier_2.webp",
+      "thumb": "gallery/frontier_2_t.webp",
+      "title": "Puerta de Almocábar",
+      "caption": "Puerta principal de la medina, del siglo XIII.",
+      "credit": "Gumerg",
+      "license": "CC BY-SA 3.0 es",
+      "source": "https://commons.wikimedia.org/wiki/File:Puerta_de_Almocabar,_Ronda.JPG",
+      "date": "2011",
+      "kind": "Fotografía posterior"
+    },
+    {
+      "img": "gallery/andalus_0.webp",
+      "thumb": "gallery/andalus_0_t.webp",
+      "title": "Alminar de San Sebastián",
+      "caption": "Alminar de San Sebastián en 2018. Los dos cuerpos inferiores son del siglo XIV; el superior se añadió en época cristiana. No es un edificio del siglo VIII.",
+      "credit": "José Luis Filpo Cabana",
+      "license": "CC BY-SA 4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Alminar_de_San_Sebasti%C3%A1n_(Ronda).jpg",
+      "date": "2018",
+      "kind": "Fotografía posterior"
+    },
+    {
+      "img": "gallery/taifa_0.webp",
+      "thumb": "gallery/taifa_0_t.webp",
+      "title": "Puerta del alminar",
+      "caption": "Puerta del alminar de San Sebastián, fotografiada en 2011. El alminar conservado es del siglo XIV, posterior al reino taifa del siglo XI.",
+      "credit": "Daniel VILLAFRUELA.",
+      "license": "CC BY-SA 4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Ronda-Puerta_del_alminar_de_San_S%C3%A9basti%C3%A0n-20110912.jpg",
+      "date": "2011",
+      "kind": "Fotografía posterior"
+    },
+    {
+      "img": "gallery/andalus_1.webp",
+      "thumb": "gallery/andalus_1_t.webp",
+      "title": "Murallas",
+      "caption": "Defensas medievales conservadas, fotografiadas en 2010. Los muros visibles contienen reformas de diferentes épocas y no permiten reconstruir por sí solos la ciudad del siglo VIII.",
+      "credit": "Tajchman",
+      "license": "CC BY-SA 3.0 es",
+      "source": "https://commons.wikimedia.org/wiki/File:Muralla_Urbana,_Ronda_02.JPG",
+      "date": "2010",
+      "kind": "Fotografía posterior"
+    }
+  ],
+  "castile": [
+    {
+      "img": "gallery/castile_0.webp",
+      "thumb": "gallery/castile_0_t.webp",
+      "title": "Santa María la Mayor",
+      "caption": "La antigua mezquita mayor, iglesia desde 1485.",
+      "credit": "Wwal",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Church_of_Santa_Mar%C3%ADa_la_Mayor,_Ronda.JPG",
+      "date": "2008",
+      "kind": "Fotografía posterior"
+    },
+    {
+      "img": "gallery/castile_1.webp",
+      "thumb": "gallery/castile_1_t.webp",
+      "title": "Palacio de Mondragón",
+      "caption": "Palacio de origen medieval, reformado tras la conquista.",
+      "credit": "Benjamin Smith",
+      "license": "CC BY-SA 4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Ronda_-_Palacio_de_Mondrag%C3%B3n.jpg",
+      "date": "2024",
+      "kind": "Fotografía posterior"
+    },
+    {
+      "img": "gallery/castile_2.webp",
+      "thumb": "gallery/castile_2_t.webp",
+      "title": "Patio mudéjar",
+      "caption": "Patio del Palacio de Mondragón.",
+      "credit": "Jl FilpoC",
+      "license": "CC BY-SA 4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Patio_mud%C3%A9jar,_Palacio_de_Mondrag%C3%B3n_(Ronda).jpg",
+      "date": "2018",
+      "kind": "Fotografía posterior"
+    },
+    {
+      "img": "gallery/castile_3.webp",
+      "thumb": "gallery/castile_3_t.webp",
+      "title": "Puente Viejo",
+      "caption": "El Puente Viejo, reconstruido en 1616.",
+      "credit": "Benjamin Smith",
+      "license": "CC BY-SA 4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Ronda_-_Puente_Viejo.jpg",
+      "date": "2024",
+      "kind": "Fotografía posterior"
+    },
+    {
+      "img": "gallery/castile_4.webp",
+      "thumb": "gallery/castile_4_t.webp",
+      "title": "Espíritu Santo",
+      "caption": "Iglesia de 1505, junto a la puerta de Almocábar.",
+      "credit": "Thomas Dahlstrøm Nielsen",
+      "license": "CC BY 4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Iglesia_del_Esp%C3%ADritu_Santo,_Ronda,_2023.jpg",
+      "date": "2023",
+      "kind": "Fotografía posterior"
+    },
+    {
+      "img": "gallery/castile_5.webp",
+      "thumb": "gallery/castile_5_t.webp",
+      "title": "Padre Jesús",
+      "caption": "Iglesia de Padre Jesús, en el barrio bajo.",
+      "credit": "Matías!",
+      "license": "CC BY 2.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Iglesia_del_Padre_Jes%C3%BAs.jpg",
+      "date": "2008",
+      "kind": "Fotografía posterior"
+    }
+  ],
+  "bridges": [
+    {
+      "img": "gallery/bridges_0.webp",
+      "thumb": "gallery/bridges_0_t.webp",
+      "title": "Pedro Romero",
+      "caption": "Goya retrata al torero rondeño Pedro Romero (hacia 1795–98).",
+      "credit": "Francisco Goya",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Francisco_de_Goya_-_Portrait_of_the_Matador_Pedro_Romero_-_Google_Art_Project.jpg",
+      "date": "hacia 1795–1798",
+      "kind": "Obra gráfica"
+    },
+    {
+      "img": "gallery/bridges_4.webp",
+      "thumb": "gallery/bridges_4_t.webp",
+      "title": "Plaza de la Maestranza",
+      "caption": "La plaza de toros, inaugurada en 1785.",
+      "credit": "Michel wal",
+      "license": "CC BY-SA 3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Plaza_de_Toros_Ronda_1102.jpg",
+      "date": "2011",
+      "kind": "Fotografía posterior"
+    },
+    {
+      "img": "gallery/today_0.webp",
+      "thumb": "gallery/today_0_t.webp",
+      "title": "Puente Nuevo",
+      "caption": "Puente Nuevo desde el fondo del Tajo, fotografiado por Joe Mabel en 1996. Esta fotografía también sirve de base para la textura del puente 3D.",
+      "credit": "Joe Mabel",
+      "license": "CC BY-SA 3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Ronda_-_Puente_Nuevo_tall.jpg",
+      "date": "1996",
+      "kind": "Fotografía posterior"
+    },
+    {
+      "img": "gallery/frontier_3.webp",
+      "thumb": "gallery/frontier_3_t.webp",
+      "title": "Casa del Rey Moro · fachada",
+      "caption": "Fachada de la Casa del Rey Moro en 2003. La casa es del siglo XVIII; la mina de agua medieval está debajo y no se ve en esta fotografía.",
+      "credit": "Elisa.rolle",
+      "license": "CC BY-SA 3.0 es",
+      "source": "https://commons.wikimedia.org/wiki/File:Casa_del_Rey_Moro_(Ronda).jpg",
+      "date": "2003",
+      "kind": "Fotografía posterior"
+    }
+  ],
+  "romantic": [
+    {
+      "img": "gallery/romantic_2.webp",
+      "thumb": "gallery/romantic_2_t.webp",
+      "title": "Los Molinos, 1878",
+      "caption": "Carl Curman fotografió Los Molinos en 1878. El Puente Nuevo aparece a la izquierda; las construcciones del valle ayudan a leer un paisaje de trabajo que ha cambiado.",
+      "credit": "Carl Curman",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Ronda_-_KMB_-_16001000211804.jpg",
+      "date": "1878",
+      "kind": "Fotografía histórica"
+    },
+    {
+      "img": "gallery/romantic_0.webp",
+      "thumb": "gallery/romantic_0_t.webp",
+      "title": "El Tajo y los molinos",
+      "caption": "Fotografía anterior a 1895: los molinos al pie del Tajo.",
+      "credit": "Jean Laurent",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Fotografi_av_Ronda_(M%C3%A1laga)._El_Tajo_de_Ronda_con_los_molinos_-_Hallwylska_museet_-_104974.tif",
+      "date": "antes de 1895",
+      "kind": "Fotografía histórica"
+    },
+    {
+      "img": "gallery/romantic_1.webp",
+      "thumb": "gallery/romantic_1_t.webp",
+      "title": "Ronda desde el norte",
+      "caption": "Vista general de la ciudad, antes de 1895.",
+      "credit": "Autor desconocido",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Fotografi_av_Ronda_(M%C3%A1laga)._Vista_general_por_la_parte_del_norte_-_Hallwylska_museet_-_104969.tif",
+      "date": "antes de 1895",
+      "kind": "Fotografía histórica"
+    },
+    {
+      "img": "gallery/early20_0.webp",
+      "thumb": "gallery/early20_0_t.webp",
+      "title": "El Tajo antes de 1895",
+      "caption": "Vista desde el Puente Nuevo conservada por el Hallwylska museet. El catálogo la fecha antes de 1895; no es una fotografía de 1900.",
+      "credit": "Autor desconocido",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Fotografi_av_Ronda_(M%C3%A1laga)._Vista_del_Tajo_de_Ronda,_tomada_del_Puente_Nuevo_-_Hallwylska_museet_-_104970.tif",
+      "date": "antes de 1895",
+      "kind": "Fotografía histórica"
+    },
+    {
+      "img": "gallery/bridges_2.webp",
+      "thumb": "gallery/bridges_2_t.webp",
+      "title": "Puente Nuevo · litografía de 1853",
+      "caption": "Litografía publicada en Castile and Andalusia en 1853, basada en un dibujo de Tenison. Representa el puente ya terminado, sesenta años después de su inauguración.",
+      "credit": "Litografía basada en un dibujo de Tenison.",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Puente_Nuevo_(Ronda)_01.jpg",
+      "date": "1853",
+      "kind": "Obra gráfica"
+    },
+    {
+      "img": "gallery/bridges_3.webp",
+      "thumb": "gallery/bridges_3_t.webp",
+      "title": "Puente Nuevo · grabado de 1847",
+      "caption": "Grabado anónimo publicado en The Wayside Cross en 1847. Es una representación artística posterior a la construcción del puente.",
+      "credit": "Autor desconocido",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Puente_Nuevo_(Ronda).jpg",
+      "date": "1847",
+      "kind": "Obra gráfica"
+    },
+    {
+      "img": "gallery/bridges_1.webp",
+      "thumb": "gallery/bridges_1_t.webp",
+      "title": "Tauromaquia",
+      "caption": "Goya: Pedro Romero matando a un toro parado (grabado, hacia 1816).",
+      "credit": "Francisco Goya",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Goya_-_Pedro_Romero_matando_a_toro_parado_(Pedro_Romero_Killing_the_Halted_Bull).jpg",
+      "date": "1816 o anterior",
+      "kind": "Obra gráfica"
+    },
+    {
+      "img": "gallery/romantic_3.webp",
+      "thumb": "gallery/romantic_3_t.webp",
+      "title": "Puente en Ronda",
+      "caption": "Grabado de Gustave Doré publicado en L’Espagne, de Davillier, en 1874. El título original dice «Pont Romain»; ese nombre histórico no demuestra por sí solo un origen romano.",
+      "credit": "Gustave Doré",
+      "license": "CC BY 2.0",
+      "source": "https://commons.wikimedia.org/wiki/File:%22Pont_Romain,_a_Ronda%22_(19937326305).jpg",
+      "date": "1874",
+      "kind": "Obra gráfica"
+    },
+    {
+      "img": "gallery/romantic_4.webp",
+      "thumb": "gallery/romantic_4_t.webp",
+      "title": "Niños toreros",
+      "caption": "Escena andaluza en Ronda, del mismo libro (1874).",
+      "credit": "Gustave Doré",
+      "license": "CC BY 2.0",
+      "source": "https://commons.wikimedia.org/wiki/File:%22Les_enfants_toreros,_sc%C3%A8ne_andalouse,_a_Ronda%22_(19314684224).jpg",
+      "date": "1874",
+      "kind": "Obra gráfica"
+    },
+    {
+      "img": "gallery/iberian_2.webp",
+      "thumb": "gallery/iberian_2_t.webp",
+      "title": "Puerta de los Vientos · Leighton",
+      "caption": "Paisaje pintado por Frederic Leighton entre 1886 y 1889. Es una mirada artística del siglo XIX sobre el entorno de Ronda.",
+      "credit": "Frederic Leighton",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Frederic_Leighton_(1830-1896)_-_Puerta_de_los_Vientos,_near_Ronda,_Spain_-_N04006_-_National_Gallery.jpg",
+      "date": "1886–1889",
+      "kind": "Obra gráfica"
+    },
+    {
+      "img": "gallery/romantic_6.webp",
+      "thumb": "gallery/romantic_6_t.webp",
+      "title": "La estación",
+      "caption": "Estación de Ronda fotografiada en julio de 2009. ADIF fecha su puesta en servicio en septiembre de 1891. La foto muestra el edificio mucho después de su apertura.",
+      "credit": "Ambil",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Estaci%C3%B3n_de_Ronda.jpg",
+      "date": "2009",
+      "kind": "Fotografía posterior"
+    },
+    {
+      "img": "gallery/romantic_5.webp",
+      "thumb": "gallery/romantic_5_t.webp",
+      "title": "La Serranía en 1838",
+      "caption": "Gaucín, en una publicación de 1838 asociada a David Roberts. Es otra localidad de la Serranía, no una vista de la ciudad de Ronda.",
+      "credit": "Internet Archive Book Images",
+      "license": "No restrictions",
+      "source": "https://commons.wikimedia.org/wiki/File:Gauc%C3%ADn_in_the_Serran%C3%ADa_de_Ronda,_1838.jpg",
+      "date": "1838",
+      "kind": "Obra gráfica"
+    }
+  ],
+  "early20": [
+    {
+      "img": "gallery/hassam-ronda-1910.jpg",
+      "thumb": "gallery/hassam-ronda-1910_t.jpg",
+      "title": "Ronda, 1910 · Childe Hassam",
+      "caption": "Childe Hassam pintó esta vista de Ronda en 1910. La luz, las fachadas y las figuras ofrecen una mirada de la época: es una pintura, no una fotografía. Obra conservada en la Hispanic Society of America.",
+      "credit": "Childe Hassam · Hispanic Society of America",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Childe_Hassam,_American_(1859-1935)_-_Ronda_-_A2142_-_Hispanic_Society_of_America.jpg",
+      "date": "1910",
+      "kind": "Pintura de la época"
+    },
+    {
+      "img": "gallery/early20_2.webp",
+      "thumb": "gallery/early20_2_t.webp",
+      "title": "Círculo de Artistas",
+      "caption": "Círculo de Artistas en septiembre de 2008. En este edificio de la plaza del Socorro se celebró la Asamblea de Ronda de enero de 1918.",
+      "credit": "ArminFlickr",
+      "license": "CC BY 2.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Casino_de_Ronda.jpg",
+      "date": "2008",
+      "kind": "Fotografía posterior"
+    },
+    {
+      "img": "gallery/early20_1.webp",
+      "thumb": "gallery/early20_1_t.webp",
+      "title": "Rilke · monumento de 1966",
+      "caption": "Monumento a Rainer Maria Rilke, realizado por Nicomedes Díaz Piquero en 1966 y fotografiado en 2008. Es un homenaje posterior al poeta, no una fotografía de su estancia en Ronda.",
+      "credit": "Wwal",
+      "license": "Public domain",
+      "source": "https://commons.wikimedia.org/wiki/File:Monumento_a_Rilke,_Ronda.JPG",
+      "date": "2008",
+      "kind": "Fotografía posterior"
+    }
+  ],
+  "war": [
+    {
+      "img": "gallery/war_0.webp",
+      "thumb": "gallery/war_0_t.webp",
+      "title": "Vuelo americano · 1956–57",
+      "caption": "Recorte de la ortofoto del vuelo americano Serie B del IGN. La campaña es de 1956–57; no se ha comprobado aquí el día de captura de este fotograma.",
+      "credit": "Instituto Geográfico Nacional",
+      "license": "CC BY 4.0",
+      "source": "https://pnoa.ign.es/",
+      "date": "1956–1957",
+      "kind": "Ortofoto histórica"
+    },
+    {
+      "img": "gallery/war_2.webp",
+      "thumb": "gallery/war_2_t.webp",
+      "title": "Trajes goyescos",
+      "caption": "Trajes expuestos en el museo de la plaza de toros, fotografiados en 2013. Son piezas de una exposición, no una fotografía de una corrida durante la dictadura.",
+      "credit": "Tajchman",
+      "license": "CC BY-SA 3.0 es",
+      "source": "https://commons.wikimedia.org/wiki/File:Plaza_de_Toros_de_Ronda_04.JPG",
+      "date": "2013",
+      "kind": "Fotografía posterior"
+    }
+  ],
+  "democracy": [
+    {
+      "img": "gallery/democracy_0.webp",
+      "thumb": "gallery/democracy_0_t.webp",
+      "title": "Vuelo Interministerial",
+      "caption": "Recorte de la colección Interministerial del IGN, cuyas campañas abarcan 1973–1986. Se conserva ese intervalo: el nombre del archivo no acredita una toma en 1980.",
+      "credit": "Instituto Geográfico Nacional",
+      "license": "CC BY 4.0",
+      "source": "https://pnoa.ign.es/",
+      "date": "1973–1986",
+      "kind": "Ortofoto histórica"
+    }
+  ],
+  "today": [
+    {
+      "img": "textures/ortho_tajo.webp",
+      "thumb": "gallery/tajo_t.webp",
+      "title": "El Tajo y Puente Nuevo",
+      "caption": "Ortofoto IGN de julio de 2022. El Puente Nuevo une La Ciudad y El Mercadillo sobre el Guadalevín. Se distinguen los bordes del Tajo, los jardines y los caminos del valle. El modelo 3D es una reconstrucción aproximada basada en fotografías.",
+      "credit": "Instituto Geográfico Nacional",
+      "license": "CC BY 4.0",
+      "source": "https://pnoa.ign.es/web/portal/pnoa-imagen/ortofotos-pnoa-maxima-actualidad",
+      "date": "julio de 2022",
+      "kind": "Ortofoto"
+    },
+    {
+      "img": "textures/ortho_station.webp",
+      "thumb": "gallery/station_t.webp",
+      "title": "Estación y vías",
+      "caption": "Estación de Ronda y su playa de vías en la línea Bobadilla–Algeciras. La ortofoto PNOA de julio de 2022 muestra los andenes, los apartaderos y las naves del entorno. El detalle 3D sigue los trazados de OpenStreetMap; las secciones de carril y las traviesas son aproximadas.",
+      "credit": "Instituto Geográfico Nacional",
+      "license": "CC BY 4.0",
+      "source": "https://pnoa.ign.es/web/portal/pnoa-imagen/ortofotos-pnoa-maxima-actualidad",
+      "date": "julio de 2022",
+      "kind": "Ortofoto"
+    },
+    {
+      "img": "textures/ortho_northeast.webp",
+      "thumb": "gallery/northeast_t.webp",
+      "title": "Entrada noreste · A-367",
+      "caption": "Vuelo de julio de 2022. La A-367 cruza este sector junto a la calle Santa María la Cañada. Se distinguen viviendas, huertas, olivares y naves; al sur está la Ciudad Deportiva. Imagen PNOA de 25 cm de resolución de origen.",
+      "credit": "Instituto Geográfico Nacional",
+      "license": "CC BY 4.0",
+      "source": "https://pnoa.ign.es/web/portal/pnoa-imagen/ortofotos-pnoa-maxima-actualidad",
+      "date": "julio de 2022",
+      "kind": "Ortofoto"
+    },
+    {
+      "img": "gallery/today_0.webp",
+      "thumb": "gallery/today_0_t.webp",
+      "title": "Puente Nuevo",
+      "caption": "Puente Nuevo desde el fondo del Tajo, fotografiado por Joe Mabel en 1996. Esta fotografía también sirve de base para la textura del puente 3D.",
+      "credit": "Joe Mabel",
+      "license": "CC BY-SA 3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Ronda_-_Puente_Nuevo_tall.jpg",
+      "date": "1996",
+      "kind": "Fotografía posterior"
+    },
+    {
+      "img": "gallery/today_1.webp",
+      "thumb": "gallery/today_1_t.webp",
+      "title": "Panorama",
+      "caption": "Ronda sobre el Tajo, con el Puente Nuevo.",
+      "credit": "Tesla Delacroix",
+      "license": "CC BY-SA 4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Panorama_of_Ronda.jpg",
+      "date": "2019",
+      "kind": "Fotografía posterior"
+    },
+    {
+      "img": "gallery/today_2.webp",
+      "thumb": "gallery/today_2_t.webp",
+      "title": "Alameda del Tajo",
+      "caption": "La entrada del parque de la Alameda, de 1806.",
+      "credit": "Fredrik Rubensson",
+      "license": "CC BY-SA 2.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Ronda_Alameda_del_Tajo.jpg",
+      "date": "2018",
+      "kind": "Fotografía posterior"
+    },
+    {
+      "img": "gallery/today_3.webp",
+      "thumb": "gallery/today_3_t.webp",
+      "title": "Plaza de toros",
+      "caption": "La plaza de la Real Maestranza, hoy.",
+      "credit": "Andreas Tille",
+      "license": "CC BY-SA 3.0",
+      "source": "https://commons.wikimedia.org/wiki/File:PlazaDeTorosDeRonda.jpg",
+      "date": "2008",
+      "kind": "Fotografía posterior"
+    },
+    {
+      "img": "gallery/today_4.webp",
+      "thumb": "gallery/today_4_t.webp",
+      "title": "Ortofoto PNOA · mosaico reciente",
+      "caption": "Ortofoto del mosaico PNOA de máxima actualidad del IGN. Puede combinar imágenes de distintos vuelos; no se ha comprobado la fecha exacta de captura de esta vista.",
+      "credit": "Instituto Geográfico Nacional",
+      "license": "CC BY 4.0",
+      "source": "https://pnoa.ign.es/",
+      "date": "fecha de vuelo sin verificar",
+      "kind": "Ortofoto"
+    },
+    {
+      "img": "gallery/democracy_1.webp",
+      "thumb": "gallery/democracy_1_t.webp",
+      "title": "El Guadalevín",
+      "caption": "El Guadalevín bajo el Puente Viejo, fotografiado por Diego Delso en marzo de 2005.",
+      "credit": "Diego Delso",
+      "license": "CC BY-SA 4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Ronda-Espana0048.JPG",
+      "date": "2005",
+      "kind": "Fotografía posterior"
+    },
+    {
+      "img": "gallery/war_1.webp",
+      "thumb": "gallery/war_1_t.webp",
+      "title": "Hemingway",
+      "caption": "Homenaje a Ernest Hemingway fotografiado en 2016. Es un monumento conmemorativo moderno, no una imagen de la Guerra Civil ni prueba de un episodio narrado en una novela.",
+      "credit": "Andalusien Aktuell",
+      "license": "CC BY-SA 4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Ronda-Ernest-Hemingway.jpg",
+      "date": "2016",
+      "kind": "Fotografía posterior"
+    }
+  ]
 }

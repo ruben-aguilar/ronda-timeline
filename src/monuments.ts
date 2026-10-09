@@ -799,7 +799,7 @@ export function createMonuments(dem: Dem, data: BuildingData): Monuments {
     add(b, y0, 1485, 1505);
   }
 
-  // ------------------------------------------------------------- Railway station (1892)
+  // ------------------------------------------------------------- Railway station (1891)
   {
     const fp = takePart(395, 912, 6);
     const o = orientedBox(fp);
@@ -823,7 +823,7 @@ export function createMonuments(dem: Dem, data: BuildingData): Monuments {
     b.add(box(L, 0.9, 7).translate(0, -0.6, 3.5), mat.paving, pm);
     for (let x = -L / 2 + 1; x <= L / 2 - 1; x += 4) b.add(new THREE.CylinderGeometry(0.12, 0.16, 4.2, 8).translate(x, 2.1, 5.6), mat.iron, pm);
     b.add(box(L, 0.25, 6.6).applyMatrix4(new THREE.Matrix4().makeRotationX(0.06)).translate(0, 4.2, 3.2), mat.wood, pm);
-    add(b, y0, 1890, 1892);
+    add(b, y0, 1890, 1891);
   }
 
   // ------------------------- Plaza del Socorro and its church (old church to 1936, new one 1956)

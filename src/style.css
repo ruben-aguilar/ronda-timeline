@@ -915,11 +915,11 @@ body.shot #splash {
   display: none;
 }
 
-/* Small scene controls stay above the timeline, clear of camera gestures. */
+/* Settings open below the gear beside the information button. */
 .scene-settings {
-  position: fixed;
-  left: 22px;
-  bottom: calc(var(--timeline-height, 176px) + 32px);
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
   z-index: 12;
   display: flex;
   align-items: center;
@@ -951,7 +951,7 @@ body.shot #splash {
 .hide-names .label { display: none; }
 button:focus-visible, select:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 @media (max-width: 700px) {
-  .scene-settings { left: 10px; bottom: calc(var(--timeline-height, 176px) + 32px); gap: 9px; padding: 6px 9px; }
+
   #era-card { top: 12px; left: 12px; width: calc(100vw - 136px); padding: 12px; max-height: 34vh; overflow-y: auto; }
   #era-title { font-size: 25px; padding-right: 24px; }
   #era-sub { font-size: 11px; }
@@ -991,8 +991,44 @@ body.ui-hidden .scene-settings,
 body.ui-hidden .label,
 body.ui-hidden #info,
 body.ui-hidden #lightbox { display: none !important; }
-.scene-settings { flex-wrap: wrap; max-width: calc(100vw - 130px); }
+#clock { z-index: 15; }
+.clock-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+#info-btn, #settings-btn { margin: 0; width: 34px; height: 34px; }
+#settings-btn { display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line); background: var(--glass); backdrop-filter: blur(10px); color: var(--ink); cursor: pointer; }
+#settings-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; }
+#settings-btn:hover, #settings-btn[aria-expanded="true"] { color: var(--gold); border-color: var(--gold); }
+.scene-settings { flex-direction: column; align-items: stretch; width: 230px; max-width: calc(100vw - 24px); gap: 12px; padding: 16px; text-shadow: none; font-size: 12px; }
+.scene-settings[hidden] { display: none; }
+.scene-settings label { justify-content: space-between; }
+.scene-settings select { min-width: 110px; min-height: 34px; }
+.scene-settings button { text-align: left; border-top: 1px solid var(--line); padding: 10px 0 0; }
+.scene-settings button::after { content: "✓"; float: right; }
+.scene-settings button[aria-pressed="false"]::after { content: "—"; }
+#era-places { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 12px; }
+#era-places button { border: 1px solid rgba(241, 194, 125, .3); border-radius: 6px; padding: 7px 9px; color: var(--gold); background: rgba(241, 194, 125, .07); font: 500 11px/1.4 var(--sans); text-align: left; cursor: pointer; }
+#era-places button:hover { background: rgba(241, 194, 125, .18); }
 .info-card { max-height: calc(100dvh - 48px); overflow-y: auto; }
 @media (max-width: 860px) {
   body.ui-hidden #cambar { bottom: 20px; }
+}
+
+/* Short chapter stories, with extra detail and references behind separate disclosures. */
+#era-card { max-height: calc(100dvh - var(--timeline-height, 176px) - 114px); overflow-y: auto; }
+#era-more { margin: 0 0 12px; }
+#era-more summary { cursor: pointer; color: var(--gold); font-size: 12px; width: fit-content; }
+#era-more p { font: 500 16px/1.45 var(--serif); margin: 10px 0; }
+#era-more .era-look { padding-left: 10px; border-left: 2px solid var(--gold); }
+.era-look > span:first-child { font: 600 10px/1.8 var(--sans); color: var(--gold); text-transform: uppercase; letter-spacing: 0.08em; }
+#era-sources { margin-top: 9px; color: var(--muted); font-size: 10px; line-height: 1.5; }
+#era-sources summary { cursor: pointer; width: fit-content; }
+#era-sources p { margin: 8px 0; }
+#era-sources ul { margin: 6px 0 0; padding-left: 14px; }
+#era-sources a { color: var(--muted); text-decoration-color: var(--line); }
+.lb-meta { color: var(--gold); font: 500 11px/1.5 var(--sans); margin: 5px 0 8px; }
+.g-thumb small { position: absolute; top: 5px; left: 5px; max-width: calc(100% - 10px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; background: rgba(15, 13, 11, 0.78); color: var(--ink); padding: 3px 5px; border-radius: 4px; font-size: 9px; }
+.tl-tick.first { transform: none; }
+summary:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+@media (max-width: 860px) {
+  #era-text { display: block; }
+  #era-card { max-height: 44dvh; }
 }

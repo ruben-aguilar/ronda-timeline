@@ -1,0 +1,109 @@
+{
+  "reviewed": "2026-10-09",
+  "sources": {
+    "history": [
+      "Turismo de Ronda · Historia",
+      "https://info.turismoderonda.es/historia/"
+    ],
+    "acinipo": [
+      "Turismo de Ronda · Acinipo",
+      "https://info.turismoderonda.es/patrimonio-cultural/yacimiento-arqueologico-de-acinipo/"
+    ],
+    "iaph": [
+      "IAPH · Paisaje de Acinipo",
+      "https://repositorio.iaph.es/handle/11532/326526"
+    ],
+    "taifa": [
+      "Ministerio de Cultura · Taifa de Runda",
+      "https://tesauros.cultura.gob.es/tesauros/toponimiahistorica/1216505.html"
+    ],
+    "cave": [
+      "Universidad de Salamanca · Arte de La Pileta",
+      "https://revistas.usal.es/uno/index.php/0514-7336/article/download/1964/2020/4808"
+    ],
+    "church": [
+      "Turismo de Ronda · Virgen de la Cabeza",
+      "https://info.turismoderonda.es/natur/ruta-1-sl-a-36-ronda-ermita-de-la-virgen-de-la-cabeza/"
+    ],
+    "baths": [
+      "Junta de Andalucía · Baños Árabes",
+      "https://www.juntadeandalucia.es/aaiicc/enclaves/enclave-arqueologico-banos-arabes-ronda"
+    ],
+    "hammam": [
+      "Turismo de Ronda · El hammam",
+      "https://info.turismoderonda.es/wp-content/uploads/2024/09/BANOSARABES-SPA.pdf"
+    ],
+    "legacy": [
+      "Turismo de Ronda · Legado árabe",
+      "https://info.turismoderonda.es/patrimonio-cultural/el-legado-arabe/"
+    ],
+    "conquest": [
+      "Archivo RMR · Asiento de las cosas de Ronda (1485)",
+      "https://www.rmcr.org/2020/05/14/documentos-en-el-archivo-de-la-rmr-no21-2020-asiento-de-las-cosas-de-ronda-1485/"
+    ],
+    "bridge": [
+      "Universidad de Sevilla · Puente Nuevo",
+      "https://grupo.us.es/encrucijada/puente-nuevo-de-ronda-malaga/"
+    ],
+    "bullring": [
+      "Archivo RMR · Construcción de la plaza",
+      "https://www.rmcr.org/2020/05/15/la-aventura-de-construir-una-plaza-de-toros/"
+    ],
+    "rmr": [
+      "Real Maestranza · Cronología",
+      "https://www.rmcr.org/intro/"
+    ],
+    "station": [
+      "ADIF · Estación de Ronda",
+      "https://www.adif.es/w/ronda"
+    ],
+    "alameda": [
+      "Turismo de Ronda · Alameda del Tajo",
+      "https://info.turismoderonda.es/natur/rutas-de-la-flora-urbana-de-ronda/"
+    ],
+    "assembly": [
+      "Junta de Andalucía · Asamblea de Ronda",
+      "https://www.juntadeandalucia.es/presidencia/28f2021/ronda-donde-nacio-la-andalucia-autonomica/"
+    ],
+    "war": [
+      "Junta de Andalucía · Memoria de San Lorenzo",
+      "https://www.juntadeandalucia.es/organismos/culturapatrimoniohistoricoydeporte/areas/cultura/memoria-democratica/lugares-memoria-democratica/paginas/cementerio-san-lorenzo.html"
+    ],
+    "flights": [
+      "IGN · Catálogo de vuelos históricos",
+      "https://pnoa.ign.es/pnoa-imagen/catalogo-y-casos-de-uso"
+    ],
+    "elections": [
+      "Junta Electoral Central · Elecciones de 1979",
+      "https://www.juntaelectoralcentral.es/cs/jec/elecciones/Locales-abril1979?p=1379061494769"
+    ],
+    "protection": [
+      "BOE · Conjunto Histórico de Ronda",
+      "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2001-20831"
+    ],
+    "population": [
+      "IECA · Ronda, población de 2025",
+      "https://ws089.juntadeandalucia.es/sima/ficha.htm?mun=29084"
+    ],
+    "tajo": [
+      "Junta de Andalucía · Monumento Natural Tajo de Ronda",
+      "https://www.juntadeandalucia.es/medioambiente/portal/areas-tematicas/espacios-protegidos/legislacion-autonomica-nacional/monumentos-naturales/monumento-natural-tajo-ronda"
+    ]
+  },
+  "secondsByEra": {
+    "prehistory": 9,
+    "iberian": 13,
+    "roman": 22,
+    "visigoth": 12,
+    "andalus": 20,
+    "taifa": 18,
+    "frontier": 30,
+    "castile": 26,
+    "bridges": 34,
+    "romantic": 28,
+    "early20": 24,
+    "war": 25,
+    "democracy": 20,
+    "today": 22
+  }
+}
