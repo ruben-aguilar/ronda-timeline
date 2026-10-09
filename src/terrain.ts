@@ -28,6 +28,7 @@ export function photoWeights(year: number): [number, number, number, number, num
 
 export interface Terrain {
   mesh: THREE.Group;
+  roofTextures: Record<string, THREE.IUniform>;
   update(camera: THREE.Camera): boolean;
   setYear(year: number): void;
 }
@@ -79,15 +80,22 @@ export function createTerrain(dem: Dem, loader: THREE.TextureLoader, anisotropy:
     uNortheast: { value: 0 },
     tStation: { value: null as THREE.Texture | null },
     uStation: { value: 0 },
+    tWest: { value: null as THREE.Texture | null },
+    uWest: { value: 0 },
+    tSouth: { value: null as THREE.Texture | null },
+    uSouth: { value: 0 },
     tTajo: { value: null as THREE.Texture | null },
     uTajo: { value: 0 },
   };
   const details = [
+    { name: "west", west: -850, south: 500, distance: 650, texture: uniforms.tWest, weight: uniforms.uWest, requested: false, ready: false },
+    { name: "south", west: -650, south: -1750, distance: 650, texture: uniforms.tSouth, weight: uniforms.uSouth, requested: false, ready: false },
     { name: "northeast", west: 800, south: 800, distance: 1300, texture: uniforms.tNortheast, weight: uniforms.uNortheast, requested: false, ready: false },
     { name: "station", west: 0, south: 500, distance: 900, texture: uniforms.tStation, weight: uniforms.uStation, requested: false, ready: false },
     { name: "tajo", west: -650, south: -650, distance: 650, texture: uniforms.tTajo, weight: uniforms.uTajo, requested: false, ready: false },
   ];
   let detailYear = 0;
+  let currentYear = 0;
 
   const mat = new THREE.MeshStandardMaterial({ roughness: 0.93, metalness: 0 });
   mat.onBeforeCompile = (shader) => {
@@ -102,8 +110,8 @@ export function createTerrain(dem: Dem, loader: THREE.TextureLoader, anisotropy:
 varying vec2 vTUv;
 varying float vUp;
 varying vec3 vWPos;
-uniform sampler2D tHist, t1956, t1980, t2004, t2024, t2024c, tMask, tCliff, tNortheast, tStation, tTajo;
-uniform float uNortheast, uStation, uTajo;
+uniform sampler2D tHist, t1956, t1980, t2004, t2024, t2024c, tMask, tCliff, tNortheast, tStation, tTajo, tWest, tSouth;
+uniform float uNortheast, uStation, uTajo, uWest, uSouth;
 varying vec3 vTN;
 float gCliffL;
 uniform vec4 uW;
@@ -130,6 +138,12 @@ float cin = smoothstep(0.0, 0.02, min(min(cuv.x, cuv.y), min(1.0 - cuv.x, 1.0 - 
 if (cin > 0.0) p2024 = mix(p2024, texture2D(t2024c, clamp(cuv, 0.0, 1.0)).rgb, cin);
 // IGN July 2022, local bounds [800, 2000] east/north. Blend only the inner
 // borders: the north/east sides end at the terrain boundary itself.
+vec2 wuv = (uv - vec2(0.2875, 0.625)) / 0.3;
+float westWeight = smoothstep(0.0, 0.025, min(min(wuv.x,wuv.y), min(1.0-wuv.x,1.0-wuv.y))) * uWest;
+if (westWeight > 0.0) p2024 = mix(p2024,texture2D(tWest,clamp(wuv,0.0,1.0)).rgb,westWeight);
+vec2 souv = (uv - vec2(0.3375, 0.0625)) / 0.3;
+float southWeight = smoothstep(0.0,0.025,min(min(souv.x,souv.y),min(1.0-souv.x,1.0-souv.y))) * uSouth;
+if (southWeight > 0.0) p2024 = mix(p2024,texture2D(tSouth,clamp(souv,0.0,1.0)).rgb,southWeight);
 vec2 nuv = (uv - 0.7) / 0.3;
 float nin = smoothstep(0.0, 0.025, min(nuv.x, nuv.y)) * uNortheast;
 if (nin > 0.0) p2024 = mix(p2024, texture2D(tNortheast, clamp(nuv, 0.0, 1.0)).rgb, nin);
@@ -272,13 +286,18 @@ gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, edge);`,
 
   return {
     mesh,
+    // Reuse the terrain's images: no duplicate downloads or GPU textures for roofs.
+    roofTextures: { tModernBase: uniforms.t2024, tModernCenter: uniforms.t2024c,
+      tModernWest: uniforms.tWest, tModernSouth: uniforms.tSouth, uRoofWest: uniforms.uWest, uRoofSouth: uniforms.uSouth,
+      tModernStation: uniforms.tStation, tModernNortheast: uniforms.tNortheast, tModernTajo: uniforms.tTajo,
+      uRoofStation: uniforms.uStation, uRoofNortheast: uniforms.uNortheast, uRoofTajo: uniforms.uTajo },
     update(camera) {
       mesh.updateMatrixWorld();
       let changed = false;
       for (const detail of details) {
         const dx = Math.max(detail.west - camera.position.x, 0, camera.position.x - detail.west - 1200);
         const dn = Math.max(detail.south + camera.position.z, 0, -camera.position.z - detail.south - 1200);
-        if (detail.requested || detailYear <= 0 || Math.hypot(dx, dn) >= detail.distance) continue;
+        if (detail.requested || detailYear <= 0 || ((detail.name === "west" || detail.name === "south") && currentYear < 2022) || Math.hypot(dx, dn) >= detail.distance) continue;
         detail.requested = true;
         // Independent manager: this optional image does not block initial loading.
         new THREE.TextureLoader(new THREE.LoadingManager()).load(`textures/ortho_${detail.name}.webp`, (texture) => {
@@ -286,7 +305,7 @@ gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, edge);`,
           texture.anisotropy = Math.min(anisotropy, 8);
           detail.texture.value = texture;
           detail.ready = true;
-          detail.weight.value = detailYear;
+          detail.weight.value = detail.name === "west" || detail.name === "south" ? (currentYear >= 2022 ? 1 : 0) : detailYear;
           invalidate();
         }, undefined, () => { /* Retain the base orthophoto if the detail tile is unavailable. */ });
       }
@@ -298,12 +317,13 @@ gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, edge);`,
       return changed;
     },
     setYear(year: number) {
+      currentYear = year;
       const w = photoWeights(year);
       uniforms.uHist.value = w[0];
       uniforms.uW.value.set(w[1], w[2], w[3], w[4]);
       uniforms.uWild.value = 1 - THREE.MathUtils.smoothstep(year, -3000, -200);
       detailYear = THREE.MathUtils.smoothstep(year, 2020, 2022);
-      for (const detail of details) detail.weight.value = detail.ready ? detailYear : 0;
+      for (const detail of details) detail.weight.value = detail.ready ? (detail.name === "west" || detail.name === "south" ? (year >= 2022 ? 1 : 0) : detailYear) : 0;
     },
   };
 }

@@ -1,0 +1,72 @@
+{
+  "date": "2026-10-09",
+  "baselineCommit": "b2ed8d5",
+  "conditions": "Chrome ANGLE Metal; 1440x900; DPR 1; AO enabled; stationary camera; cached shadows; five warmups and forty GPU timer queries per view. Before and after ran sequentially. GPU time, not application FPS.",
+  "before": {
+    "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+    "viewport": [
+      1440,
+      900
+    ],
+    "pixelRatio": 1,
+    "results": [
+      {
+        "view": "general",
+        "medianMs": 2.783416,
+        "p90Ms": 2.949624,
+        "calls": 369,
+        "triangles": 1098780
+      },
+      {
+        "view": "tajo",
+        "medianMs": 5.056208,
+        "p90Ms": 5.878249,
+        "calls": 265,
+        "triangles": 988450
+      }
+    ],
+    "errors": []
+  },
+  "after": {
+    "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Pro, Unspecified Version)",
+    "viewport": [
+      1440,
+      900
+    ],
+    "pixelRatio": 1,
+    "results": [
+      {
+        "view": "general",
+        "medianMs": 3.311166,
+        "p90Ms": 4.589375,
+        "calls": 399,
+        "triangles": 1321601
+      },
+      {
+        "view": "tajo",
+        "medianMs": 3.484625,
+        "p90Ms": 5.879624,
+        "calls": 294,
+        "triangles": 1216453
+      }
+    ],
+    "errors": []
+  },
+  "functional": {
+    "stats": {
+      "source": "OpenStreetMap",
+      "features": 410,
+      "sectors": 50,
+      "mappedWallSegments": 466,
+      "correctedTrees": 56,
+      "wall": false
+    },
+    "restored": {
+      "visible": false,
+      "wall": true,
+      "sameTrees": true
+    },
+    "errors": [],
+    "checks": "Eight sectors, lazy loading, historical tree restoration, period gates, mobile camera menu"
+  }
+}

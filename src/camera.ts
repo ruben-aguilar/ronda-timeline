@@ -11,6 +11,8 @@ export interface Viewpoint {
   cam: [number, number, number];
   tgt: [number, number, number];
   mode?: CamMode;
+  /** Current mapped detail: hide this preset in earlier periods. */
+  from?: number;
 }
 
 export const VIEWPOINTS: Viewpoint[] = [
@@ -29,6 +31,10 @@ export const VIEWPOINTS: Viewpoint[] = [
   { id: "mercadillo", name: "El Mercadillo", cam: [-480, 420, 230], tgt: [-60, 180, 10] },
   { id: "noreste", name: "Entrada noreste · A-367", cam: [1470, 1280, 135], tgt: [1770, 1720, 10] },
   { id: "estacion", name: "Estación y vías", cam: [160, 1190, 110], tgt: [610, 1000, 5] },
+  { id: "deportes", name: "Ciudad Deportiva y piscina", cam: [1440, 620, 170], tgt: [1660, 950, 3], from: 2022 },
+  { id: "fuerte", name: "El Fuerte · deporte e industria", cam: [-50, 600, 140], tgt: [235, 940, 5], from: 2022 },
+  { id: "sanfrancisco", name: "Barrio de San Francisco", cam: [-380, -1310, 170], tgt: [125, -990, 8], from: 2022 },
+  { id: "cijara", name: "Murallas del Carmen y la Cijara", cam: [530, -520, 115], tgt: [245, -420, 10], from: 2022 },
   { id: "cenital", name: "Vista cenital", cam: [60, -101, 2300], tgt: [60, -100, 0] },
   { id: "paseo", name: "A pie: Balcón del Tajo", cam: [-338, 319, 1.7], tgt: [-700, 250, 140], mode: "walk" },
 ];
@@ -40,7 +46,7 @@ export const ERA_VIEWS: Record<string, string[]> = {
   frontier: ["banos", "almocabar"], castile: ["santamaria", "viejo"],
   bridges: ["puente", "toros"], romantic: ["tajo", "alameda", "estacion"],
   early20: ["socorro"], war: ["cenital"], democracy: ["estacion", "noreste"],
-  today: ["puente-rio", "ciudad"],
+  today: ["puente-rio", "ciudad", "deportes", "fuerte", "sanfrancisco", "cijara"],
 };
 
 const EYE = 1.7;

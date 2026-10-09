@@ -15,7 +15,7 @@ export interface Monuments {
   group: THREE.Group;
   /** True for a Catastro part (by its centroid) that a monument model replaces. */
   exclude(x: number, n: number): boolean;
-  update(year: number): void;
+  update(year: number, mappedWalls?: boolean): void;
 }
 
 /** Collects geometry per material, then merges it into one mesh per material. */
@@ -178,6 +178,7 @@ export function createMonuments(dem: Dem, data: BuildingData): Monuments {
   const ground = (x: number, n: number) => elevation(dem, x, n) - Y_OFFSET;
   const minGround = (pts: Pt[]) => Math.min(...pts.map(([x, n]) => ground(x, n)));
   const group = new THREE.Group();
+  let schematicWall: THREE.Group;
   const updaters: Array<(y: number) => void> = [];
   const excluded = new Set<string>();
   const exclusionCircles: Array<[number, number, number]> = [];
@@ -211,6 +212,7 @@ export function createMonuments(dem: Dem, data: BuildingData): Monuments {
     const t = timed(b.build(), base, from, to, end);
     group.add(t.pivot);
     updaters.push(t.update);
+    return t.pivot;
   };
 
   // ---------------------------------------------------------------- Plaza de toros (1779–1785)
@@ -576,7 +578,8 @@ export function createMonuments(dem: Dem, data: BuildingData): Monuments {
         for (const mg of merlons(7, 7.4, 1.1, 0.9)) b.add(mg.translate(0, 16, 0), mat.tapial, m);
       }
     }
-    add(b, base - 2, 880, 950);
+    schematicWall = add(b, base - 2, 880, 950);
+    schematicWall.name = "Schematic medieval enclosure";
 
     // Almocábar gate: a horseshoe arch between two towers, on the south wall.
     const g = new Builder();
@@ -943,8 +946,10 @@ export function createMonuments(dem: Dem, data: BuildingData): Monuments {
       for (const [cx, cn, r] of exclusionCircles) if (Math.hypot(x - cx, n - cn) < r) return true;
       return false;
     },
-    update(year) {
+    update(year, mappedWalls = false) {
       for (const u of updaters) u(year);
+      // Replace only the present-day reconstruction, after the mapped layer is ready.
+      if (year >= 2022 && mappedWalls) schematicWall.visible = false;
     },
   };
 }

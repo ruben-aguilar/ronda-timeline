@@ -97,6 +97,7 @@ export async function createTrees(dem: Dem): Promise<THREE.Group> {
   for (const indices of batches.values()) {
     const crowns = new THREE.InstancedMesh(crownGeo, crownMat, indices.length);
     const trunks = new THREE.InstancedMesh(trunkGeo, trunkMat, indices.length);
+    crowns.userData.treeIndices = trunks.userData.treeIndices = indices;
     for (let j = 0; j < indices.length; j++) {
       const i = indices[j], x = raw[i * 3] / 8, n = raw[i * 3 + 1] / 8, size = raw[i * 3 + 2] / 100;
       let seed = i + 1;

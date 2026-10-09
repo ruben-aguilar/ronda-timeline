@@ -109,7 +109,7 @@ async function main() {
   scene.add(terrain.mesh);
   const monuments = createMonuments(dem, bdata);
   scene.add(monuments.group);
-  const buildings = createBuildings(bdata, monuments.exclude);
+  const buildings = createBuildings(bdata, monuments.exclude, terrain.roofTextures);
   scene.add(buildings.mesh);
   const landmarks = createLandmarks(dem);
   scene.add(landmarks.group);
@@ -118,6 +118,8 @@ async function main() {
   scene.add(alameda.group);
   scene.add(railway.group);
   scene.add(tajo.group);
+  let modern: Awaited<ReturnType<typeof import("./modern").createModern>> | undefined;
+  let modernRequested = false;
 
   // Cámara.
   const rig = createCameraRig(camera, labelRenderer.domElement, dem);
@@ -210,6 +212,10 @@ async function main() {
       const button = document.createElement("button");
       button.type = "button";
       button.dataset.place = id;
+      if (view.from) {
+        button.dataset.viewFrom = String(view.from);
+        button.hidden = yearAt(pos) < view.from;
+      }
       button.textContent = `↗ ${t(view.name)}`;
       button.title = t("Ir a este lugar · mantiene la fecha actual");
       button.addEventListener("click", () => {
@@ -429,12 +435,23 @@ async function main() {
       }
     }
     const year = yearAt(pos);
+    if (year >= 2022 && !modernRequested) {
+      modernRequested = true;
+      void import("./modern").then(m => m.createModern(dem, terrain.roofTextures, trees)).then(detail => {
+        modern = detail;
+        scene.add(detail.group);
+        monuments.update(yearAt(pos), true);
+        renderer.shadowMap.needsUpdate = true;
+        dirty = true;
+      }).catch(error => console.warn("Optional modern detail unavailable", error));
+    }
+    if (modern?.update(year, camera)) { dirty = true; renderer.shadowMap.needsUpdate = true; }
     const now = performance.now();
     const yearChanged = year !== previousYear;
     if (yearChanged) {
       buildings.setYear(year, yearsPerStep(pos));
       terrain.setYear(year);
-      monuments.update(year);
+      monuments.update(year, !!modern);
       alameda.update(year);
       tajo.update(year);
       renderer.shadowMap.needsUpdate = true;
@@ -444,6 +461,9 @@ async function main() {
     if (era !== currentEra) { currentEra = era; showEra(era); }
     if (year !== displayedYear && (!playing || now - lastUI > 80)) {
       ui.setPos(pos, year, era);
+      document.querySelectorAll<HTMLButtonElement>("[data-view-from]").forEach(button => {
+        button.hidden = year < Number(button.dataset.viewFrom);
+      });
       yearEl.textContent = formatYear(year);
       countEl.textContent = `${formatNumber(countUpTo(buildings.years, year))} ${t("edificios")}`;
       lastUI = now;
@@ -494,7 +514,7 @@ function buildCameraBar(rig: ReturnType<typeof createCameraRig>) {
     <div class="cam-help"></div>
     <div class="cam-views">
       <button class="cam-views-title" aria-expanded="false">Vistas</button>
-      ${VIEWPOINTS.map((v) => `<button data-view="${v.id}">${v.name}</button>`).join("")}
+      ${VIEWPOINTS.map((v) => `<button data-view="${v.id}"${v.from ? ` data-view-from="${v.from}" hidden` : ""}>${v.name}</button>`).join("")}
     </div>
     <button class="ui-toggle" aria-pressed="false"></button>`;
   bindTranslations(bar);

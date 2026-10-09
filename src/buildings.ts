@@ -91,8 +91,9 @@ export function orientedBox(pts: number[][]): OBB {
 }
 
 const VERTEX_HEAD = /* glsl */ `
-attribute vec4 aInfo; // appear year, bottom Y, kind (0 wall foot, 1 wall top, 2 flat roof, 3 pitched roof), unused
+attribute vec4 aInfo; // appear year, bottom Y, kind (0 wall foot, 1 wall top, 2 flat roof, 3 historic roof, 4 clipped modern roof), historic zone
 attribute vec4 aB;    // rebuild year, modern floors, hash, roof mode (0 none, 1 old form only, 2 always)
+attribute float aIndustrial; // cadastral industrial use
 attribute vec3 aR;    // walls: (position along the wall, wall length, 0); pitched roofs: (along the eave, down the slope, slope length)
 uniform float uYear;
 uniform float uGrow;
@@ -103,6 +104,7 @@ varying vec2 vKH;     // kind, hash
 varying vec3 vR;
 varying float vWallH;
 varying float vHist;
+varying float vIndustrial;
 
 // Floors of the old form, by the year on screen.
 float histFloors(float y, float h) {
@@ -125,7 +127,10 @@ else {
   float yy = top;
   if (kind > 2.5) {
     bool show = aB.w > 1.5 || (aB.w > 0.5 && !modern);
-    yy = show ? top + transformed.y : bottom - 1.0;
+    // Earlier reconstructions retain their box roof; present-day roofs are clipped to cadastral rings.
+    if (kind > 3.5) show = show && uYear >= 2022.0;
+    else if (uYear >= 2022.0) show = false;
+    yy = show ? top + transformed.y : bottom - ((kind > 3.5 || uYear >= 2022.0) ? 1000.0 : 1.0);
   }
   transformed.y = mix(bottom, yy, g);
 }
@@ -135,12 +140,33 @@ vBPos = position;
 vKH = vec2(kind, aB.z);
 vR = aR;
 vHist = aInfo.w;
+vIndustrial = uYear >= 2022.0 ? aIndustrial : 0.0;
 vWallH = top - bottom - 3.0;
 `;
 
 // Colour and facade by style year: walls, windows, doors, painted base, roof material.
 const FRAGMENT_HEAD = /* glsl */ `
 uniform sampler2D tPlaster, tRoof, tWood, tPaving;
+uniform sampler2D tModernBase, tModernCenter, tModernStation, tModernNortheast, tModernTajo, tModernWest, tModernSouth;
+uniform float uRoofStation, uRoofNortheast, uRoofTajo, uRoofPhoto, uRoofWest, uRoofSouth;
+float photoEdge(vec2 uv) { return smoothstep(0.0, 0.025, min(min(uv.x, uv.y), min(1.0-uv.x, 1.0-uv.y))); }
+vec3 roofPhoto(vec2 uv) {
+  vec3 c = texture2D(tModernBase, uv).rgb;
+  vec2 p = (uv - 0.25) * 2.0;
+  float w = photoEdge(p);
+  if (w > 0.0) c = mix(c, texture2D(tModernCenter, p).rgb, w);
+  p = (uv - vec2(0.2875, 0.625)) / 0.3; w = photoEdge(p) * uRoofWest;
+  if (w > 0.0) c = mix(c, texture2D(tModernWest, p).rgb, w);
+  p = (uv - vec2(0.3375, 0.0625)) / 0.3; w = photoEdge(p) * uRoofSouth;
+  if (w > 0.0) c = mix(c, texture2D(tModernSouth, p).rgb, w);
+  p = (uv - vec2(0.5, 0.625)) / 0.3; w = photoEdge(p) * uRoofStation;
+  if (w > 0.0) c = mix(c, texture2D(tModernStation, p).rgb, w);
+  p = (uv - 0.7) / 0.3; w = photoEdge(p) * uRoofNortheast;
+  if (w > 0.0) c = mix(c, texture2D(tModernNortheast, p).rgb, w);
+  p = (uv - 0.3375) / 0.3; w = photoEdge(p) * uRoofTajo;
+  if (w > 0.0) c = mix(c, texture2D(tModernTajo, p).rgb, w);
+  return c;
+}
 varying float vFresh;
 varying vec4 vFacade;
 varying vec3 vBPos;
@@ -148,6 +174,7 @@ varying vec2 vKH;
 varying vec3 vR;
 varying float vWallH;
 varying float vHist;
+varying float vIndustrial;
 float gBump;
 float bHash(vec2 p) { return fract(sin(dot(p, vec2(41.3, 289.1))) * 15731.743); }
 float bNoise(vec2 p) {
@@ -185,6 +212,7 @@ if (isWall) {
   else if (sy < 1485.0) wc = vec3(0.88, 0.83, 0.71) * (0.94 + 0.08 * hsh);
   else if (sy < 1900.0) wc = vec3(0.95, 0.93, 0.88) * (0.96 + 0.05 * hsh);
   else wc = hsh > 0.82 ? vec3(0.90, 0.78, 0.58) : vec3(0.96, 0.94, 0.90);
+  if (vIndustrial > 0.5) wc = mix(vec3(0.58, 0.59, 0.58), vec3(0.78, 0.76, 0.68), hsh);
   float h = vFacade.x;
   vec2 pUV = vec2(vR.x, h) / 4.0 + vec2(hsh * 9.0, 0.0);
   float pl = lumOf(texture2D(tPlaster, pUV).rgb) / 0.4;
@@ -205,6 +233,8 @@ if (isWall) {
           : sy < 1800.0 ? vec4(4.4, 0.17, 0.62, 0.76)
           : sy < 1950.0 ? vec4(3.8, 0.2, 0.8, 0.8)
           : vec4(3.4, 0.24, 0.85, 0.8);
+  // Cadastral industrial buildings: sparse high windows and loading doors, not apartment balconies.
+  if (vIndustrial > 0.5) st = vec4(7.0, 0.3, 0.4, 0.86);
   float len = vR.y;
   float nb = max(1.0, floor((len - 1.2) / st.x));
   float bw = (len - 1.2) / nb;
@@ -220,7 +250,7 @@ if (isWall) {
   hw = st.y;
   bool upper = floorIx > 0.5;
   bool balcony = !isModern && sy >= 1780.0 && upper && r < 0.35;
-  bool modernBalc = isModern && upper && r > 0.6 && r < 0.78;
+  bool modernBalc = isModern && vIndustrial < 0.5 && upper && r > 0.6 && r < 0.78;
   float wTop = st.w;
   float wBot = balcony || modernBalc ? 0.04 : 0.34;
   vec3 col3 = wc;
@@ -331,16 +361,26 @@ if (isWall) {
   }
   diffuseColor.rgb = c;
 }
+if (!isWall && uRoofPhoto > 0.0) {
+  // Orthographic projection preserves actual roof colour, skylights and terraces.
+  // Photos contain baked lighting; keep a little material variation at close range.
+  vec3 photographed = roofPhoto(vec2(vBPos.x + 2000.0, 2000.0 - vBPos.z) / 4000.0);
+  diffuseColor.rgb = mix(diffuseColor.rgb, photographed, uRoofPhoto * 0.92);
+  gBump *= 1.0 - uRoofPhoto * 0.85;
+}
 `;
 
-export function createBuildings(data: BuildingData, exclude: (x: number, n: number) => boolean = () => false): Buildings {
+export function createBuildings(data: BuildingData, exclude: (x: number, n: number) => boolean, roofTextures: Record<string, THREE.IUniform>): Buildings {
   const pos: number[] = [];
   const nor: number[] = [];
   const col: number[] = [];
   const info: number[] = [];
   const bInfo: number[] = [];
   const rInfo: number[] = [];
+  const modernInfo: number[] = [];
   const index: number[] = [];
+  const historicalIndex: number[] = [], presentIndex: number[] = [];
+  const presentRanges: number[] = [];
   const years: number[] = [];
 
   const ranges: number[] = [];
@@ -361,6 +401,8 @@ export function createBuildings(data: BuildingData, exclude: (x: number, n: numb
     if (exclude(sx / rings[0].length, sn / rings[0].length)) return;
     kept++;
     years.push(year);
+    const partStart = index.length;
+    const roofSpans: { start: number; end: number; present: boolean }[] = [];
 
     const h = hash(i);
     const bottom = baseDm / 10 - Y_OFFSET - 3;
@@ -386,6 +428,7 @@ export function createBuildings(data: BuildingData, exclude: (x: number, n: numb
     const push = (x: number, y: number, n: number, nx: number, ny: number, nz: number, c: THREE.Color, kind: number, r: [number, number, number] = [0, 0, 0]) => {
       pos.push(x, y, -n);
       rInfo.push(...r);
+      modernInfo.push(use === "3" ? 1 : 0);
       nor.push(nx, ny, nz);
       col.push(c.r, c.g, c.b);
       info.push(year, bottom, kind, historicZone ? 1 : 0);
@@ -453,7 +496,39 @@ export function createBuildings(data: BuildingData, exclude: (x: number, n: numb
           nrm.negate();
         }
         const ids = pts.map(([[x, n], y, u, d]) => push(x, y, n, nrm.x, nrm.y, nrm.z, roof, 3, [u, (d / B) * slope, slope]));
+        const oldStart = index.length;
         for (let k = 1; k < ids.length - 1; k++) index.push(ids[0], ids[k], ids[k + 1]);
+        roofSpans.push({ start: oldStart, end: index.length, present: false });
+        const presentStart = index.length;
+        // Clip every cadastral roof triangle (including courtyard holes) to this slope.
+        // This preserves an L-shaped eave instead of bridging it with a bounding box.
+        const boundary = pts.map(p => p[0]);
+        const orientation = signedArea(boundary) >= 0 ? 1 : -1;
+        for (const triangle of tris) {
+          let polygon: number[][] = triangle.map(i => [all[i].x, all[i].y]);
+          for (let edge = 0; edge < boundary.length && polygon.length; edge++) {
+            const A = boundary[edge], B = boundary[(edge+1)%boundary.length];
+            const distance = (p: number[]) => orientation*((B[0]-A[0])*(p[1]-A[1])-(B[1]-A[1])*(p[0]-A[0]));
+            const clipped: number[][] = [];
+            for (let k=0;k<polygon.length;k++) {
+              const P=polygon[k], Q=polygon[(k+1)%polygon.length], dp=distance(P), dq=distance(Q);
+              if(dp>=-1e-7)clipped.push(P);
+              if((dp>=0)!==(dq>=0)) {
+                const t=dp/(dp-dq);clipped.push([P[0]+(Q[0]-P[0])*t,P[1]+(Q[1]-P[1])*t]);
+              }
+            }
+            polygon=clipped;
+          }
+          if(polygon.length<3 || Math.abs(signedArea(polygon))<0.0001)continue;
+          if(signedArea(polygon)<0)polygon.reverse();
+          const [origin, height]=pts[0];
+          const clippedIds=polygon.map(([x,n]) => {
+            const y=height-(nrm.x*(x-origin[0])-nrm.z*(n-origin[1]))/nrm.y;
+            return push(x,y,n,nrm.x,nrm.y,nrm.z,roof,4,[x,n,slope]);
+          });
+          for(let k=1;k<clippedIds.length-1;k++)index.push(clippedIds[0],clippedIds[k],clippedIds[k+1]);
+        }
+        roofSpans.push({ start: presentStart, end: index.length, present: true });
       };
       const ra = a - b;
       face([[e1, 0, -A, B], [e2, 0, A, B], [r2, rise, ra, 0], [r1, rise, -ra, 0]]);
@@ -461,7 +536,15 @@ export function createBuildings(data: BuildingData, exclude: (x: number, n: numb
       face([[e2, 0, -B, B], [e3, 0, B, B], [r2, rise, 0, 0]]);
       face([[e4, 0, B, B], [e1, 0, -B, B], [r1, rise, 0, 0]]);
     }
-    ranges.push(index.length);
+    let cursor = partStart;
+    for (const span of roofSpans) {
+      for (; cursor < span.start; cursor++) { historicalIndex.push(index[cursor]); presentIndex.push(index[cursor]); }
+      const destination = span.present ? presentIndex : historicalIndex;
+      for (; cursor < span.end; cursor++) destination.push(index[cursor]);
+    }
+    for (; cursor < index.length; cursor++) { historicalIndex.push(index[cursor]); presentIndex.push(index[cursor]); }
+    ranges.push(historicalIndex.length);
+    presentRanges.push(presentIndex.length);
   });
 
   const geo = new THREE.BufferGeometry();
@@ -470,11 +553,16 @@ export function createBuildings(data: BuildingData, exclude: (x: number, n: numb
   geo.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
   geo.setAttribute("aInfo", new THREE.Float32BufferAttribute(info, 4));
   geo.setAttribute("aB", new THREE.Float32BufferAttribute(bInfo, 4));
+  geo.setAttribute("aIndustrial", new THREE.Float32BufferAttribute(modernInfo, 1));
   geo.setAttribute("aR", new THREE.Float32BufferAttribute(rInfo, 3));
-  geo.setIndex(index);
+  const historicalElements = new THREE.Uint32BufferAttribute(historicalIndex, 1);
+  const presentElements = new THREE.Uint32BufferAttribute(presentIndex, 1);
+  geo.setIndex(historicalElements);
   geo.computeBoundingSphere();
 
   const uniforms = {
+    ...roofTextures,
+    uRoofPhoto: { value: 0 },
     uYear: { value: 2026 },
     uGrow: { value: 5 },
     tPlaster: { value: pbr("plaster").map },
@@ -518,8 +606,13 @@ export function createBuildings(data: BuildingData, exclude: (x: number, n: numb
     years: sorted,
     setYear(year, growYears) {
       const visible = countUpTo(sorted, year);
-      geo.setDrawRange(0, visible ? ranges[visible - 1] : 0);
+      const present = year >= 2022;
+      // Submit only the active roof form; historical periods pay no added triangle cost.
+      const elements = present ? presentElements : historicalElements;
+      if (geo.index !== elements) geo.setIndex(elements);
+      geo.setDrawRange(0, visible ? (present ? presentRanges : ranges)[visible - 1] : 0);
       uniforms.uYear.value = year;
+      uniforms.uRoofPhoto.value = THREE.MathUtils.smoothstep(year, 2022, 2023);
       uniforms.uGrow.value = Math.max(growYears, 0.3);
     },
   };
