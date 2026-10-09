@@ -159,8 +159,7 @@ async function main() {
     playing = false;
     ui.setPlaying(false);
   };
-  buildCameraBar(rig, pausePlayback);
-  rig.controls.addEventListener("start", pausePlayback);
+  buildCameraBar(rig);
 
   new ResizeObserver(([entry]) => {
     document.documentElement.style.setProperty("--timeline-height", `${entry.target.getBoundingClientRect().height}px`);
@@ -214,7 +213,6 @@ async function main() {
       button.textContent = `↗ ${t(view.name)}`;
       button.title = t("Ir a este lugar · mantiene la fecha actual");
       button.addEventListener("click", () => {
-        pausePlayback();
         if (matchMedia("(prefers-reduced-motion: reduce)").matches) rig.jumpTo(view);
         else rig.goTo(view);
       });
@@ -481,7 +479,7 @@ async function main() {
 }
 
 /** Barra de cámara: modos y vistas. */
-function buildCameraBar(rig: ReturnType<typeof createCameraRig>, pausePlayback: () => void) {
+function buildCameraBar(rig: ReturnType<typeof createCameraRig>) {
   const bar = document.getElementById("cambar")!;
   const modes: Array<[CamMode, string, string, string]> = [
     ["cine", "Cine", "La cámara se mueve sola mientras pasa el tiempo.", '<path d="M3 6h12v12H3zM15 10l6-3.5v11L15 14z"/>'],
@@ -528,12 +526,10 @@ function buildCameraBar(rig: ReturnType<typeof createCameraRig>, pausePlayback: 
   sync(rig.mode);
   onLanguageChange(() => { sync(rig.mode); refreshToggle(); });
   bar.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((b) => b.addEventListener("click", () => {
-    if (b.dataset.mode !== "cine") pausePlayback();
     rig.setMode(b.dataset.mode as CamMode);
   }));
   bar.querySelectorAll<HTMLButtonElement>("[data-view]").forEach((b) =>
     b.addEventListener("click", () => {
-      pausePlayback();
       rig.goTo(VIEWPOINTS.find((v) => v.id === b.dataset.view)!);
       viewMenu.classList.remove("open");
       viewToggle.setAttribute("aria-expanded", "false");

@@ -42,14 +42,50 @@ try {
   await page.keyboard.press('Escape');
   assert.equal(await settings.isVisible(), false);
   assert.equal(await page.locator('#settings-btn').evaluate(el => el === document.activeElement), true);
-  await page.evaluate(() => { window.__ronda.view(1793, 'general'); window.__ronda.resume(); });
+  await page.evaluate(() => { window.__ronda.view(1720, 'general'); window.__ronda.resume(); });
   await page.locator('.tl-play').click();
-  await page.locator('[data-place="puente"]').click();
-  assert.equal(await page.locator('.tl-play').getAttribute('aria-label'), 'Play');
-  const heldYear = await page.evaluate(() => window.__ronda.stats().year);
+  const keepsPlaying = async (name, action) => {
+    const before = await page.evaluate(() => window.__ronda.stats().year);
+    await action();
+    assert.equal(await page.locator('.tl-play').getAttribute('aria-label'), 'Pause', name);
+    await page.waitForFunction(year => window.__ronda.stats().year > year + 0.1, before);
+    assert.equal(await page.locator('.tl-play').getAttribute('aria-label'), 'Pause', name);
+  };
+  await keepsPlaying('history place', () => page.locator('[data-place="puente"]').click());
   await page.waitForTimeout(2500);
-  assert.equal(await page.evaluate(() => window.__ronda.stats().year), heldYear);
   assert.equal(await page.locator('[data-mode="orbit"]').evaluate(el => el.classList.contains('on')), true);
+  await keepsPlaying('view preset', async () => {
+    await page.locator('.cam-views-title').click();
+    await page.locator('[data-view="general"]').click();
+  });
+  await page.waitForTimeout(2500);
+  const drag = async (button = 'left') => {
+    await page.mouse.move(850, 450);
+    await page.mouse.down({ button });
+    await page.mouse.move(940, 490, { steps: 8 });
+    await page.mouse.up({ button });
+  };
+  await keepsPlaying('orbit drag', () => drag());
+  await keepsPlaying('orbit pan', () => drag('right'));
+  await keepsPlaying('orbit zoom', () => page.mouse.wheel(0, -150));
+  await keepsPlaying('double-click travel', () => page.mouse.dblclick(850, 450));
+  for (const mode of ['fly', 'walk', 'cine', 'orbit']) {
+    await keepsPlaying(`${mode} mode`, () => page.locator(`[data-mode="${mode}"]`).click());
+    if (mode === 'fly' || mode === 'walk') {
+      await keepsPlaying(`${mode} look`, () => drag());
+      await keepsPlaying(`${mode} movement`, async () => {
+        await page.keyboard.down('w');
+        await page.waitForTimeout(200);
+        await page.keyboard.up('w');
+      });
+    }
+  }
+  await page.locator('.tl-play').click();
+  const heldYear = await page.evaluate(() => window.__ronda.stats().year);
+  await page.locator('[data-place="puente"]').click();
+  await drag();
+  assert.equal(await page.locator('.tl-play').getAttribute('aria-label'), 'Play');
+  assert.equal(await page.evaluate(() => window.__ronda.stats().year), heldYear);
   await page.locator('.tl-play').click();
   await page.locator('#era-more summary').click();
   await page.waitForTimeout(100);
@@ -81,5 +117,5 @@ try {
     for (const key of ['img', 'thumb']) assert.ok(fs.existsSync(`public/${item[key]}`), item[key]);
   }
   assert.deepEqual(errors, []);
-  console.log(JSON.stringify({ timing, layout, errors, checks: 'Settings, languages, camera links, pause on exploration, gallery assets, mobile, hide UI' }, null, 2));
+  console.log(JSON.stringify({ timing, layout, errors, checks: 'Settings, languages, camera controls preserve playback, pause on reading, gallery assets, mobile, hide UI' }, null, 2));
 } finally { await browser.close(); }

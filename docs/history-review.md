@@ -75,9 +75,10 @@ Timing follows the amount of material, rather than elapsed historical years.
 | Today | 22 |
 | **Total** | **303 (5m 03s)** |
 
-Opening more text, sources, a photograph or settings pauses playback. Seeking,
-using a camera preset, dragging the orbit camera or selecting a history-card
-place also pauses it. Playback resumes only when the user presses Play.
+Opening more text, sources, a photograph or settings pauses playback, as does
+seeking on the timeline. Camera movement, camera mode changes, presets and
+history-card place links keep the current playback state. They do not pause a
+playing timeline or start a paused timeline.
 
 Place buttons retain the selected date and use existing scene coordinates. Links
 for Acinipo and La Pileta are not provided because these sites are outside the 3D
