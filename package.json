@@ -8,6 +8,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "check": "node tools/check.mjs",
+    "check:mobile-trees": "node tools/check-mobile-trees.mjs",
     "check:mobile": "node tools/check-mobile.mjs",
     "check:mobile-textures": "node tools/check-mobile-textures.mjs",
     "benchmark": "node tools/benchmark.mjs"

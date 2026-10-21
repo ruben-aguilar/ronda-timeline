@@ -15,7 +15,7 @@ import { createAlameda } from "./alameda";
 import { createGallery } from "./gallery";
 import { createTerrain } from "./terrain";
 import { createSky } from "./sky";
-import { createTrees } from "./trees";
+import { createTrees, setCanopyMultisampling } from "./trees";
 import { createRailway } from "./railway";
 import { createTajo } from "./tajo";
 import { refineBridgeFoundations } from "./puente-nuevo";
@@ -86,6 +86,7 @@ async function main() {
   // Postproceso: oclusión ambiental (GTAO) sobre un render multimuestreado.
   const floatTargets = renderer.extensions.has("EXT_color_buffer_float");
   const samplesFor = (level: number) => !constrainedDevice && level === 2 && floatTargets ? Math.min(4, renderer.capabilities.maxSamples) : 0;
+  setCanopyMultisampling(samplesFor(quality) > 0);
   const target = new THREE.WebGLRenderTarget(1, 1, {
     type: floatTargets ? THREE.HalfFloatType : THREE.UnsignedByteType, samples: samplesFor(quality),
   });
@@ -311,6 +312,7 @@ async function main() {
   let renderedFrames = 0;
   const setQuality = (level: number, preserveTextureDetail = false) => {
     quality = level;
+    setCanopyMultisampling(samplesFor(level) > 0);
     gtao.enabled = !constrainedDevice && level > 0 && floatTargets;
     terrain.setDetail(level > 0 || preserveTextureDetail ? 1 : 0);
     for (const buffer of [composer.renderTarget1, composer.renderTarget2]) {

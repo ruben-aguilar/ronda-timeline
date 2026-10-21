@@ -16,7 +16,8 @@ function canopyTexture(): THREE.CanvasTexture {
     for (let leaf = 0; leaf < 65; leaf++) {
       const a = rnd() * Math.PI * 2, r = Math.sqrt(rnd()) * 29;
       const lx = x + Math.cos(a) * r, ly = y + Math.sin(a) * r;
-      const light = 48 + rnd() * 27 + (125 - ly) * 0.08;
+      // A shaded centre and lit upper edge give each cluster depth, even without AO.
+      const light = 43 + rnd() * 23 + (y - ly) * 0.22 + (125 - ly) * 0.06;
       ctx.fillStyle = `hsl(${70 + rnd() * 18} 18% ${light}%)`;
       ctx.beginPath();
       ctx.ellipse(lx, ly, 2 + rnd() * 4, 1.5 + rnd() * 2.5, rnd() * Math.PI, 0, Math.PI * 2);
@@ -29,6 +30,17 @@ function canopyTexture(): THREE.CanvasTexture {
   return texture;
 }
 
+let canopyMultisampling = false;
+
+/** Alpha-to-coverage only smooths edges when the scene target has MSAA samples. */
+export function setCanopyMultisampling(enabled: boolean) {
+  canopyMultisampling = enabled;
+  if (sharedCanopy && sharedCanopy.material.alphaToCoverage !== enabled) {
+    sharedCanopy.material.alphaToCoverage = enabled;
+    sharedCanopy.material.needsUpdate = true;
+  }
+}
+
 let sharedCanopy: { geometry: THREE.BufferGeometry; material: THREE.MeshStandardMaterial } | undefined;
 
 export function createCanopy() {
@@ -36,12 +48,13 @@ export function createCanopy() {
   const planes: THREE.BufferGeometry[] = [];
   // Overlapping small leaf clusters make a volume without a solid polygon silhouette.
   // The golden-angle distribution avoids the visible cross of three full-crown cards.
+  // Keep the clusters close enough to fill the centre without adding more cards.
   for (let i = 0; i < 8; i++) {
     const y = 1 - 2 * (i + 0.5) / 8;
     const radial = Math.sqrt(1 - y * y), angle = i * 2.399963;
-    const plane = new THREE.PlaneGeometry(1.2, 1.1)
+    const plane = new THREE.PlaneGeometry(1.35, 1.2)
       .rotateX(y * 0.9).rotateY(angle)
-      .translate(Math.cos(angle) * radial * 0.65, y * 0.55, Math.sin(angle) * radial * 0.65);
+      .translate(Math.cos(angle) * radial * 0.48, y * 0.5, Math.sin(angle) * radial * 0.48);
     planes.push(plane);
   }
   const crownGeo = mergeGeometries(planes)!;
@@ -51,13 +64,13 @@ export function createCanopy() {
   const normal = new THREE.Vector3();
   for (let i = 0; i < positions.count; i++) {
     normal.fromBufferAttribute(positions, i);
-    normal.y = normal.y * 0.35 + 1.2;
+    normal.y = normal.y * 0.75 + 0.45;
     normal.normalize();
     normals.setXYZ(i, normal.x, normal.y, normal.z);
   }
   const crownMat = new THREE.MeshStandardMaterial({
     map: canopyTexture(), roughness: 1, side: THREE.DoubleSide,
-    alphaTest: 0.38, alphaToCoverage: true,
+    alphaTest: 0.38, alphaToCoverage: canopyMultisampling,
   });
   crownMat.onBeforeCompile = (shader) => {
     // Leaf cards represent a volume: keep the outward canopy normal on both sides.
