@@ -3,6 +3,7 @@ import { chromium, webkit } from 'playwright-core';
 import { mkdir, writeFile } from 'node:fs/promises';
 
 const url = process.argv[2] ?? 'http://localhost:5317';
+const sceneURL = year => { const target = new URL(url); target.hash = `year=${year}`; return target.href; };
 const output = process.argv[3] ?? '/tmp/ronda-mobile-textures';
 await mkdir(output, { recursive: true });
 const browser = process.env.PW_BROWSER === 'webkit' ? await webkit.launch({ headless: true })
@@ -15,7 +16,7 @@ try {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
-  await page.goto(`${url}/#year=2026`);
+  await page.goto(sceneURL(2026));
   await page.waitForFunction(() => window.__ronda, null, { timeout: 60000 });
   const samples = [];
   for (const view of ['estacion', 'toros']) {
@@ -25,7 +26,11 @@ try {
       document.body.classList.add('ui-hidden');
     }, view);
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(500);
+    await page.waitForFunction(view => {
+      const material = window.__ronda.dbg.scene.getObjectByName('Terrain tiles').children[0].children[0].material;
+      const uniforms = window.__ronda.dbg.renderer.properties.get(material).uniforms;
+      return uniforms[view === 'estacion' ? 'tStation' : 't2024c'].value?.image?.width >= 2048;
+    }, view);
     samples.push(await page.evaluate(view => {
       const r = window.__ronda;
       const terrain = r.dbg.scene.getObjectByName('Terrain tiles');
@@ -38,7 +43,7 @@ try {
     }, view));
     await page.screenshot({ path: `${output}/${view}.png` });
   }
-  assert.ok(samples[0].imageSizes.tStation[0] >= 2048, 'Close mobile views need at least 2048 px regional imagery');
+  assert.ok(samples[0].imageSizes.tStation[0] >= 2048, `Close mobile views need at least 2048 px regional imagery: ${JSON.stringify(samples)}`);
   assert.ok(samples[1].imageSizes.t2024c[0] >= 2048, 'Mobile roofs need a sharp central image');
   assert.equal(samples[0].pixelRatio, 1.5, 'The iPhone canvas must preserve fine texture detail');
   assert.equal(samples[0].ao, false, 'Mobile detail must not enable costly ambient occlusion');
@@ -107,7 +112,7 @@ try {
   let releaseRequest;
   const heldRequest = new Promise(resolve => { releaseRequest = resolve; });
   await racePage.route('**/textures/mobile/detail/**', async route => { await heldRequest; await route.continue(); });
-  await racePage.goto(`${url}/#year=1793`);
+  await racePage.goto(sceneURL(1793));
   await racePage.waitForFunction(() => window.__ronda?.stats().terrainTextures.loading);
   await racePage.evaluate(() => {
     const canvas = window.__ronda.dbg.renderer.domElement;
@@ -134,7 +139,7 @@ try {
     Object.defineProperty(performance, 'now', { value: () => realNow() * 10 });
     localStorage.setItem('ronda-music', '0');
   });
-  await slowPage.goto(`${url}/#year=2026`);
+  await slowPage.goto(sceneURL(2026));
   await slowPage.waitForFunction(() => window.__ronda?.stats().quality === 0);
   await slowPage.locator('[data-mode="orbit"]').click();
   await slowPage.evaluate(() => { window.__ronda.view(2026, 'estacion'); window.__ronda.resume(); });
