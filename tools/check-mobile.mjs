@@ -27,8 +27,8 @@ try {
     return { ...r.stats(), samples: r.dbg.composer.renderTarget1.samples,
       shadowSize: r.dbg.sun.shadow.mapSize.x, aoWidth: r.dbg.gtao.width };
   });
-  assert.equal(budget.quality, 0, 'Phones must start with a small GPU budget');
-  assert.equal(budget.pixelRatio, 1);
+  assert.equal(budget.quality, 1, 'Phones must start with sharp images and inexpensive effects');
+  assert.equal(budget.pixelRatio, 1.5);
   assert.equal(budget.samples, 0);
   assert.equal(budget.shadowSize, 1024);
   assert.equal(budget.aoWidth, 1, 'Disabled AO must not reserve full-screen buffers');
@@ -54,6 +54,10 @@ try {
   assert.ok(after.renderedFrames > before.renderedFrames,
     'The paused visualization must redraw after WebGL context restoration');
   assert.ok(after.triangles > 0, 'The restored scene must draw geometry');
+  assert.equal(after.quality, 0, 'Recovery must return to the small graphics budget');
+  assert.equal(after.pixelRatio, 1);
+  assert.equal(after.terrainTextures.enabled, false);
+  assert.deepEqual(after.terrainTextures.resident, [], 'Recovery must release all large terrain images');
 
   // Exercise lazy modern imagery, timeline changes and screen rotation on a touch device.
   await page.evaluate(() => { window.__ronda.view(2026, 'estacion'); window.__ronda.resume(); });

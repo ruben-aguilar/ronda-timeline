@@ -37,10 +37,14 @@ async function main() {
   languageSelect.addEventListener("change", () => setLanguage(languageSelect.value === "en" ? "en" : "es"));
   document.getElementById("graphics-retry")!.addEventListener("click", () => location.reload());
   const app = document.getElementById("app")!;
-  let quality = constrainedDevice ? 0 : 2;
+  let quality = constrainedDevice ? 1 : 2;
+  const pixelRatioFor = (level: number) => Math.min(window.devicePixelRatio,
+    level === 0 ? 1 : constrainedDevice || level === 2 ? 1.5 : 1.15);
+  const shadowSizeFor = (level: number) => constrainedDevice ? (level === 2 ? 2048 : 1024)
+    : level === 2 ? 4096 : level === 1 ? 2048 : 1024;
   const renderer = new THREE.WebGLRenderer({ antialias: false,
     powerPreference: constrainedDevice ? "low-power" : "high-performance" });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, quality === 0 ? 1 : 1.5));
+  renderer.setPixelRatio(pixelRatioFor(quality));
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.autoUpdate = false;
   renderer.shadowMap.needsUpdate = true;
@@ -66,7 +70,7 @@ async function main() {
   const sun = new THREE.DirectionalLight(0xffe7c4, 2.8);
   sun.position.copy(SUN_DIR).multiplyScalar(2500);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(quality === 0 ? 1024 : 4096, quality === 0 ? 1024 : 4096);
+  sun.shadow.mapSize.set(shadowSizeFor(quality), shadowSizeFor(quality));
   const sc = sun.shadow.camera;
   sc.left = -1600;
   sc.right = 1600;
@@ -81,7 +85,7 @@ async function main() {
 
   // Postproceso: oclusión ambiental (GTAO) sobre un render multimuestreado.
   const floatTargets = renderer.extensions.has("EXT_color_buffer_float");
-  const samplesFor = (level: number) => level === 2 && floatTargets ? Math.min(4, renderer.capabilities.maxSamples) : 0;
+  const samplesFor = (level: number) => !constrainedDevice && level === 2 && floatTargets ? Math.min(4, renderer.capabilities.maxSamples) : 0;
   const target = new THREE.WebGLRenderTarget(1, 1, {
     type: floatTargets ? THREE.HalfFloatType : THREE.UnsignedByteType, samples: samplesFor(quality),
   });
@@ -93,7 +97,7 @@ async function main() {
   // Read the visible render depth: the override normal pass does not apply building growth.
   gtao.setGBuffer(composer.readBuffer.depthTexture!);
   gtao.blendIntensity = 0.65;
-  gtao.enabled = quality > 0 && floatTargets;
+  gtao.enabled = !constrainedDevice && quality > 0 && floatTargets;
   composer.addPass(gtao);
   composer.addPass(new OutputPass());
   let dirty = true;
@@ -103,6 +107,8 @@ async function main() {
     event.preventDefault();
     contextLost = true;
     document.getElementById("graphics-status")!.hidden = false;
+    // Release buffers while the context is lost. WebKit rejects old GPU handles after restore.
+    recoverRenderer();
   });
   renderer.domElement.addEventListener("webglcontextrestored", () => {
     contextLost = false;
@@ -303,23 +309,24 @@ async function main() {
   let frameTime = 0;
   let lastRender = 0;
   let renderedFrames = 0;
-  const setQuality = (level: number) => {
+  const setQuality = (level: number, preserveTextureDetail = false) => {
     quality = level;
-    gtao.enabled = level > 0 && floatTargets;
+    gtao.enabled = !constrainedDevice && level > 0 && floatTargets;
+    terrain.setDetail(level > 0 || preserveTextureDetail ? 1 : 0);
     for (const buffer of [composer.renderTarget1, composer.renderTarget2]) {
       if (buffer.samples !== samplesFor(level)) {
         buffer.dispose();
         buffer.samples = samplesFor(level);
       }
     }
-    const shadowSize = level === 2 ? 4096 : level === 1 ? 2048 : 1024;
+    const shadowSize = shadowSizeFor(level);
     if (sun.shadow.mapSize.x !== shadowSize) {
       sun.shadow.map?.dispose();
       sun.shadow.map = null;
       sun.shadow.mapSize.set(shadowSize, shadowSize);
     }
     renderer.shadowMap.needsUpdate = true;
-    renderer.setPixelRatio(Math.min(devicePixelRatio, level === 2 ? 1.5 : level === 1 ? 1.15 : 1));
+    renderer.setPixelRatio(pixelRatioFor(level));
     resize();
     fpsFrames = 0;
     frameTime = 0;
@@ -340,7 +347,8 @@ async function main() {
     frameTime += Math.min(elapsed, 250);
     fpsFrames++;
     if (fpsFrames < 90) return;
-    if (frameTime / fpsFrames > 28 && quality > 0) setQuality(quality - 1);
+    // Slow frames call for fewer screen pixels; texture memory has its own fixed budget.
+    if (frameTime / fpsFrames > 28 && quality > 0) setQuality(quality - 1, constrainedDevice);
     fpsFrames = 0;
     frameTime = 0;
   };
@@ -393,7 +401,7 @@ async function main() {
   settings.querySelector<HTMLSelectElement>("#detail-select")!.onchange = (event) => {
     const value = (event.target as HTMLSelectElement).value;
     automatic = value === "auto";
-    setQuality(automatic ? (constrainedDevice ? 0 : 2) : Number(value));
+    setQuality(automatic ? (constrainedDevice ? 1 : 2) : Number(value));
   };
   settings.querySelector<HTMLButtonElement>("#labels-toggle")!.onclick = (event) => {
     labelsOn = !labelsOn;
@@ -466,7 +474,8 @@ async function main() {
     stats() {
       return { renderedFrames, quality, year: previousYear, pixelRatio: renderer.getPixelRatio(), ao: gtao.enabled,
         calls: renderer.info.render.calls, triangles: renderer.info.render.triangles,
-        geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures };
+        geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures,
+        terrainTextures: terrain.textureStats() };
     },
     dbg: { scene, renderer, gtao, sun, composer, direct: false },
   };

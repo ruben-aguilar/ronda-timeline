@@ -48,12 +48,18 @@ Los controles **Luz**, **Detalle** y **Nombres** permiten cambiar la iluminació
 la calidad y ocultar etiquetas. **Auto** reduce la calidad si el tiempo de fotograma es alto.
 El botón **Vistas** también funciona en pantallas táctiles.
 
-En móviles y dispositivos con poca memoria, **Auto** empieza en modo ligero: sin oclusión
-ambiental ni multimuestreo, con sombras de 1024 px y fotografías del terreno de hasta 1024 px.
+En móviles y dispositivos con poca memoria, **Auto** empieza con una densidad de hasta 1,5,
+sin oclusión ambiental ni multimuestreo y con sombras de 1024 px. Las fotografías visibles se
+mejoran a 2048 px sobre vistas previas de 1024 px. Se conservan como máximo tres fotografías
+grandes: su presupuesto de 64 MiB incluye mipmaps y la imagen que se está cargando. Cambiar
+de lugar o de época libera las imágenes grandes que ya no hacen falta. Este presupuesto cubre
+las mejoras de las fotografías del terreno, no toda la memoria de la escena.
+
 Los archivos móviles se regeneran con `uv run scripts/export_mobile_textures.py` después
-de cambiar las fotografías o la máscara urbana. Si WebGL pierde su contexto, la escena se
-vuelve a dibujar con detalle ligero al recuperarlo. El botón **Recargar** permite reintentar
-si el navegador no lo recupera.
+de cambiar las fotografías o la máscara urbana. Si el tiempo por fotograma es alto, **Auto**
+reduce la densidad a 1 y conserva las fotografías nítidas dentro de su presupuesto. El modo
+**Ligero** y la recuperación de WebGL liberan las imágenes grandes. El botón **Recargar**
+permite reintentar si el navegador no recupera el contexto.
 
 El selector **Idioma** está junto al año. Se puede enlazar directamente a un idioma con
 `?lang=en` o `?lang=es`, también junto a una fecha: `?lang=en#year=1793`. Un parámetro válido
@@ -63,5 +69,11 @@ o español. Cambiar el selector actualiza el enlace y guarda la preferencia si e
 `npm run check:mobile -- http://localhost:5319` comprueba la recuperación de WebGL, el presupuesto
 gráfico móvil, los cambios de tamaño, el idioma y el arranque con almacenamiento bloqueado.
 Usa Chrome con pantalla táctil y densidad de píxeles emuladas; no sustituye una prueba en un teléfono real.
+
+`npm run check:mobile-textures -- http://localhost:5319` comprueba la resolución de las fotos
+en vistas cercanas, el límite de memoria y la liberación de imágenes al recorrer lugares y épocas.
+Incluye recuperación durante una descarga y reducción automática de resolución sin perder detalle.
+Se puede repetir con WebKit mediante `PW_BROWSER=webkit npm run check:mobile-textures -- http://localhost:5319`
+después de instalar ese navegador con `npx playwright-core install webkit`.
 
 Las mediciones y las instrucciones de comprobación están en [docs/performance](docs/performance/README.md).

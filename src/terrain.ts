@@ -1,8 +1,9 @@
 import * as THREE from "three";
-import { Dem, Y_OFFSET } from "./data";
+import { Dem, elevation, Y_OFFSET } from "./data";
 import { pbr } from "./textures";
 import { MODERN_PHOTO_GLSL } from "./modern-photo";
-import { terrainTexturePath } from "./device";
+import { constrainedDevice, terrainTexturePath } from "./device";
+import { createTerrainTexturePool } from "./terrain-textures";
 
 // Texture keyframes by year. Before 1935 the terrain uses the "historic" texture: the 2024
 // photo with the town replaced by countryside (scripts/make_landscape.py).
@@ -33,6 +34,8 @@ export interface Terrain {
   roofTextures: Record<string, THREE.IUniform>;
   update(camera: THREE.Camera): boolean;
   setYear(year: number): void;
+  setDetail(level: number): void;
+  textureStats(): ReturnType<ReturnType<typeof createTerrainTexturePool>["stats"]> | undefined;
 }
 
 export const NOISE_GLSL = /* glsl */ `
@@ -59,6 +62,7 @@ vec3 tPerturb(vec3 surfPos, vec3 n, vec2 dHdxy, float face) {
 `;
 
 export function createTerrain(dem: Dem, loader: THREE.TextureLoader, anisotropy: number, invalidate: () => void): Terrain {
+  const images = constrainedDevice ? createTerrainTexturePool(anisotropy, invalidate) : undefined;
   const tex = (name: string, srgb = true) => {
     const t = loader.load(terrainTexturePath(name));
     if (srgb) t.colorSpace = THREE.SRGBColorSpace;
@@ -89,6 +93,10 @@ export function createTerrain(dem: Dem, loader: THREE.TextureLoader, anisotropy:
     tTajo: { value: null as THREE.Texture | null },
     uTajo: { value: 0 },
   };
+  for (const [name, uniform] of [
+    ["historic.webp", uniforms.tHist], ["ortho_1956.webp", uniforms.t1956], ["ortho_1980.webp", uniforms.t1980],
+    ["ortho_2004.webp", uniforms.t2004], ["ortho_2024.webp", uniforms.t2024], ["ortho_2024_center.webp", uniforms.t2024c],
+  ] as const) images?.register(name, uniform);
   const roofTextures = { tModernBase: uniforms.t2024, tModernCenter: uniforms.t2024c,
       tModernWest: uniforms.tWest, tModernSouth: uniforms.tSouth, uRoofWest: uniforms.uWest, uRoofSouth: uniforms.uSouth,
       tModernStation: uniforms.tStation, tModernNortheast: uniforms.tNortheast, tModernTajo: uniforms.tTajo,
@@ -102,6 +110,8 @@ export function createTerrain(dem: Dem, loader: THREE.TextureLoader, anisotropy:
   ];
   let detailYear = 0;
   let currentYear = 0;
+  const direction = new THREE.Vector3();
+  const focus = new THREE.Vector3();
 
   const mat = new THREE.MeshStandardMaterial({ roughness: 0.93, metalness: 0 });
   mat.onBeforeCompile = (shader) => {
@@ -274,6 +284,8 @@ gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, edge);`,
     mesh,
     // Reuse the terrain's images: no duplicate downloads or GPU textures for roofs.
     roofTextures,
+    setDetail(level) { images?.setEnabled(level > 0); },
+    textureStats() { return images?.stats(); },
     update(camera) {
       mesh.updateMatrixWorld();
       let changed = false;
@@ -287,10 +299,26 @@ gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, edge);`,
           texture.colorSpace = THREE.SRGBColorSpace;
           texture.anisotropy = Math.min(anisotropy, 8);
           detail.texture.value = texture;
+          images?.register(`ortho_${detail.name}.webp`, detail.texture as THREE.IUniform<THREE.Texture>);
           detail.ready = true;
           detail.weight.value = detail.name === "west" || detail.name === "south" ? (currentYear >= 2022 ? 1 : 0) : detailYear;
           invalidate();
         }, undefined, () => { /* Retain the base orthophoto if the detail tile is unavailable. */ });
+      }
+      if (images) {
+        const weights = photoWeights(currentYear);
+        const names = ["historic.webp", "ortho_1956.webp", "ortho_1980.webp", "ortho_2004.webp", "ortho_2024.webp"]
+          .filter((_, i) => weights[i] > 0);
+        if (weights[4] > 0) names.push("ortho_2024_center.webp");
+        // Prefer the photographed ground in front of the camera, including orbit views.
+        camera.getWorldDirection(direction);
+        const ground = elevation(dem, camera.position.x, -camera.position.z) - Y_OFFSET;
+        const distance = Math.min(3000, Math.max(0, camera.position.y - ground) / Math.max(0.1, -direction.y));
+        focus.copy(camera.position).addScaledVector(direction, distance);
+        const nearby = details.filter(detail => detail.ready && detail.weight.value > 0)
+          .sort((a, b) => Math.hypot(focus.x - a.west - 600, -focus.z - a.south - 600)
+            - Math.hypot(focus.x - b.west - 600, -focus.z - b.south - 600));
+        images.select([...names, ...nearby.map(detail => `ortho_${detail.name}.webp`)]);
       }
       for (const tile of tiles) {
         const before = tile.getCurrentLevel();
