@@ -3,9 +3,11 @@ import english from "./locales/en.json";
 export type Language = "es" | "en";
 const catalog: Record<string, string> = english;
 let language: Language = "es";
+const queryLanguage = new URLSearchParams(location.search).get("lang")?.toLowerCase();
 try {
   if (localStorage.getItem("ronda-language") === "en") language = "en";
 } catch { /* Storage can be disabled in private browsers. */ }
+if (queryLanguage === "es" || queryLanguage === "en") language = queryLanguage;
 const listeners = new Set<() => void>();
 const numbers = { es: new Intl.NumberFormat("es-ES"), en: new Intl.NumberFormat("en-GB") };
 
@@ -15,9 +17,12 @@ export const formatNumber = (value: number): string => numbers[language].format(
 export const onLanguageChange = (refresh: () => void): void => { listeners.add(refresh); };
 
 export function setLanguage(next: Language): void {
+  try { localStorage.setItem("ronda-language", next); } catch { /* Keep the selection for this visit. */ }
+  const url = new URL(location.href);
+  url.searchParams.set("lang", next);
+  history.replaceState(null, "", url);
   if (next === language) return;
   language = next;
-  try { localStorage.setItem("ronda-language", next); } catch { /* Keep the selection for this visit. */ }
   document.documentElement.lang = next;
   for (const refresh of listeners) refresh();
 }

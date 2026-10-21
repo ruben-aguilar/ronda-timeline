@@ -22,6 +22,7 @@ import { refineBridgeFoundations } from "./puente-nuevo";
 import { CONFIDENCE_LABEL, Era, eraAt, formatNumber, formatYear, eraRange, PLAY_SECONDS, posAt, yearAt, yearsPerStep } from "./timeline";
 import { buildTimelineUI } from "./ui";
 import { createMusic } from "./music";
+import { constrainedDevice } from "./device";
 
 const HAZE = new THREE.Color("#b9c6d2");
 const SUN_DIR = new THREE.Vector3(-1400, 1150, 900).normalize();
@@ -29,9 +30,17 @@ const SUN_DIR = new THREE.Vector3(-1400, 1150, 900).normalize();
 async function main() {
   document.documentElement.lang = getLanguage();
   bindTranslations(document.documentElement);
+  const languageSelect = document.querySelector<HTMLSelectElement>("#language-select")!;
+  const syncLanguage = () => { languageSelect.value = getLanguage(); };
+  syncLanguage();
+  onLanguageChange(syncLanguage);
+  languageSelect.addEventListener("change", () => setLanguage(languageSelect.value === "en" ? "en" : "es"));
+  document.getElementById("graphics-retry")!.addEventListener("click", () => location.reload());
   const app = document.getElementById("app")!;
-  const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+  let quality = constrainedDevice ? 0 : 2;
+  const renderer = new THREE.WebGLRenderer({ antialias: false,
+    powerPreference: constrainedDevice ? "low-power" : "high-performance" });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, quality === 0 ? 1 : 1.5));
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.autoUpdate = false;
   renderer.shadowMap.needsUpdate = true;
@@ -57,7 +66,7 @@ async function main() {
   const sun = new THREE.DirectionalLight(0xffe7c4, 2.8);
   sun.position.copy(SUN_DIR).multiplyScalar(2500);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(4096, 4096);
+  sun.shadow.mapSize.set(quality === 0 ? 1024 : 4096, quality === 0 ? 1024 : 4096);
   const sc = sun.shadow.camera;
   sc.left = -1600;
   sc.right = 1600;
@@ -71,7 +80,11 @@ async function main() {
   scene.add(sun.target);
 
   // Postproceso: oclusión ambiental (GTAO) sobre un render multimuestreado.
-  const target = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 });
+  const floatTargets = renderer.extensions.has("EXT_color_buffer_float");
+  const samplesFor = (level: number) => level === 2 && floatTargets ? Math.min(4, renderer.capabilities.maxSamples) : 0;
+  const target = new THREE.WebGLRenderTarget(1, 1, {
+    type: floatTargets ? THREE.HalfFloatType : THREE.UnsignedByteType, samples: samplesFor(quality),
+  });
   target.depthTexture = new THREE.DepthTexture(1, 1, THREE.UnsignedIntType);
   const composer = new EffectComposer(renderer, target);
   composer.addPass(new RenderPass(scene, camera));
@@ -80,19 +93,37 @@ async function main() {
   // Read the visible render depth: the override normal pass does not apply building growth.
   gtao.setGBuffer(composer.readBuffer.depthTexture!);
   gtao.blendIntensity = 0.65;
+  gtao.enabled = quality > 0 && floatTargets;
   composer.addPass(gtao);
   composer.addPass(new OutputPass());
   let dirty = true;
+  let contextLost = false;
+  let recoverRenderer = () => {};
+  renderer.domElement.addEventListener("webglcontextlost", event => {
+    event.preventDefault();
+    contextLost = true;
+    document.getElementById("graphics-status")!.hidden = false;
+  });
+  renderer.domElement.addEventListener("webglcontextrestored", () => {
+    contextLost = false;
+    dirty = renderer.shadowMap.needsUpdate = true;
+    recoverRenderer();
+    document.getElementById("graphics-status")!.hidden = true;
+  });
   let labelsOn = true;
   const resize = () => {
     dirty = true;
-    camera.aspect = window.innerWidth / window.innerHeight;
+    // A stale canvas width can inflate innerWidth after rotating a mobile browser.
+    const width = document.documentElement.clientWidth;
+    const height = document.documentElement.clientHeight;
+    camera.aspect = width / height;
     camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(width, height);
     composer.setPixelRatio(renderer.getPixelRatio());
-    composer.setSize(window.innerWidth, window.innerHeight);
-    gtao.setSize(Math.max(1, Math.round(window.innerWidth * renderer.getPixelRatio() / 2)), Math.max(1, Math.round(window.innerHeight * renderer.getPixelRatio() / 2)));
-    labelRenderer.setSize(window.innerWidth, window.innerHeight);
+    composer.setSize(width, height);
+    gtao.setSize(gtao.enabled ? Math.max(1, Math.round(width * renderer.getPixelRatio() / 2)) : 1,
+      gtao.enabled ? Math.max(1, Math.round(height * renderer.getPixelRatio() / 2)) : 1);
+    labelRenderer.setSize(width, height);
   };
   resize();
   window.addEventListener("resize", resize);
@@ -186,9 +217,11 @@ async function main() {
   const setCollapsed = (on: boolean) => {
     card.classList.toggle("collapsed", on);
     toggle.setAttribute("aria-label", t(on ? "Mostrar panel" : "Ocultar panel"));
-    localStorage.setItem("eraCollapsed", on ? "1" : "0");
+    try { localStorage.setItem("eraCollapsed", on ? "1" : "0"); } catch { /* Optional preference. */ }
   };
-  setCollapsed(localStorage.getItem("eraCollapsed") === "1");
+  let collapsed = false;
+  try { collapsed = localStorage.getItem("eraCollapsed") === "1"; } catch { /* Storage may be disabled. */ }
+  setCollapsed(collapsed);
   toggle.addEventListener("click", () => setCollapsed(!card.classList.contains("collapsed")));
 
   let musicEnabled = false;
@@ -265,7 +298,6 @@ async function main() {
   let lastHash = 0;
 
   // Use only rendered frames for adaptation; an idle or hidden tab is not a slow GPU.
-  let quality = 2;
   let automatic = true;
   let fpsFrames = 0;
   let frameTime = 0;
@@ -273,11 +305,32 @@ async function main() {
   let renderedFrames = 0;
   const setQuality = (level: number) => {
     quality = level;
-    gtao.enabled = level > 0;
+    gtao.enabled = level > 0 && floatTargets;
+    for (const buffer of [composer.renderTarget1, composer.renderTarget2]) {
+      if (buffer.samples !== samplesFor(level)) {
+        buffer.dispose();
+        buffer.samples = samplesFor(level);
+      }
+    }
+    const shadowSize = level === 2 ? 4096 : level === 1 ? 2048 : 1024;
+    if (sun.shadow.mapSize.x !== shadowSize) {
+      sun.shadow.map?.dispose();
+      sun.shadow.map = null;
+      sun.shadow.mapSize.set(shadowSize, shadowSize);
+    }
+    renderer.shadowMap.needsUpdate = true;
     renderer.setPixelRatio(Math.min(devicePixelRatio, level === 2 ? 1.5 : level === 1 ? 1.15 : 1));
     resize();
     fpsFrames = 0;
     frameTime = 0;
+  };
+  recoverRenderer = () => {
+    // Restore with a smaller GPU budget, including cached shadows and a fresh frame.
+    setQuality(0);
+    timer.reset();
+    lastRender = 0;
+    const detailSelect = document.querySelector<HTMLSelectElement>("#detail-select");
+    if (detailSelect && !automatic) detailSelect.value = "0";
   };
   const adaptQuality = (now: number) => {
     const previous = lastRender;
@@ -301,7 +354,6 @@ async function main() {
     <label>Luz <select id="light-select" aria-label="Luz"><option value="day">Día</option><option value="late">Tarde</option></select></label>
     <label>Detalle <select id="detail-select" aria-label="Detalle"><option value="auto">Auto</option><option value="2">Alto</option><option value="1">Medio</option><option value="0">Ligero</option></select></label>
     <button id="labels-toggle" aria-pressed="true" title="Mostrar u ocultar nombres">Nombres</button>
-    <label>Idioma <select id="language-select" aria-label="Idioma"><option value="es" lang="es">Español</option><option value="en" lang="en">English</option></select></label>
     <div class="music-controls">
       <button id="music-toggle" aria-pressed="false" aria-describedby="music-description">Música</button>
       <label>Volumen <input id="music-volume" type="range" min="0" max="100" value="35" aria-label="Volumen de la música" /></label>
@@ -330,9 +382,6 @@ async function main() {
   document.getElementById("info-btn")!.addEventListener("click", () => setSettingsOpen(false));
   document.addEventListener("ronda:interface", () => setSettingsOpen(false));
   bindTranslations(settings);
-  const languageSelect = settings.querySelector<HTMLSelectElement>("#language-select")!;
-  languageSelect.value = getLanguage();
-  languageSelect.addEventListener("change", () => setLanguage(languageSelect.value === "en" ? "en" : "es"));
   settings.querySelector<HTMLSelectElement>("#light-select")!.onchange = (event) => {
     const late = (event.target as HTMLSelectElement).value === "late";
     SUN_DIR.set(-1400, late ? 650 : 1150, 900).normalize();
@@ -344,7 +393,7 @@ async function main() {
   settings.querySelector<HTMLSelectElement>("#detail-select")!.onchange = (event) => {
     const value = (event.target as HTMLSelectElement).value;
     automatic = value === "auto";
-    setQuality(automatic ? 2 : Number(value));
+    setQuality(automatic ? (constrainedDevice ? 0 : 2) : Number(value));
   };
   settings.querySelector<HTMLButtonElement>("#labels-toggle")!.onclick = (event) => {
     labelsOn = !labelsOn;
@@ -423,7 +472,7 @@ async function main() {
   };
 
   function frame() {
-    if (frozen || document.hidden) return;
+    if (frozen || document.hidden || contextLost) return;
     timer.update();
     const dt = Math.min(timer.getDelta(), 0.1);
     if (playing) {

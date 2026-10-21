@@ -8,6 +8,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "check": "node tools/check.mjs",
+    "check:mobile": "node tools/check-mobile.mjs",
     "benchmark": "node tools/benchmark.mjs"
   },
   "dependencies": {

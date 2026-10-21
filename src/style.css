@@ -25,6 +25,7 @@ button {
   font: inherit;
   color: inherit;
 }
+#app { position: fixed; inset: 0; overflow: hidden; }
 #app canvas {
   display: block;
 }
@@ -166,6 +167,47 @@ button {
 }
 #info-btn:hover {
   border-color: var(--gold);
+}
+#language-control {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  margin-top: 12px;
+  text-shadow: none;
+}
+#language-control span { color: var(--gold); font-size: 11px; font-weight: 600; }
+#language-select {
+  min-height: 44px;
+  width: 112px;
+  padding: 8px 10px;
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  background: #29241f;
+  color: var(--ink);
+  font: 500 16px var(--sans);
+  cursor: pointer;
+}
+#graphics-status {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  padding: 24px;
+  text-align: center;
+  background: var(--glass-strong);
+}
+#graphics-status[hidden] { display: none; }
+#graphics-retry {
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  color: var(--ink);
+  background: #29241f;
+  cursor: pointer;
 }
 
 /* Camera bar */
@@ -960,7 +1002,16 @@ button:focus-visible, select:focus-visible { outline: 2px solid var(--gold); out
   #cambar { right: 10px; bottom: calc(var(--timeline-height, 176px) + 92px); }
   #timeline { left: 10px; right: 10px; padding: 10px 12px; }
   .tl-era-name { font-size: 18px; }
-  #clock { top: 12px; right: 12px; }
+  #clock { top: 12px; right: 12px; width: 112px; }
+  #year { font-size: 36px; }
+  #cambar { bottom: calc(var(--timeline-height, 176px) + 32px); flex-direction: row; align-items: flex-end; gap: 6px; }
+  .cam-modes { flex-direction: row; gap: 2px; padding: 3px; }
+  .cam-modes button { width: 34px; font-size: 9px; }
+  .cam-modes button svg { width: 20px; height: 20px; }
+  #cambar .cam-views { width: 66px; }
+  #cambar .cam-views.open { position: absolute; right: 0; bottom: calc(100% + 8px); width: min(240px, calc(100vw - 20px)); }
+  #cambar .ui-toggle { width: 68px; padding: 8px 4px; }
+  .cam-help { right: 0; top: auto; bottom: calc(100% + 8px); }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }

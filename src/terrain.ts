@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { Dem, Y_OFFSET } from "./data";
 import { pbr } from "./textures";
 import { MODERN_PHOTO_GLSL } from "./modern-photo";
+import { terrainTexturePath } from "./device";
 
 // Texture keyframes by year. Before 1935 the terrain uses the "historic" texture: the 2024
 // photo with the town replaced by countryside (scripts/make_landscape.py).
@@ -59,7 +60,7 @@ vec3 tPerturb(vec3 surfPos, vec3 n, vec2 dHdxy, float face) {
 
 export function createTerrain(dem: Dem, loader: THREE.TextureLoader, anisotropy: number, invalidate: () => void): Terrain {
   const tex = (name: string, srgb = true) => {
-    const t = loader.load(`textures/${name}`);
+    const t = loader.load(terrainTexturePath(name));
     if (srgb) t.colorSpace = THREE.SRGBColorSpace;
     t.anisotropy = Math.min(anisotropy, 8);
     t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
@@ -282,7 +283,7 @@ gl_FragColor.rgb = mix(gl_FragColor.rgb, fogColor, edge);`,
         if (detail.requested || detailYear <= 0 || ((detail.name === "west" || detail.name === "south") && currentYear < 2022) || Math.hypot(dx, dn) >= detail.distance) continue;
         detail.requested = true;
         // Independent manager: this optional image does not block initial loading.
-        new THREE.TextureLoader(new THREE.LoadingManager()).load(`textures/ortho_${detail.name}.webp`, (texture) => {
+        new THREE.TextureLoader(new THREE.LoadingManager()).load(terrainTexturePath(`ortho_${detail.name}.webp`), (texture) => {
           texture.colorSpace = THREE.SRGBColorSpace;
           texture.anisotropy = Math.min(anisotropy, 8);
           detail.texture.value = texture;

@@ -11,6 +11,10 @@
   </head>
   <body>
     <div id="app"></div>
+    <div id="graphics-status" role="status" hidden>
+      <p>Restaurando la vista 3D…</p>
+      <button type="button" id="graphics-retry">Recargar</button>
+    </div>
     <div id="loading">
       <div class="loading-title">Ronda</div>
       <div class="loading-sub">a través del tiempo</div>
@@ -58,6 +62,13 @@
     <div id="clock">
       <div id="year"></div>
       <div id="count"></div>
+      <label id="language-control" for="language-select">
+        <span>Idioma</span>
+        <select id="language-select" aria-label="Idioma">
+          <option value="es" lang="es">Español</option>
+          <option value="en" lang="en">English</option>
+        </select>
+      </label>
       <div class="clock-actions">
         <button id="settings-btn" title="Ajustes" aria-label="Ajustes" aria-expanded="false" aria-controls="scene-settings">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 3-.5 2-2 1.2-2-.6L2 9.8l1.5 1.4v2L2 14.6l2.5 4.2 2-.6 2 1.2L9 22h5l.5-2.6 2-1.2 2 .6 2.5-4.2-1.5-1.4v-2L21 9.8l-2.5-4.2-2 .6-2-1.2L14 3Z"/><circle cx="11.5" cy="12.5" r="3"/></svg>

@@ -48,4 +48,20 @@ Los controles **Luz**, **Detalle** y **Nombres** permiten cambiar la iluminació
 la calidad y ocultar etiquetas. **Auto** reduce la calidad si el tiempo de fotograma es alto.
 El botón **Vistas** también funciona en pantallas táctiles.
 
+En móviles y dispositivos con poca memoria, **Auto** empieza en modo ligero: sin oclusión
+ambiental ni multimuestreo, con sombras de 1024 px y fotografías del terreno de hasta 1024 px.
+Los archivos móviles se regeneran con `uv run scripts/export_mobile_textures.py` después
+de cambiar las fotografías o la máscara urbana. Si WebGL pierde su contexto, la escena se
+vuelve a dibujar con detalle ligero al recuperarlo. El botón **Recargar** permite reintentar
+si el navegador no lo recupera.
+
+El selector **Idioma** está junto al año. Se puede enlazar directamente a un idioma con
+`?lang=en` o `?lang=es`, también junto a una fecha: `?lang=en#year=1793`. Un parámetro válido
+tiene prioridad sobre la preferencia guardada. Un valor no válido usa la preferencia guardada
+o español. Cambiar el selector actualiza el enlace y guarda la preferencia si el navegador lo permite.
+
+`npm run check:mobile -- http://localhost:5319` comprueba la recuperación de WebGL, el presupuesto
+gráfico móvil, los cambios de tamaño, el idioma y el arranque con almacenamiento bloqueado.
+Usa Chrome con pantalla táctil y densidad de píxeles emuladas; no sustituye una prueba en un teléfono real.
+
 Las mediciones y las instrucciones de comprobación están en [docs/performance](docs/performance/README.md).

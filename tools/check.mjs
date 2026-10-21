@@ -51,9 +51,9 @@ try {
   await page.getByLabel('Detalle', { exact: true }).selectOption('2');
   await page.waitForTimeout(200);
   assert.equal(await page.evaluate(() => window.__ronda.stats().ao), true);
-  await page.getByRole('button', { name: 'Nombres', exact: true }).click();
+  await page.locator('#labels-toggle').click();
   assert.equal(await page.locator('.labels').evaluate(el => el.classList.contains('hide-names')), true);
-  await page.getByRole('button', { name: 'Nombres', exact: true }).click();
+  await page.locator('#labels-toggle').click();
   await page.keyboard.press('Escape');
   await page.getByRole('button', { name: 'Reproducir', exact: true }).click();
   await page.waitForTimeout(250);
